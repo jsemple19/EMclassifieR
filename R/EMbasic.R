@@ -278,7 +278,7 @@ plotClassesSingleGene<-function(dataOrderedByClass, performSilhouette=T,
     # add lines separating classes
     p<-p+ggplot2::geom_hline(yintercept=classBorders,colour="grey80")
     # add color bar for classes
-    p+ggplot2::geom_segment(data=df1,mapping=ggplot2::aes(x=xlim[2]+10,y=readNumber-0.5,xend=xlim[2]+10,yend=readNumber+0.5,colour=Class),size=5)+
+    p<-p+ggplot2::geom_segment(data=df1,mapping=ggplot2::aes(x=xlim[2]+10,y=readNumber-0.5,xend=xlim[2]+10,yend=readNumber+0.5,colour=Class),size=5)+
       ggplot2::geom_vline(xintercept=xlim[2],colour="grey80")
     return(p)
 }
