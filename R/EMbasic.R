@@ -16,7 +16,7 @@ em_basic <- function(classes,priorProb,data) {
   fractionIdx<-data > 0 & data < 1
   binaryData<-data
   if (sum(fractionIdx)>0){
-    binaryData[fractionIdx]<-rbinom(n=sum(fractionIdx),size=1,prob=data[fractionIdx])
+    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=data[fractionIdx])
   }
 
   numClasses=dim(classes)[1]         # Number of classes
@@ -28,7 +28,7 @@ em_basic <- function(classes,priorProb,data) {
   for(i in 1:numSamples) {
     for (j in 1:numClasses) {
       # Bernoulli (size = 1): simply multiplying by class probability
-      l[i,j] = sum(dbinom(x = binaryData[i,], size = 1, prob = classes[j,], log = T))
+      l[i,j] = sum(stats::dbinom(x = binaryData[i,], size = 1, prob = classes[j,], log = T))
       # not sure about implementing the beta distribution
       #l[i,j] = sum(dbeta(x = data[i,], shape1 = classes[j,], shape2 = classes[j,], log = T))
     }
@@ -199,7 +199,7 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
   numClasses=ncol(posteriorProb)
   readsClasses = apply(posteriorProb, 1, which.max)
   #readsTable = table(readsClasses)
-  classMeans = aggregate(data, by = list(readsClasses), FUN = mean)[-1]
+  classMeans = stats::aggregate(data, by = list(readsClasses), FUN = mean)[-1]
 
   if (!is.null(previousClassMeans)) {
     print("orderByPreviousClusters")
@@ -209,7 +209,7 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
   } else {
     print("orderByHClust")
     # order the classes by similarity (class means)
-    classOrder = hclust(dist(classMeans))$order
+    classOrder = stats::hclust(stats::dist(classMeans))$order
     classMeans = classMeans[classOrder, ]
   }
 

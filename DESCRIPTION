@@ -20,7 +20,9 @@ RoxygenNote: 6.1.1
 Depends: R (>= 3.5.1)
 Imports: 
       zoo,
-      cluster  
+      cluster,
+      ggplot2,
+      tidyr
 Suggests: 
     knitr,
     rmarkdown,
