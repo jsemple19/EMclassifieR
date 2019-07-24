@@ -162,9 +162,9 @@ runEM<-function(data, numClasses, convergence_error=1e-6, maxIterations=100) {
 #'
 #' Order classes either according to the order of previous classes or order by similarity using hclust
 #' @param numClasses An integer with the number of classes learned
-#' @param classMeans
-#' @param prev_classMeans
-#' @return Returns a vector with the classes ordered
+#' @param classMeans The mean profile of all reads in their classes
+#' @param prev_classMeans The mean profile of all reads in their classes from a previous run
+#' @return Returns a vector with the order of the classes
 #' @export
 order_by_prev_cluster <- function(numClasses, classMeans, prev_classMeans) {
   pr = prev_classMeans
@@ -180,15 +180,13 @@ order_by_prev_cluster <- function(numClasses, classMeans, prev_classMeans) {
 
 
 
-#' Classify reads and sort them
+#' Classify and sort reads into their classes
 #'
 #' Classify reads by their posterior probability of belonging to a specific class
 #' Then sort the classes by using similarity to the mean profile of previous classes.
-#' If the means of previous classes was not provided, hclust is used to cluste classes
-#' by their similarity.
+#' If the means of previous classes was not provided, hclust is used to cluste classes by their similarity.
 #' @param data A matrix of methylation or bincount values (reads x position)
-#' @param posteriorProb posteriorProb: a matrix of probabilites of each sample belonging
-#'            to a particular class (samples x class)
+#' @param posteriorProb posteriorProb: a matrix of probabilites of each sample belonging to a particular class (samples x class)
 #' @param previousClassMeans A matrix of the class means from a previous round of clustering
 #' @return Returns a matrix with the reads classified (__classX is appended to the read name), and the classes are sorted.
 #' @export
@@ -226,15 +224,17 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
 #'
 #' Create a single molecule plot of the reads sorted by class.
 #' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
-#' @param performSilhouette Make a Silhouette plot to compare within and between class distances
-#' @return Produces a single molecule plot sorted by classes and a silouhette plot
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param title A title for the plot (default is "Reads by classes")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS)
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
-plotClassesSingleGene<-function(dataOrderedByClass, performSilhouette=T,
+plotClassesSingleGene<-function(dataOrderedByClass,
                                 xlim=c(-250,250), title="Reads by classes",
                                 myXlab="CpG/GpC position",
                                 featureLabel="TSS", baseFontSize=12) {
-  # assign classes to reads according to the highest class probability
-  #numClasses=ncol(posteriorProb)
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",1)
   readsTable <- table(readsClasses)
@@ -283,18 +283,50 @@ plotClassesSingleGene<-function(dataOrderedByClass, performSilhouette=T,
     return(p)
 }
 
-  ########################################################################################
 
 
-#   if (performSilhouette) {
-#     region<-sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",1)
-#     readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
-#     df1<-data.frame(regions=region,class=readClasses)
-#     table(df1)
-#     write.csv(df1,)
-#     silhouetteSingleK()
-#   }
-# }
-###############################################################################
+#' Plot silhouette plot to evaluate classification
+#'
+#' Create a silhouette plot to evaluate the quality of classification, and return some basic parameters about the classification
+#' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
+#' @param numClasses An integer with the number of classes learned
+#' @param silhouetteDir String denoting the directory in which to save silhouette plots
+#' @param regionName String with the name of the region for which reads are being classified.
+#' @return Creates a silhoutte plot in a pdf file and returns a dataframe with mean and SD of silhouette width overall, and per class, as well as number of reads per class
+#' @export
+silouhettePlot<-function(dataOrderedByClass, numClasses, silhouetteDir,
+                                 regionName){
+  # split off class number from row name
+  classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
+                                        split="__class"),"[[",2))
+  dis<-dist(dataOrderedByClass) # get distance matrix between reads
+  sil<-cluster::silhouette(classes,dis) # caluculate silhouette
+
+  pdf(paste(silhouetteDir,"/", regionName, "_Silhouette_K", K, ".pdf", sep=""))
+  plot(sil)
+  abline(v=df$silouhetteWidthMean, col="red")
+  dev.off()
+
+  classTable <- table(paste0("class",classes))
+  df<-data.frame(regionName=regionName,numClasses=numClasses,
+                 silouhetteWidthMean=mean(sil[, 3]),
+                 silouhetteWidthSD=sd(sil[, 3]),stringsAsFactors=F)
+  # Add number of reads per class
+  df[,paste0("class",1:numClasses,"_reads")]<-NA
+  df[,paste0(names(classTable),"_reads")]<-classTable
+  # Add average silouhette width per class
+  df[,paste0("class",1:numClasses,"_silMean")]<-NA
+  silWidthMean<-aggregate(sil[,3],by=list(sil[,1]),FUN=mean)
+  colnames(silWidthMean)<-c("class","mean")
+  df[,paste0("class",silWidthMean$class,"_silMean")]<-silWidthMean$mean
+  #classMeans = aggregate(data, by = list(readsClasses), FUN = mean)[-1]
+  # Add silouhette width SD per class
+  df[,paste0("class",1:numClasses,"_silSD")]<-NA
+  silWidthSD<-aggregate(sil[,3],by=list(sil[,1]),FUN=sd)
+  colnames(silWidthSD)<-c("class","sd")
+  df[,paste0("class",silWidthSD$class,"_silSD")]<-silWidthSD$sd
+  return(df)
+}
+
 
 
