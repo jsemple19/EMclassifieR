@@ -2,12 +2,12 @@
 title: "Using EMclassifieR on methylation data"
 author: "Jennifer Semple"
 date: "7/18/2019"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(EMclassifieR, quietly=T)
+suppressMessages(library(EMclassifieR))
 ```
 
 # The data
@@ -21,24 +21,87 @@ head(matTable)
 
 The matrices are in RDS format. For learning it is probably best to process them to remove any reads containing NAs.
 ```{r}
-m1<-readRDS(system.file("extdata", matTable$filename[1], package = "EMclassifieR", mustWork=TRUE))
-dim(m1)
-m1<-removeAllNArows(m1)
-dim(m1)
+i=1
+data<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
+dim(data)
+data<-removeAllNArows(m1)
+dim(data)
 ```
 
 
 ## Learning classes for single genes
 To look at one gene at a time one can use the minimal matrix which includes only positions with a CpG or GpC motif in them.
 
-```{r}
+```{r,eval=F}
 # Configuration
 K_range = 2:10                       # Number of classes to be found
 maxIterations = 100
 convergence_error = 10^-6
-#geneNr = 1
-performSilhouette = T
-silhouetteDistance = "euclidean"
+
+    
+outPath="../runResultsEMclass"
+
+
+runEMrepeats<-function(data=m1,numClasses=3,convergence_error=1e-6, maxIterations=100,
+                        repeats=10,outPath="."){
+  # make output directories
+  makeDirs(path=outPath,dirNameList=c("silhouettePlots","dataOrderedByClass","classPlots",
+                                          "classMeanPlots"))
+  for (rep in 1:repeats) {
+    # do classifiction
+    emClass<-runEM(data=m1, numClasses=3, convergence_error=1e-6, maxIterations=100)
+    # order data by class 
+    dataOrderedByClass<-classifyAndSortReads(data=data, 
+                                             posteriorProb=emClass$posteriorProb, 
+                                             previousClassMeans=NULL)
+    
+    saveRDS(dataOrderedByClass, file=paste0(outPath, "/dataOrderedByClass/",
+                                            matTable$sample[i], "_", 
+                                            matTable$region[i],"_rep",rep,".pdf"))
+    # do single molecule plots of classes
+    p<-plotClassesSingleGene(dataOrderedByClass=dataOrderedByClass, xlim=c(-250,250), 
+                             title = paste(matTable$sample[i], matTable$region[i]), 
+                             myXlab="CpG/GpC position", featureLabel="TSS", baseFontSize=12)
+
+    
+
+    ggplot2::ggsave(filename=paste0(outPath,"/classifiedReads_",matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"),
+                    plot=p, device="pdf", width=19, height=29, units="cm")
+
+    # do line plots of class mean values
+    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=FALSE, 
+                       title=paste(matTable$sample[i], matTable$region[i], 
+                                   "Class means, repeat ", rep),
+                         myXlab="CpG/GpC position",featureLabel="TSS",
+                         baseFontSize=12)
+    
+    ggplot2::ggsave(filename=paste0(outPath,"/classMeans_",matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"), 
+                    plot=p, device="pdf", width=29, height=19, units="cm")
+    
+    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=TRUE, 
+                       title=paste(matTable$sample[i], matTable$region[i], 
+                                   "Class means, repeat ", rep),
+                         myXlab="CpG/GpC position",featureLabel="TSS",
+                         baseFontSize=12)
+    
+    ggplot2::ggsave(filename=paste0(outPath,"/classMeans_facet_",matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"), 
+                    plot=p, device="pdf", width=19, height=29, units="cm")
+
+
+
+    # do silhouette plot and silhouette data
+    df<-silhouettePlot(dataOrderedByClass, numClasses, 
+                       silhouetteDir=paste0(outPath,"/silhouettePlots"),
+                                 regionName=paste0(matTable$sample[i], "_",
+                                    matTable$region[i]))
+    #save
+  }
+  return(0)
+}
+    
 
 geneNr=1
 
@@ -55,8 +118,8 @@ if (exists("firstClusteringClassMeans") && !is.null(firstClusteringClassMeans)) 
 }
 
 # Adjusted from: http://www.sthda.com/english/wiki/print.php?id=239#average-silhouette-method
-# vector of Silhouette values for K determination
-if (performSilhouette) {
+# vector of silhouette values for K determination
+if (performsilhouette) {
   sil <- rep(0, max(K_range))
   dis = dist(data, method = silhouetteDistance) # might not work for >2000 reads (huge matrix)
 }

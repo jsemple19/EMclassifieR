@@ -2,9 +2,12 @@
 
 export(classifyAndSortReads)
 export(em_basic)
+export(makeDirs)
 export(order_by_prev_cluster)
 export(padMissingColWithNAs)
+export(plotClassMeans)
 export(plotClassesSingleGene)
 export(remove0)
 export(removeAllNArows)
 export(runEM)
+export(silhouettePlot)

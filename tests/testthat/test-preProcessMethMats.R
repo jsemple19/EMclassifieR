@@ -1,14 +1,14 @@
 context("preProcessMethMats")
 
-test_that("NA rows are removed", {
+testthat::test_that("NA rows are removed", {
   mat<-matrix(c(1,2,3,NA,4,5),nrow=3,byrow=T)
 
-  expect_equal(removeAllNArows(mat),matrix(c(1,2,4,5),nrow=2,byrow=T))
+  testthat::expect_equal(removeAllNArows(mat),matrix(c(1,2,4,5),nrow=2,byrow=T))
 })
 
 
 
-test_that("NAs are added for missing columns", {
+testthat::test_that("NAs are added for missing columns", {
   mat<-matrix(c(1:6),nrow=2,byrow=T)
   colnames(mat)<-c(-2,1,2)
   rownames(mat)<-c("a","b")
@@ -16,15 +16,16 @@ test_that("NAs are added for missing columns", {
   colnames(endMat)<-c(-2,-1,1,2)
   rownames(endMat)<-c("a","b")
 
-  expect_equal(padMissingColWithNAs(mat,colRange=c(-2,2)),endMat)
+  testthat::expect_equal(padMissingColWithNAs(mat,colRange=c(-2,2)),
+                                              endMat)
 })
 
 
 
-test_that("0 is removed from the vector", {
+testthat::test_that("0 is removed from the vector", {
   vec<-c(-2:2)
 
-  expect_equal(remove0(vec),c(-2,-1,1,2))
+  testthat::expect_equal(remove0(vec),c(-2,-1,1,2))
 })
 
 

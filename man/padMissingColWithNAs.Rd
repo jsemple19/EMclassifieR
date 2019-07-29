@@ -22,5 +22,6 @@ is found there in a particular gene. Any non-informative position gets
 the value "NA".
 }
 \examples{
-padMissingColWithNAs(matrix(c(1:4),nrow=2,byrow=T,dimnames=list(c("a","b"),c(-1,2))))
+m<-matrix(c(1:4),nrow=2,byrow=TRUE,dimnames=list(c("a","b"),c(-1,2)))
+padMissingColWithNAs(m,colRange=c(-2,2))
 }

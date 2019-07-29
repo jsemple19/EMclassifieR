@@ -58,20 +58,20 @@ em_basic <- function(classes,priorProb,data) {
 
 #' Check if p value has converged
 #'
-#' @param p_diff
-#' @param p_diff_prev
-#' @param error
-#' @return A TRUE or FALSE value
+#' @param p_diff The difference in likelihood betwween this round of optimisation and the previous round.
+#' @param p_diff_prev The difference in likelihood between the previous round of optimisation and the one before that.
+#' @param error The maximum tolerated error
+#' @return A TRUE or FALSE value indicating if the difference between successive rounds of optimisation is below the error threshold (i.e. converged)
 p_converged <- function(p_diff, p_diff_prev, error) {
   return(abs(p_diff-p_diff_prev) < error)
 }
 
+
 #' Get absolute value of difference between two p values
 #'
-#' @param p
-#' @param p_prev
-#' @param error
-#' @return The absolute value of the difference
+#' @param p Current probability
+#' @param p_prev Probability from last round of optimisation
+#' @return The absolute value of the change in probability
 p_difference <- function(p, p_prev) {
   return(sum(abs(p-p_prev)))
 }
@@ -82,7 +82,7 @@ p_difference <- function(p, p_prev) {
 #'
 #' @param data A matrix of methylation or bincount values (reads x position)
 #' @param numClasses An integer indicating the number of classes to learn
-#' @param convergence An float indicating the convergence threshold for stopping iteration
+#' @param convergence_error An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @return  list of three items:
 #'             1) classes: a matrix with optimised classes (class x position)
@@ -101,7 +101,7 @@ runEM<-function(data, numClasses, convergence_error=1e-6, maxIterations=100) {
   fractionIdx<-data > 0 & data < 1
   binaryData<-data
   if (sum(fractionIdx)>0){
-    binaryData[fractionIdx]<-rbinom(n=sum(fractionIdx),size=1,prob=data[fractionIdx])
+    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=data[fractionIdx])
   }
 
   numSamples=dim(binaryData)[1]            # Number of samples
@@ -110,7 +110,7 @@ runEM<-function(data, numClasses, convergence_error=1e-6, maxIterations=100) {
   # set.seed(12)    # same random probabilities each time
   for(i in 1:numClasses) {
     # Samples are randomly assigned probabilities (weights) for each class.
-    posteriorProb[,i] = rbeta(numSamples,numSamples**-0.5,1)
+    posteriorProb[,i] = stats::rbeta(numSamples,numSamples**-0.5,1)
   }
   # these probabilities are used to generate expected bincount vectors for each class.
   # The probabilistic class assignment makes sure that classes will be free of zero values.
@@ -195,9 +195,9 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
   #
   # assign classes to reads according to the highest class probability
   numClasses=ncol(posteriorProb)
-  readsClasses = apply(posteriorProb, 1, which.max)
-  #readsTable = table(readsClasses)
-  classMeans = stats::aggregate(data, by = list(readsClasses), FUN = mean)[-1]
+  readClasses = apply(posteriorProb, 1, which.max)
+  #readsTable = table(readClasses)
+  classMeans = stats::aggregate(data, by = list(readClasses), FUN = mean)[-1]
 
   if (!is.null(previousClassMeans)) {
     print("orderByPreviousClusters")
@@ -211,8 +211,8 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
     classMeans = classMeans[classOrder, ]
   }
 
-  rownames(data)<-paste(rownames(data),readsClasses,sep="__class")
-  ord = order(match(readsClasses,classOrder))
+  rownames(data)<-paste(rownames(data),readClasses,sep="__class")
+  ord = order(match(readClasses,classOrder))
   dataOrderedByClass = data[ord,]
 
   return(dataOrderedByClass)
@@ -234,13 +234,14 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
 plotClassesSingleGene<-function(dataOrderedByClass,
                                 xlim=c(-250,250), title="Reads by classes",
                                 myXlab="CpG/GpC position",
-                                featureLabel="TSS", baseFontSize=12) {
+                                featureLabel="TSS", baseFontSize=12){
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
+  classOrder <- unique(readClasses)
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",1)
-  readsTable <- table(readsClasses)
-  #classMeans = aggregate(data, by = list(readsClasses), FUN = mean)[-1]
+  readsTable <- table(readClasses)
+  #classMeans = stats::aggregate(data, by = list(readClasses), FUN = mean)[-1]
   # the horizontal red lines on the plot
-  classBorders <- head(cumsum(readsTable[classOrder]), -1)+0.5
+  classBorders <- utils::head(cumsum(readsTable[classOrder]), -1)+0.5
   df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
   df1<-data.frame(read=readNames,readNumber=1:length(readNames),Class=factor(readClasses),stringsAsFactors=F)
 
@@ -271,10 +272,10 @@ plotClassesSingleGene<-function(dataOrderedByClass,
     p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,
                                               ymax=length(reads) +
                                                 max(3, 0.04*length(reads))),
-                                              col="black")+
+                                              color="grey80")+
       ggplot2::annotate(geom="text", x=1,
                         y=-max(2,0.03*length(reads)),
-                        label=featureLabel,color="black")
+                        label=featureLabel,color="grey20")
     # add lines separating classes
     p<-p+ggplot2::geom_hline(yintercept=classBorders,colour="grey80")
     # add color bar for classes
@@ -294,39 +295,90 @@ plotClassesSingleGene<-function(dataOrderedByClass,
 #' @param regionName String with the name of the region for which reads are being classified.
 #' @return Creates a silhoutte plot in a pdf file and returns a dataframe with mean and SD of silhouette width overall, and per class, as well as number of reads per class
 #' @export
-silouhettePlot<-function(dataOrderedByClass, numClasses, silhouetteDir,
+silhouettePlot<-function(dataOrderedByClass, numClasses, silhouetteDir,
                                  regionName){
   # split off class number from row name
   classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                         split="__class"),"[[",2))
-  dis<-dist(dataOrderedByClass) # get distance matrix between reads
+  dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
   sil<-cluster::silhouette(classes,dis) # caluculate silhouette
-
-  pdf(paste(silhouetteDir,"/", regionName, "_Silhouette_K", K, ".pdf", sep=""))
-  plot(sil)
-  abline(v=df$silouhetteWidthMean, col="red")
-  dev.off()
+  # makd data.frame with silhouette stats
+  df<-data.frame(regionName=regionName,numClasses=numClasses,
+                 silhouetteWidthMean=mean(sil[, 3],na.rm=T),
+                 silhouetteWidthSD=stats::sd(sil[, 3],na.rm=T),stringsAsFactors=F)
+  grDevices::pdf(paste(silhouetteDir,"/", regionName, "_silhouette_K", numClasses,
+            ".pdf", sep=""),paper="a4",height=11,width=8)
+  graphics::plot(sil)
+  graphics::abline(v=df$silhouetteWidthMean, col="black",lty=2)
+  grDevices::dev.off()
 
   classTable <- table(paste0("class",classes))
-  df<-data.frame(regionName=regionName,numClasses=numClasses,
-                 silouhetteWidthMean=mean(sil[, 3]),
-                 silouhetteWidthSD=sd(sil[, 3]),stringsAsFactors=F)
+
   # Add number of reads per class
   df[,paste0("class",1:numClasses,"_reads")]<-NA
   df[,paste0(names(classTable),"_reads")]<-classTable
-  # Add average silouhette width per class
+  # Add average silhouette width per class
   df[,paste0("class",1:numClasses,"_silMean")]<-NA
-  silWidthMean<-aggregate(sil[,3],by=list(sil[,1]),FUN=mean)
+  silWidthMean<-stats::aggregate(sil[,3],by=list(sil[,1]),FUN=mean)
   colnames(silWidthMean)<-c("class","mean")
   df[,paste0("class",silWidthMean$class,"_silMean")]<-silWidthMean$mean
-  #classMeans = aggregate(data, by = list(readsClasses), FUN = mean)[-1]
-  # Add silouhette width SD per class
+  #classMeans = stats::aggregate(data, by = list(readClasses), FUN = mean)[-1]
+  # Add silhouette width SD per class
   df[,paste0("class",1:numClasses,"_silSD")]<-NA
-  silWidthSD<-aggregate(sil[,3],by=list(sil[,1]),FUN=sd)
+  silWidthSD<-stats::aggregate(sil[,3],by=list(sil[,1]),FUN=stats::sd)
   colnames(silWidthSD)<-c("class","sd")
   df[,paste0("class",silWidthSD$class,"_silSD")]<-silWidthSD$sd
   return(df)
 }
 
 
+#' Plot class Means
+#'
+#' Create a single molecule plot of the reads sorted by class.
+#' @param classes A matrix of methylation or bincount values (classes x position) for each class
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param title A title for the plot (default is "Class means")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param overplot Plot mean profiles separately as a facet_wrap plot (default=TRUE).
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return Returns a ggplot2 object of class means
+#' @export
+plotClassMeans<-function(classes,xlim=c(-250,250), facet=TRUE, title="Class means",
+                         myXlab="CpG/GpC position",featureLabel="TSS",
+                         baseFontSize=12){
+  classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
+  classMeans$class<-as.factor(rep(paste0("class",1:numClasses),ncol(classes)))
+  classMeans$position<-as.numeric(classMeans$position)
 
+
+  p<-ggplot2::ggplot(classMeans,ggplot2::aes(x=position,y=1-methFreq,group=class)) +
+    ggplot2::geom_line(ggplot2::aes(color=class))  +
+    ggplot2::ggtitle(title) +
+    ggplot2::xlab(myXlab) +
+    ggplot2::ylab("dSMF (1 - Methylation frequency)") +
+    ggplot2::xlim(xlim[1],xlim[2]+10) +
+    ggplot2::theme_light(base_size=baseFontSize) +
+    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+                   legend.position="right",legend.box = "vertical",
+                   legend.key.height = ggplot2::unit(0.5, "cm"),
+                   legend.key.width=ggplot2::unit(0.3,"cm"))
+  # add line for TSS
+  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,ymax=1),
+                               color="grey80") +
+    ggplot2::annotate(geom="text", x=1,y=0.01,
+                      label=featureLabel,color="grey20")
+  if (facet==TRUE) {
+    p<-p+ggplot2::facet_wrap(~class,nrow=nrow(classes))
+  }
+  return(p)
+}
+
+
+#runRepeats()
+
+#runDifferentClassSizes()
+
+#runManyGenesTogether()

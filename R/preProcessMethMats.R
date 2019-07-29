@@ -6,7 +6,7 @@
 #' @param mat A matrix of numbers and NAs.
 #' @return A matrix without the rows containing NAs
 #' @examples
-#' removeAllNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=T))
+#' removeAllNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
 #' @export
 removeAllNArows<-function(mat) {
   NAidx<-rowSums(is.na(mat))>0
@@ -27,7 +27,8 @@ removeAllNArows<-function(mat) {
 #' @param colRange a vector of two numbers for start and end positions used in the matrix (default=c(-250,250))
 #' @return A matrix with missing columns padded with NAs
 #' @examples
-#' padMissingColWithNAs(matrix(c(1:4),nrow=2,byrow=T,dimnames=list(c("a","b"),c(-1,2))))
+#' m<-matrix(c(1:4),nrow=2,byrow=TRUE,dimnames=list(c("a","b"),c(-1,2)))
+#' padMissingColWithNAs(m,colRange=c(-2,2))
 #' @export
 padMissingColWithNAs<-function(mat,colRange=c(-250,250)) {
   notNA<-colnames(mat)

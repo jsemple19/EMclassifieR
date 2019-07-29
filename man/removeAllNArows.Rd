@@ -16,5 +16,5 @@ A matrix without the rows containing NAs
 Remove rows containing NAs
 }
 \examples{
-removeAllNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=T))
+removeAllNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
 }
