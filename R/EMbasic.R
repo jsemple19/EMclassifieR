@@ -78,7 +78,7 @@ p_difference <- function(p, p_prev) {
 
 
 
-#' Run EM iteratively
+#' Run EM iteratively to convergence
 #'
 #' @param data A matrix of methylation or bincount values (reads x position)
 #' @param numClasses An integer indicating the number of classes to learn
@@ -377,6 +377,86 @@ plotClassMeans<-function(classes,xlim=c(-250,250), facet=TRUE, title="Class mean
 }
 
 
+
+
+
+
+#' Run several repeats of iterative EM
+#'
+#' Perform EM clustering on the same matrix several times. Necessary to check that classes are stable despite the random assignment of methylation fractions.
+#'
+#' @param data A matrix of methylation or bincount values (reads x position)
+#' @param numClasses An integer indicating the number of classes to learn
+#' @param convergence_error An float indicating the convergence threshold for stopping iteration
+#' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param outPath A string with the path to the directory where the output should go
+#' @return  None (value 0)
+#' @export
+runEMrepeats<-function(data=m1,numClasses=3,convergence_error=1e-6, maxIterations=100,
+                       repeats=10,outPath="."){
+  # make output directories
+  makeDirs(path=outPath,dirNameList=c("silhouettePlots","dataOrderedByClass","classPlots",
+                                      "classMeanPlots"))
+  for (rep in 1:repeats) {
+    # do classifiction
+    emClass<-runEM(data=m1, numClasses=3, convergence_error=1e-6, maxIterations=100)
+    # order data by class
+    dataOrderedByClass<-classifyAndSortReads(data=data,
+                                             posteriorProb=emClass$posteriorProb,
+                                             previousClassMeans=NULL)
+
+    saveRDS(dataOrderedByClass, file=paste0(outPath, "/dataOrderedByClass/",
+                                            matTable$sample[i], "_",
+                                            matTable$region[i],"_rep",rep,".pdf"))
+    # do single molecule plots of classes
+    p<-plotClassesSingleGene(dataOrderedByClass=dataOrderedByClass, xlim=c(-250,250),
+                             title = paste(matTable$sample[i], matTable$region[i]),
+                             myXlab="CpG/GpC position", featureLabel="TSS", baseFontSize=12)
+
+
+
+    ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classifiedReads_",
+                                    matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"),
+                    plot=p, device="pdf", width=19, height=29, units="cm")
+
+    # do line plots of class mean values
+    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=FALSE,
+                      title=paste(matTable$sample[i], matTable$region[i],
+                                  "Class means, repeat ", rep),
+                      myXlab="CpG/GpC position",featureLabel="TSS",
+                      baseFontSize=12)
+
+    ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_",
+                                    matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"),
+                    plot=p, device="pdf", width=29, height=19, units="cm")
+
+    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=TRUE,
+                      title=paste(matTable$sample[i], matTable$region[i],
+                                  "Class means, repeat ", rep),
+                      myXlab="CpG/GpC position",featureLabel="TSS",
+                      baseFontSize=12)
+
+    ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_facet_",
+                                    matTable$sample[i], "_",
+                                    matTable$region[i],"_rep",rep,".pdf"),
+                    plot=p, device="pdf", width=19, height=29, units="cm")
+
+
+
+    # do silhouette plot and silhouette data
+    df<-silhouettePlot(dataOrderedByClass, numClasses,
+                       silhouetteDir=paste0(outPath,"/silhouettePlots"),
+                       regionName=paste0(matTable$sample[i], "_",
+                                         matTable$region[i]))
+    write.csv(df, file=paste0(outPath,"/silhouettePlots/silhouetteStats_",
+                              matTable$sample[i], "_",
+                              matTable$region[i],".csv"))
+  }
+  return(0)
+}
 #runRepeats()
 
 #runDifferentClassSizes()
