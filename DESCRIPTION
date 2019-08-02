@@ -22,7 +22,8 @@ Imports:
       zoo,
       cluster,
       ggplot2,
-      tidyr
+      tidyr,
+      plyr
 Suggests: 
     knitr,
     rmarkdown,

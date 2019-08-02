@@ -67,14 +67,49 @@ testthat::test_that("classifying and sorting reads works", {
   numClasses=3
   numSamples=5
   data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
-  row.names(data)<-paste0("r",1:numSamples)
+  rownames(data)<-paste0("r",1:numSamples)
+  colnames(data)<-c(-2,-1,1)
   #readClasses = apply(posteriorProb, 1, which.max)
-  expectedClasses<- c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
+  expectedClasses<- c("r1__class1","r4__class1","r5__class1","r2__class3","r3__class3")
 
   set.seed(1)
-  posteriorProb<-runEM(data,numClasses,1e-6,100)$posteriorProb
-  results<-row.names(classifyAndSortReads(data, posteriorProb, previousClassMeans=NULL))
+  emClass<-runEM(data,numClasses,1e-6,100)
+  orderedData<-classifyAndSortReads(data, emClass$posteriorProb,
+                                    previousClassMeans=NULL)
+  results<-rownames(orderedData$data)
   testthat::expect_equal(results, expectedClasses)
+})
+
+
+
+
+testthat::test_that("classifying and sorting by previous class means works", {
+  numClasses=3
+  numSamples=6
+  data<-matrix(c(1,0.5,0,0,
+                 0,0,0,0,
+                 1,1,1,1,
+                 1,1,1,0,
+                 0,0,0,1,
+                 1,0.5,0.5,0),nrow=numSamples,byrow=T)
+  rownames(data)<-paste0("r",1:numSamples)
+  colnames(data)<-c(-2,-1,1,3)
+  #readClasses = apply(posteriorProb, 1, which.max)
+  expectedClasses<- c("r3__class1", "r4__class1", "r1__class2", "r6__class2",
+                      "r2__class3", "r5__class3")
+
+  set.seed(1)
+  emClass<-runEM(data,numClasses,1e-6,100)
+  orderedData<-classifyAndSortReads(data, emClass$posteriorProb,
+                                         previousClassMeans=NULL)
+  results<-rownames(orderedData$data)
+  previousClassMeans<-orderedData$classMeans
+  orderedData1<-classifyAndSortReads(data, emClass$posteriorProb,
+                                    previousClassMeans=previousClassMeans)
+  results1<-rownames(orderedData1$data)
+  #classMeans<-orderedData1$classMeans
+  testthat::expect_equal(results, expectedClasses)
+  testthat::expect_equal(results, results1)
 })
 
 
@@ -98,14 +133,14 @@ testthat::test_that("plotting from single gene works" , {
 
 
 
-testthat::test_that("silouhette plot works" , {
+testthat::test_that("silhouette plot works" , {
   numSamples<-5
   data<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
   rownames(data)<-c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
   colnames(data)<-c(-200,-100, 200)
 
   #testthat::expect_null(plotClassesSingleGene(matrix(c(0)),performSilhouette=F),)
-  sp<-silouhettePlot(dataOrderedByClass=data, numClasses=3,
+  sp<-silhouettePlot(dataOrderedByClass=data, numClasses=3,
                  silhouetteDir="~/Downloads",
                  regionName="blah")
   testthat::expect_equal(class(sp),"data.frame")

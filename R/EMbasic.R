@@ -167,13 +167,14 @@ runEM<-function(data, numClasses, convergence_error=1e-6, maxIterations=100) {
 #' @return Returns a vector with the order of the classes
 #' @export
 order_by_prev_cluster <- function(numClasses, classMeans, prev_classMeans) {
+  cm<-classMeans
   pr = prev_classMeans
   ord = numeric(length = numClasses)
   for (i in 1:numClasses) {
     # compare cluster means by minimum sum of squares
-    pos = which.min(apply(prev_classMeans, 1, function(row) sum((row-classMeans[i,])^2) ))
+    pos = which.min(apply(classMeans, 1, function(row) sum((row-pr[i,])^2) ))
     ord[i] = pos
-    prev_classMeans[pos,] = Inf
+    cm[pos,] = Inf
   }
   return(ord)
 }
@@ -204,18 +205,30 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
     # order the classes by comparing the class means to the previous clustering
     classOrder = order_by_prev_cluster(numClasses, classMeans, previousClassMeans)
     classMeans = classMeans[classOrder, ]
+    rownames(classMeans)<-c(1:numClasses)[c(1:numClasses) %in%
+                                            unique(readClasses)]
   } else {
     print("orderByHClust")
     # order the classes by similarity (class means)
     classOrder = stats::hclust(stats::dist(classMeans))$order
     classMeans = classMeans[classOrder, ]
+    rownames(classMeans)<-c(1:numClasses)[c(1:numClasses) %in%
+                                            unique(readClasses)]
   }
-
-  rownames(data)<-paste(rownames(data),readClasses,sep="__class")
-  ord = order(match(readClasses,classOrder))
+  print(classOrder)
+  # change name of classes to match the order
+  readClasses<-factor(readClasses)
+  # remap the values in the vector
+  rc<-plyr::mapvalues(readClasses,
+                      from = levels(readClasses)[classOrder],
+                      to = levels(readClasses))
+  # change the level order
+  rc1<-factor(rc,levels=c(1:numClasses))
+  rownames(data)<-paste(rownames(data),rc1,sep="__class")
+  ord = order(match(rc1,1:numClasses))
   dataOrderedByClass = data[ord,]
 
-  return(dataOrderedByClass)
+  return(list(data=dataOrderedByClass, classMeans=classMeans))
 }
 
 
@@ -227,7 +240,7 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
 #' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param title A title for the plot (default is "Reads by classes")
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
-#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS)
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
@@ -243,7 +256,8 @@ plotClassesSingleGene<-function(dataOrderedByClass,
   # the horizontal red lines on the plot
   classBorders <- utils::head(cumsum(readsTable[classOrder]), -1)+0.5
   df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
-  df1<-data.frame(read=readNames,readNumber=1:length(readNames),Class=factor(readClasses),stringsAsFactors=F)
+  df1<-data.frame(read=readNames, readNumber=1:length(readNames),
+                  Class=factor(readClasses), stringsAsFactors=F)
 
   #######################################################################################
   reads<-row.names(df)
@@ -347,6 +361,7 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, silhouetteDir,
 plotClassMeans<-function(classes,xlim=c(-250,250), facet=TRUE, title="Class means",
                          myXlab="CpG/GpC position",featureLabel="TSS",
                          baseFontSize=12){
+  numClasses<-nrow(classes)
   classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
   classMeans$class<-as.factor(rep(paste0("class",1:numClasses),ncol(classes)))
   classMeans$position<-as.numeric(classMeans$position)
@@ -391,57 +406,66 @@ plotClassMeans<-function(classes,xlim=c(-250,250), facet=TRUE, title="Class mean
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
 #' @param outPath A string with the path to the directory where the output should go
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return  None (value 0)
 #' @export
-runEMrepeats<-function(data=m1,numClasses=3,convergence_error=1e-6, maxIterations=100,
-                       repeats=10,outPath="."){
+runEMrepeats<-function(data, numClasses=3, convergence_error=1e-6, maxIterations=100,
+                       repeats=10, outPath=".", xlim=c(-250,250), outFileBase = "",
+                       myXlab="CpG/GpC position", featureLabel="TSS",
+                       baseFontSize=12){
   # make output directories
   makeDirs(path=outPath,dirNameList=c("silhouettePlots","dataOrderedByClass","classPlots",
                                       "classMeanPlots"))
+  previousClassMeans=NULL
   for (rep in 1:repeats) {
     # do classifiction
-    emClass<-runEM(data=m1, numClasses=3, convergence_error=1e-6, maxIterations=100)
+    emClass<-runEM(data=data, numClasses=numClasses, convergence_error=convergence_error,
+                   maxIterations=maxIterations)
+
     # order data by class
-    dataOrderedByClass<-classifyAndSortReads(data=data,
-                                             posteriorProb=emClass$posteriorProb,
-                                             previousClassMeans=NULL)
+    orderedData<-classifyAndSortReads(data=data, posteriorProb=emClass$posteriorProb,
+                                      previousClassMeans=previousClassMeans)
+    dataOrderedByClass<-orderedData$data
+    classMeans<-orderedData$classMeans
+
+    if(is.null(previousClassMeans)) {
+      previousClassMeans<-classMeans
+    }
 
     saveRDS(dataOrderedByClass, file=paste0(outPath, "/dataOrderedByClass/",
-                                            matTable$sample[i], "_",
-                                            matTable$region[i],"_rep",rep,".pdf"))
-    # do single molecule plots of classes
-    p<-plotClassesSingleGene(dataOrderedByClass=dataOrderedByClass, xlim=c(-250,250),
-                             title = paste(matTable$sample[i], matTable$region[i]),
-                             myXlab="CpG/GpC position", featureLabel="TSS", baseFontSize=12)
+                                            outFileBase,"_rep",rep,".pdf"))
 
+    # do single molecule plots of classes
+    p<-plotClassesSingleGene(dataOrderedByClass=dataOrderedByClass, xlim=xlim,
+                             title = outFileBase, myXlab=myXlab,
+                             featureLabel=featureLabel, baseFontSize=12)
 
 
     ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classifiedReads_",
-                                    matTable$sample[i], "_",
-                                    matTable$region[i],"_rep",rep,".pdf"),
+                                    outFileBase,"_rep", rep, ".pdf"),
                     plot=p, device="pdf", width=19, height=29, units="cm")
 
     # do line plots of class mean values
-    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=FALSE,
-                      title=paste(matTable$sample[i], matTable$region[i],
-                                  "Class means, repeat ", rep),
-                      myXlab="CpG/GpC position",featureLabel="TSS",
+    p<-plotClassMeans(classMeans,xlim=xlim, facet=FALSE,
+                      title=paste(outFileBase, "Class means, repeat ", rep),
+                      myXlab=myXlab, featureLabel=featureLabel,
                       baseFontSize=12)
 
     ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_",
-                                    matTable$sample[i], "_",
-                                    matTable$region[i],"_rep",rep,".pdf"),
+                                    outFileBase, "_rep", rep, ".pdf"),
                     plot=p, device="pdf", width=29, height=19, units="cm")
 
-    p<-plotClassMeans(emClass$classes,xlim=c(-250,250), facet=TRUE,
-                      title=paste(matTable$sample[i], matTable$region[i],
-                                  "Class means, repeat ", rep),
-                      myXlab="CpG/GpC position",featureLabel="TSS",
+    p<-plotClassMeans(classMeans,xlim=xlim, facet=TRUE,
+                      title=paste(outFileBase, "Class means, repeat ", rep),
+                      myXlab=myXlab, featureLabel=featureLabel,
                       baseFontSize=12)
 
     ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_facet_",
-                                    matTable$sample[i], "_",
-                                    matTable$region[i],"_rep",rep,".pdf"),
+                                    outFileBase,"_rep",rep,".pdf"),
                     plot=p, device="pdf", width=19, height=29, units="cm")
 
 
@@ -449,15 +473,13 @@ runEMrepeats<-function(data=m1,numClasses=3,convergence_error=1e-6, maxIteration
     # do silhouette plot and silhouette data
     df<-silhouettePlot(dataOrderedByClass, numClasses,
                        silhouetteDir=paste0(outPath,"/silhouettePlots"),
-                       regionName=paste0(matTable$sample[i], "_",
-                                         matTable$region[i]))
+                       regionName=paste0(outFileBase))
     write.csv(df, file=paste0(outPath,"/silhouettePlots/silhouetteStats_",
-                              matTable$sample[i], "_",
-                              matTable$region[i],".csv"))
+                              outFileBase,"_rep",rep,".csv"))
   }
   return(0)
 }
-#runRepeats()
+
 
 #runDifferentClassSizes()
 
