@@ -70,7 +70,7 @@ testthat::test_that("classifying and sorting reads works", {
   rownames(data)<-paste0("r",1:numSamples)
   colnames(data)<-c(-2,-1,1)
   #readClasses = apply(posteriorProb, 1, which.max)
-  expectedClasses<- c("r1__class1","r4__class1","r5__class1","r2__class3","r3__class3")
+  expectedClasses<- c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
 
   set.seed(1)
   emClass<-runEM(data,numClasses,1e-6,100)
@@ -95,8 +95,8 @@ testthat::test_that("classifying and sorting by previous class means works", {
   rownames(data)<-paste0("r",1:numSamples)
   colnames(data)<-c(-2,-1,1,3)
   #readClasses = apply(posteriorProb, 1, which.max)
-  expectedClasses<- c("r3__class1", "r4__class1", "r1__class2", "r6__class2",
-                      "r2__class3", "r5__class3")
+  expectedClasses<- c("r2__class1", "r5__class1", "r3__class2", "r4__class2",
+                      "r1__class3", "r6__class3")
 
   set.seed(1)
   emClass<-runEM(data,numClasses,1e-6,100)
