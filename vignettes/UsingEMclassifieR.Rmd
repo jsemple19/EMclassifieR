@@ -36,14 +36,32 @@ To look at one gene at a time one can use the minimal matrix which includes only
 # Configuration
 K_range = 2:10                       # Number of classes to be found
 maxIterations = 100
-convergence_error = 10e-6
+convergenceError = 10e-6
 numClasses=3
-    
+numRepeats=10
+xlim=c(-250,250)
+regionName=matTable$region[i]
+sampleName=matTable$sample[i]
+outFileBase=paste(sampleName, regionName, sep="_")
 outPath="../runResultsEMclass"
 
 set.seed(1)
-runEMrepeats(data=data,numClasses=numClasses,convergence_error=convergence_error, maxIterations=maxIterations, repeats=10, outPath=outPath)
-    
+allClassMeans<-runEMrepeats(data, numClasses, convergenceError, maxIterations, 
+                            repeats=numRepeats, outPath=outPath, 
+                            outFileBase=paste(sampleName, regionName, sep="_"),
+                            doIndividualPlots=TRUE)
+
+
+p<-plotSmoothedClassMeans(allClassMeans, xlim=xlim, facet=FALSE,
+                          title=paste(sampleName, regionName, 
+                       numRepeats, "repeats"))
+
+ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/smoothedClassMeans_",
+                                      outFileBase,"_K",numClasses,".pdf"),
+                      plot=p, device="pdf", width=19, height=29, units="cm")
+
+silStats<-read.csv(paste0(outPath,"/silhouettePlots/silhouetteStats_",
+                              outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
 
 
 ```
