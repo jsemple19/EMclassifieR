@@ -84,13 +84,14 @@ p_difference <- function(p, p_prev) {
 #' @param numClasses An integer indicating the number of classes to learn
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @param printProgress Print messages showing progress of convergence
 #' @return  list of three items:
 #'             1) classes: a matrix with optimised classes (class x position)
 #'             2) priorProb: a vector with the prior probabilities of each class
 #'             3) posteriorProb: a matrix of probabilites of each sample belonging
 #'             to a particular class (samples x class)
 #' @export
-runEM<-function(data, numClasses, convergenceError=1e-6, maxIterations=100) {
+runEM<-function(data, numClasses, convergenceError=1e-6, maxIterations=100, printProgress=TRUE) {
   ################################# RUN EM #########################################
   #
   # Complete algorithm for partitioning with random seeds
@@ -134,9 +135,13 @@ runEM<-function(data, numClasses, convergenceError=1e-6, maxIterations=100) {
   p_diff_prev = 0
 
   i = 2
-  print(p_converged(p_diff, p_diff_prev, e) & i < maxIterations)
+  if (printProgress) {
+    print(p_converged(p_diff, p_diff_prev, e) & i < maxIterations)
+  }
   while (!p_converged(p_diff, p_diff_prev, e) & i < maxIterations) {
-    print(paste("i:", i, " , sum:", p_diff, " , step diff:", abs(p_diff-p_diff_prev)))
+    if (printProgress) {
+      print(paste("i:", i, " , sum:", p_diff, " , step diff:", abs(p_diff-p_diff_prev)))
+    }
     classes[classes>1]=1 # dbern error when probability > 1
     p_prev = posteriorProb
     p_diff_prev = p_diff
@@ -148,11 +153,10 @@ runEM<-function(data, numClasses, convergenceError=1e-6, maxIterations=100) {
     p_diff = p_difference(posteriorProb, p_prev)
 
     i = i+1
-    #print(posteriorProb)
-    #print(p_diff)
-    #print(p_diff_prev)
   }
-  print(paste("converged:", p_converged(p_diff, p_diff_prev, e) & i < maxIterations, "iterations: ",i))
+  if (printProgress) {
+    print(paste("converged:", p_converged(p_diff, p_diff_prev, e) & i < maxIterations, "iterations: ",i))
+  }
   return(list(classes=classes,priorProb=priorProb,posteriorProb=posteriorProb))
 }
 
@@ -201,21 +205,21 @@ classifyAndSortReads<-function(data,posteriorProb,previousClassMeans=NULL) {
   classMeans = stats::aggregate(data, by = list(readClasses), FUN = mean)[-1]
 
   if (!is.null(previousClassMeans)) {
-    print("orderByPreviousClusters")
+    #print("orderByPreviousClusters")
     # order the classes by comparing the class means to the previous clustering
     classOrder = order_by_prev_cluster(numClasses, classMeans, previousClassMeans)
     classMeans = classMeans[classOrder, ]
     rownames(classMeans)<-c(1:numClasses)[c(1:numClasses) %in%
                                             unique(readClasses)]
   } else {
-    print("orderByHClust")
+    #print("orderByHClust")
     # order the classes by similarity (class means)
     classOrder = stats::hclust(stats::dist(classMeans))$order
     classMeans = classMeans[classOrder, ]
     rownames(classMeans)<-c(1:numClasses)[c(1:numClasses) %in%
                                             unique(readClasses)]
   }
-  print(classOrder)
+  #print(classOrder)
   # change name of classes to match the order
   readClasses<-factor(readClasses)
   # remap the values in the vector
@@ -305,17 +309,17 @@ plotClassesSingleGene<-function(dataOrderedByClass,
 #' Create a silhouette plot to evaluate the quality of classification, and return some basic parameters about the classification
 #' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
 #' @param numClasses An integer with the number of classes learned
-#' @param regionName String with the name of the region for which reads are being classified.
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced
 #' @return A list of two items: a datatframe with silhouette stats and a silhouette plot object. The dataframe contains mean and SD of silhouette width overall, and per class, as well as number of reads per class
 #' @export
-silhouettePlot<-function(dataOrderedByClass, numClasses, regionName){
+silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase){
   # split off class number from row name
   classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                         split="__class"),"[[",2))
   dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
   sil<-cluster::silhouette(classes,dis) # calculate silhouette
   # makd data.frame with silhouette stats
-  df<-data.frame(regionName=regionName,numClasses=numClasses,
+  df<-data.frame(regionName=outFileBase,numClasses=numClasses,
                  silhouetteWidthMean=mean(sil[, 3],na.rm=T),
                  silhouetteWidthSD=stats::sd(sil[, 3],na.rm=T),stringsAsFactors=F)
 
@@ -326,7 +330,7 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, regionName){
   df[,paste0(names(classTable),"_reads")]<-classTable
   # Add average silhouette width per class
   df[,paste0("class",1:numClasses,"_silMean")]<-NA
-  silWidthMean<-stats::aggregate(sil[,3],by=list(sil[,1]),FUN=mean)
+  silWidthMean<-stats::aggregate(sil[,"sil_width"],by=list(sil[,"cluster"]),FUN=mean)
   colnames(silWidthMean)<-c("class","mean")
   df[,paste0("class",silWidthMean$class,"_silMean")]<-silWidthMean$mean
   #classMeans = stats::aggregate(data, by = list(readClasses), FUN = mean)[-1]
@@ -432,7 +436,7 @@ plotSmoothedClassMeans<-function(allClassMeans, xlim=c(-250,250), facet=FALSE,
 #' indivudal reads at particular positions where the reads have been sorted by class and
 #' the row names contain the read name and the class joined together: readName__classX
 #' @param readNames A vector of read names by which to order the classes
-#' @param return Classification of reads ordered by readNames
+#' @return Classification of reads ordered by readNames
 #' @export
 getClasses<-function(dataOrderedByClass,readNames){
   readClasses<-as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
@@ -448,18 +452,159 @@ getClasses<-function(dataOrderedByClass,readNames){
 #' Get most frequently assigned class from repeat runs
 #'
 #' @param classVote A data.frame of reads with the class assignments from multiple EM repeats
-#' @param return A count of whic
+#' @return A data.frame including the most frequently called class for each read
 #' @export
 getClassVote<-function(classVote){
   repCols<-names(classVote)[grep("rep",colnames(classVote))]
-  classVote$topClass<-as.numeric(apply(classVote[,repCols],1,getMode))
-  classVote$topClassFreq<-sapply(1:nrow(classVote),function(rowNum){
-    topClassFreq<-sum(match(classVote[rowNum,repCols],classVote$topClass[rowNum]),
+  if (length(repCols)>1) { # is there more than one repeat?
+    classVote$topClass<-as.numeric(apply(classVote[,repCols],1,getMode))
+    classVote$topClassFreq<-sapply(1:nrow(classVote),function(rowNum){
+      topClassFreq<-sum(match(classVote[rowNum,repCols],classVote$topClass[rowNum]),
                       na.rm=T)/length(repCols)
-    return(topClassFreq)
-  })
+      return(topClassFreq)})
+  } else {
+    classVote$topClass<--as.numeric(classVote[,repCols])
+    classVote$topClassFreq<-1
+  }
   return(classVote)
 }
+
+
+
+#' Plot single molecule and class means for individual repeats
+#'
+#' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced
+#' @param outPath path to directory where plots will be saved
+#' @param numClasses An integer indicating the number of classes to learn
+#' @param rep An integer indicating which repeat this is
+#' @param classMeans A matrix (classes x position) of the average methlyation profile of each class classes
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return Returns a ggplot2 object
+plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, rep,
+               classMeans, xlim, myXlab, featureLabel, baseFontSize){
+  makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
+                                           "classMeanPlots"),"/",outFileBase))
+  # do single molecule plots of classes
+  p<-plotClassesSingleGene(dataOrderedByClass, xlim,
+                         title = outFileBase, myXlab=myXlab,
+                         featureLabel=featureLabel, baseFontSize=baseFontSize)
+
+  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/", outFileBase,
+                                "/classifiedReads_", outFileBase,"_K",
+                                numClasses,"_rep", rep, ".pdf"),
+                plot=p, device="pdf", width=19, height=29, units="cm")
+
+  #plot individual unsmoothed class means
+  p<-plotClassMeans(classMeans,xlim=xlim, facet=TRUE,
+                  title=paste(outFileBase, "Class means, repeat ", rep),
+                  myXlab=myXlab, featureLabel=featureLabel,
+                  baseFontSize=baseFontSize)
+
+  ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/", outFileBase,
+                                "/classMeans_", outFileBase,"_K",
+                                numClasses, "_rep",rep,".pdf"),
+                plot=p, device="pdf", width=19, height=29, units="cm")
+}
+
+
+
+#' Plot histograms of consistency of classfiications over multiple repeats
+#'
+#' @param classVote A data.frame of reads with the class assignments from multiple EM repeats
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced
+#' @param outPath path to directory where plots will be saved
+#' @param numClasses An integer indicating the number of classes to learn
+#' @return classVote data frame with "topClass" and "topClassFreq" columns added
+plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
+  p1<-ggplot2::ggplot(classVote,ggplot2::aes(x=topClassFreq, fill=topClass))+
+    ggplot2::geom_histogram(binwidth=0.1)
+  p2<-ggplot2::ggplot(classVote,ggplot2::aes(x=topClassFreq, fill=topClass))+
+    ggplot2::geom_histogram(binwidth=0.1) + ggplot2::facet_wrap(.~topClass)
+
+  p<-ggpubr::ggarrange(p1,p2,ncol=1,nrow=2)
+  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classFreq_",
+                                outFileBase,"_K",numClasses,".pdf"),
+                plot=p,device="pdf",width=19,height=29,units="cm")
+  return(classVote)
+}
+
+
+
+#' Draw silhouette plots and get silhouette statistics
+#'
+#' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
+#' @param numClasses An integer indicating the number of classes to learn
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced
+#' @param outPath path to directory where plots will be saved
+#' @param rep An integer indicating which repeat this is
+#' @param doIndividualPlots Produce individual plots for each repeat (default=F)
+#' @param silStats data.frame with statistics about the silhouette plots (default=NULL)
+#' @return silStats data.frame with statistics about the silhouette plots
+getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
+                             rep, doIndividualPlots, silStats=NULL){
+  browser()
+  silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
+  if (!is.null(silStats)) {
+    silStats<-rbind(silStats,silList$stats)
+  } else {
+    silStats<-silList$stats
+  }
+
+  # save silhouette for individual repeats if first round or if requested
+  if(rep==1 | doIndividualPlots==TRUE) {
+    makeDirs(path=outPath,dirNameList=paste0("silhouettePlots","/",outFileBase))
+    grDevices::pdf(paste0(outPath,"/silhouettePlots/", outFileBase, "/",
+                          outFileBase,"_silhouette_K",
+                          numClasses, "_rep", rep, ".pdf"),
+                   paper="a4", height=11, width=8)
+    graphics::plot(silList$plotObject)
+    graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
+    grDevices::dev.off()
+  }
+  return(silStats)
+}
+
+
+#' Plot reads and class means with final classification
+#'
+#' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
+#' @param numClasses An integer indicating the number of classes to learn
+#' #' @param allClassMeans A long data frame of methylation or bincount values with columns for position, methylation frequency (methFreq), class and replicate.
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced
+#' @param outPath path to directory where plots will be saved
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return None
+plotFinalClasses<-function(dataOrderedByClassRep, numClasses, allClassMeans, outFileBase, outPath,
+                           xlim, myXlab, featureLabel, baseFontSize){
+  # plot single molecules with final classes
+  p<-plotClassesSingleGene(dataOrderedByClassRep, xlim=xlim,
+                         title = outFileBase, myXlab=myXlab,
+                         featureLabel=featureLabel, baseFontSize=12)
+  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/",
+                                "classifiedReads_", outFileBase,"_K",
+                                numClasses, ".pdf"),
+                plot=p, device="pdf", width=19, height=29, units="cm")
+
+  # plots smoothed average class means +- StdErr
+  p<-plotSmoothedClassMeans(allClassMeans, xlim=xlim, facet=TRUE,
+                          title=paste(outFileBase, " Class means, ",
+                                      repeats ," repeats"),
+                          myXlab="CpG/GpC position", featureLabel="TSS",
+                          baseFontSize=12)
+
+  ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/smClassMeans_",
+                                outFileBase,"_K", numClasses,".pdf"),
+                plot=p, device="pdf", width=29, height=19, units="cm")
+}
+
+
 
 
 
@@ -479,7 +624,7 @@ getClassVote<-function(classVote){
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
-#' @return  None (value 0)
+#' @return  allClassMeans
 #' @export
 runEMrepeats<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=100,
                        repeats=10, outPath=".", xlim=c(-250,250), outFileBase="",
@@ -491,7 +636,7 @@ runEMrepeats<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=
 
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(data),stringsAsFactors=F)
-  suppressWarnings(rm(list=c("silStats")))
+  silStats<-NULL
   for (rep in 1:repeats) {
     # do classifiction
     emClass<-runEM(data=data, numClasses=numClasses, convergenceError=convergenceError,
@@ -505,6 +650,7 @@ runEMrepeats<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=
 
     classVote[,paste0("rep",rep)]<-getClasses(dataOrderedByClass,classVote$read)
 
+    #previousClassMeans<-setPreviousClassMeans(classMeans, previousClassMeans, allClassMeans)
     # store classMeans from first round as previousClassMeans to have consitent order
     # store classMeans from all rounds in allClassMeans in order to return at end of function
     if(is.null(previousClassMeans)) {
@@ -522,73 +668,19 @@ runEMrepeats<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=
     # plot the results for individual repeats if first round and/or if requested
     if(rep==1 | doIndividualPlots==TRUE) {
 
-      # do single molecule plots of classes
-      p<-plotClassesSingleGene(dataOrderedByClass=dataOrderedByClass, xlim=xlim,
-                               title = outFileBase, myXlab=myXlab,
-                               featureLabel=featureLabel, baseFontSize=12)
-
-
-      ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classifiedReads_",
-                                      outFileBase,"_K",numClasses,"_rep", rep, ".pdf"),
-                      plot=p, device="pdf", width=19, height=29, units="cm")
-
-      # do line plots of class mean values
-      p<-plotClassMeans(classMeans,xlim=xlim, facet=FALSE,
-                        title=paste(outFileBase, "Class means, repeat ", rep),
-                        myXlab=myXlab, featureLabel=featureLabel,
-                        baseFontSize=12)
-
-      ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_",
-                                      outFileBase,"_K",numClasses, "_rep", rep, ".pdf"),
-                      plot=p, device="pdf", width=29, height=19, units="cm")
-
-      p<-plotClassMeans(classMeans,xlim=xlim, facet=TRUE,
-                        title=paste(outFileBase, "Class means, repeat ", rep),
-                        myXlab=myXlab, featureLabel=featureLabel,
-                        baseFontSize=12)
-
-      ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/classMeans_facet_",
-                                      outFileBase,"_K",numClasses,"_rep",rep,".pdf"),
-                      plot=p, device="pdf", width=19, height=29, units="cm")
+      plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, rep,
+                     classMeans, xlim, myXlab, featureLabel, baseFontSize)
     }
 
     # do silhouette plot and save silhouette stats
-    silList<-silhouettePlot(dataOrderedByClass, numClasses, regionName=outFileBase)
-    if (exists("silStats")) {
-      silStats<-rbind(silStats,silList$stats)
-    } else {
-      silStats<-silList$stats
-    }
-
-    # save silhouette for individual repeats if first round or if requested
-    if(rep==1 | doIndividualPlots==TRUE) {
-      grDevices::pdf(paste0(outPath,"/silhouettePlots/", outFileBase, "_silhouette_K",
-                            numClasses, "_rep", rep, ".pdf"),
-                     paper="a4", height=11, width=8)
-      graphics::plot(silList$plotObject)
-      graphics::abline(v=df$silhouetteWidthMean, col="black",lty=2)
-      grDevices::dev.off()
-    }
+    silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase, outPath,
+                                 rep, doIndividualPlots, silStats)
   }
-
-  write.csv(silStats, file=paste0(outPath,"/silhouettePlots/silhouetteStats_",
-                            outFileBase,"_K",numClasses,".csv"))
-
-  #boxplot(silStats[,grep("silMean",colnames(silStats))])
-  #boxplot(silStats[,grep("silSD",colnames(silStats))])
 
   # plots histograms of consistency of classfiications over multiple repeats
   classVote<-getClassVote(classVote)
   classVote$topClass<-factor(classVote$topClass)
-  p1<-ggplot2::ggplot(classVote,ggplot2::aes(x=topClassFreq, fill=topClass))+
-    ggplot2::geom_histogram(binwidth=0.1)
-  p2<-ggplot2::ggplot(classVote,ggplot2::aes(x=topClassFreq, fill=topClass))+
-    ggplot2::geom_histogram(binwidth=0.1) + ggplot2::facet_wrap(.~topClass)
-
-  p<-ggpubr::ggarrange(p1,p2,ncol=1,nrow=2)
-  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classFreq_",
-                                  outFileBase,"_K",numClasses,".pdf"),
-                  plot=p,device="pdf",width=19,height=29,units="cm")
+  plotClassStability(classVote,outFileBase,outPath,numClasses)
 
   # save data with most frequent class call.
   idx<-match(row.names(data),classVote$read)
@@ -598,23 +690,148 @@ runEMrepeats<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=
   saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/dataOrderedByClass/",
                                           outFileBase, "_K", numClasses, ".rds"))
 
+  plotFinalClasses(dataOrderedByClassRep, allClassMeans, outFileBase, outPath, xlim, myXlab,
+                   featureLabel, baseFontSize)
 
-  # plots smoothed average class means +- StdErr
-  p<-plotSmoothedClassMeans(allClassMeans, xlim=xlim, facet=FALSE,
-                         title=paste(outFileBase, " Class means, ",
-                                     repeats ," repeats"),
-                         myXlab="CpG/GpC position", featureLabel="TSS",
-                         baseFontSize=12)
+  #calculate elbow and gap statistic
+  readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
+  silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
-
-  ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/smClassMeans_",
-                                  outFileBase,".pdf"),
-                  plot=p, device="pdf", width=29, height=19, units="cm")
-
+  write.csv(silStats, file=paste0(outPath,"/silhouettePlots/silhouetteStats_",
+                                  outFileBase,"_K",numClasses,".csv"))
   return(allClassMeans)
 }
 
 
-runDifferentNumClasses()
 
-#runManyGenesTogether()
+#' Run EM to predict a range of class numbers
+#'
+#' Perform EM clustering on the same matrix with a range of different class numbers.
+#'
+#' @param data A matrix of methylation or bincount values (reads x position)
+#' @param k_range A vector indicating different numbers of classes to learn
+#' @param convergenceError An float indicating the convergence threshold for stopping iteration
+#' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param outPath A string with the path to the directory where the output should go
+#' @param xlim A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @param doIndividualPlots Produce individual plots for each repeat (default=F)
+#' @export
+runEMrangeClassNum<-function(data, k_range=2:10, convergenceError=1e-6, maxIterations=100,
+                       repeats=10, outPath=".", xlim=c(-250,250), outFileBase="",
+                       myXlab="CpG/GpC position", featureLabel="TSS",
+                       baseFontSize=12, doIndividualPlots=TRUE) {
+  for (numClasses in k_range) {
+    runEMrepeats(data, numClasses, convergenceError, maxIterations,
+                           repeats, outPath, xlim, outFileBase,
+                           myXlab, featureLabel,
+                           baseFontSize, doIndividualPlots)
+  }
+}
+
+
+
+
+#' Run several repeats of iterative EM for randomised data
+#'
+#' Perform EM clustering on the same matrix several times. Necessary to check that classes are stable despite the random assignment of methylation fractions.
+#'
+#' @param data A matrix of methylation or bincount values (reads x position)
+#' @param numClasses An integer indicating the number of classes to learn
+#' @param convergenceError An float indicating the convergence threshold for stopping iteration
+#' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @return  Numeric. Total within cluster sum of squares.
+#' @export
+runEMrepeats_withinSS<-function(data, numClasses=3, convergenceError=1e-6, maxIterations=100,
+                       repeats=10){
+  previousClassMeans<-NULL # in the first round, use hclust to sort clusters
+  classVote<-data.frame(read=row.names(data),stringsAsFactors=F)
+  for (rep in 1:repeats) {
+    # do classifiction
+    emClass<-runEM(data=data, numClasses=numClasses, convergenceError=convergenceError,
+                   maxIterations=maxIterations, printProgress=FALSE)
+
+    # order data by class
+    orderedData<-classifyAndSortReads(data=data, posteriorProb=emClass$posteriorProb,
+                                      previousClassMeans=previousClassMeans)
+    dataOrderedByClass<-orderedData$data
+    classMeans<-orderedData$classMeans
+    classVote[,paste0("rep",rep)]<-getClasses(dataOrderedByClass,classVote$read)
+
+    # store classMeans from first round as previousClassMeans to have consitent order
+    if(is.null(previousClassMeans)) {
+      previousClassMeans<-classMeans
+    }
+  }
+
+  # plots histograms of consistency of classfiications over multiple repeats
+  classVote<-getClassVote(classVote)
+  classVote$topClass<-factor(classVote$topClass)
+
+  # calculate total within cluster sum of squares
+  idx<-match(row.names(data),classVote$read)
+  classes<-classVote$topClass[idx]
+  withinSS<-withinClusterSS(data,classes)
+  return(withinSS)
+}
+
+
+
+#' Plot clustering metrics
+#'
+#' Diagnostic plots for choosing the optimal number of clusters. Based on the following:
+#' https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/. Using three metrics:
+#' 1) average silhouette width. Bigger is better
+#' 2) Within cluster sum of squares (elbowWSS) - smaller is better, look for where slope no longer changes much ("elbow" in graph)
+#' 3) Gap statistic which compares how much smaller the sample WSS is from a random distribution of WSS generated from randomised matrices. Bigger is better. Look for kink in graph.
+#' @param dataMatrix A matrix of methylation or bincount values (reads x position)
+#' @param k_range A vector indicating different numbers of classes to learn
+#' @param maxB  The maximum number of randomisations to perform
+#' @param convergenceError An float indicating the convergence threshold for stopping iteration
+#' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @param outPath A string with the path to the directory where the output should go
+#' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
+#' @return None
+#' @export
+plotCusteringMetrics<-function(dataMatrix, k_range=2:10, maxB=100, convergenceError=1e-6,
+                               maxIterations=100, outPath=".", outFileBase=""){
+  clusterStats<-data.frame(numClasses=k_range,meanSilhouetteWidth=NA,elbowWSS=NA,gap=NA,
+                         stringsAsFactors=F)
+  for (numClasses in k_range) {
+    silStats<-read.csv(paste0(outPath,"/silhouettePlots/silhouetteStats_",
+                            outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
+    randomisedMatrixStatsFile<-paste0(outPath,"/silhouettePlots/randomisedMatrixStats_",
+                                    outFileBase,".csv")
+    if (file.exists(randomisedMatrixStatsFile)) {
+      read.csv(randomisedMatrixStatsFile,stringsAsFactors=F)
+    } else {
+      randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
+                                     convergenceError, maxIterations)
+      write.csv(randomWSS,randomisedMatrixStatsFile)
+    }
+    nc<-which(clusterStats$numClasses==numClasses)
+    clusterStats$meanSilhouetteWidth[nc]<-mean(silStats$silhouetteWidthMean)
+    clusterStats$elbowWSS[nc]<-mean(silStats$elbowWSS)
+    clusterStats$gap[nc]<-
+      randomWSS[randomWSS$numClasses==numClasses,"sumSq"]-clusterStats$elbowWSS[nc]
+    p1<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
+      ggplot2::geom_line() + ggplot2::geom_point() +
+      ggplot2::ggtitle(paste("Silhouette width", outFileBase))
+    p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
+      ggplot2::geom_line() + ggplot2::geom_point() +
+      ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
+    p3<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=gap)) +
+      ggplot2::geom_line() + ggplot2::geom_point() +
+      ggplot2::ggtitle(paste("gap statistic", outFileBase))
+    p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
+    ggplot2::ggsave(paste0(outPath,"/silhouettePlots/clusterStats_",
+                         outFileBase,".pdf"),
+                  plot=p, device="pdf", width=19,height=29,units="cm")
+  }
+}
+

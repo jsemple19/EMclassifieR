@@ -23,7 +23,8 @@ Imports:
       cluster,
       ggplot2,
       tidyr,
-      plyr
+      plyr,
+      ggpubr
 Suggests: 
     knitr,
     rmarkdown,
