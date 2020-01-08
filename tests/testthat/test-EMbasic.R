@@ -3,23 +3,65 @@ context("EMbasic")
 testthat::test_that("1 round of EM works", {
   numSamples=4
   numClasses=2
-  data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1),nrow=numSamples,byrow=T)
+  dataMatrix<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1),nrow=numSamples,byrow=T)
   classes = matrix(rep(0.5,6),nrow=2)
   priorProb=rep(1/numClasses,numClasses)
 
-  testthat::expect_equal(em_basic(classes,priorProb,data)$posteriorProb,
+  testthat::expect_equal(em_basic(classes,priorProb,dataMatrix)$posteriorProb,
                matrix(rep(0.5,8),nrow=4))
+})
+
+
+testthat::test_that("EM_basic and runEM fail if data not in 0-1 range", {
+  numSamples=4
+  numClasses=2
+  dataMatrix<-matrix(c(0,0,0,1,1,1,2,1,0,0,0,1),nrow=numSamples,byrow=T)
+  classes = matrix(rep(0.5,6),nrow=2)
+  priorProb=rep(1/numClasses,numClasses)
+  result1<-try(em_basic(classes,priorProb,dataMatrix))
+  result2<-try(runEM(dataMatrix,numClasses,1e-6,100))
+
+  testthat::expect_equal(class(result1), "try-error")
+  testthat::expect_equal(class(result2), "try-error")
+})
+
+
+
+testthat::test_that("EM_basic and runEM fail if data contains NAs", {
+  numSamples=4
+  numClasses=2
+  dataMatrix<-matrix(c(NA,0,0,1,1,1,NA,1,0,0,0,1),nrow=numSamples,byrow=T)
+  classes = matrix(rep(0.5,6),nrow=2)
+  priorProb=rep(1/numClasses,numClasses)
+  result1<-try(em_basic(classes,priorProb,dataMatrix))
+  result2<-try(runEM(dataMatrix,numClasses,1e-6,100))
+
+  testthat::expect_equal(class(result1), "try-error")
+  testthat::expect_equal(class(result2), "try-error")
+})
+
+
+
+
+testthat::test_that("EM_basic fails if data not in 0-1 range", {
+  numSamples=4
+  numClasses=2
+  dataMatrix<-matrix(c(0,0,0,1,1,2,1,1,0,0,0,1),nrow=numSamples,byrow=T)
+  classes = matrix(rep(0.5,6),nrow=2)
+  priorProb=rep(1/numClasses,numClasses)
+  result<-try(em_basic(classes,priorProb,dataMatrix))
+  testthat::expect_equal(class(result), "try-error")
 })
 
 
 testthat::test_that("1 round of EM works with fractions", {
   numSamples=5
   numClasses=3
-  data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  dataMatrix<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
   classes = matrix(rep(0.5,numClasses*numSamples),nrow=numClasses)
   priorProb=rep(1/numClasses,numClasses)
 
-  testthat::expect_equal(em_basic(classes,priorProb,data)$posteriorProb,
+  testthat::expect_equal(em_basic(classes,priorProb,dataMatrix)$posteriorProb,
                matrix(rep(1/3,numSamples*numClasses),nrow=numSamples))
 })
 
@@ -29,10 +71,10 @@ testthat::test_that("1 round of EM works with fractions", {
 testthat::test_that("running multiple rounds of EM  works", {
   numSamples=4
   numClasses=2
-  data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1),nrow=numSamples,byrow=T)
+  dataMatrix<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1),nrow=numSamples,byrow=T)
 
   set.seed(1)
-  result<-round(runEM(data,numClasses,1e-6,100)$posteriorProb,0)
+  result<-round(runEM(dataMatrix,numClasses,1e-6,100)$posteriorProb,0)
   testthat::expect_equal(result,
                matrix(c(1,0,0,1,0,1,1,0),nrow=numSamples,byrow=T))
 })
@@ -41,10 +83,10 @@ testthat::test_that("running multiple rounds of EM  works", {
 testthat::test_that("running multiple rounds of EM with fractions works", {
   numSamples=5
   numClasses=3
-  data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  dataMatrix<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
 
   set.seed(1)
-  result<-round(runEM(data,numClasses,1e-6,100)$posteriorProb,0)
+  result<-round(runEM(dataMatrix,numClasses,1e-6,100)$posteriorProb,0)
   testthat::expect_equal(result,
                matrix(c(0,0,1,1,0,0,1,0,0,0,0,1,0,0,1),nrow=numSamples,byrow=T))
 })
@@ -66,15 +108,15 @@ testthat::test_that("ordering by previous class means works", {
 testthat::test_that("classifying and sorting reads works", {
   numClasses=3
   numSamples=5
-  data<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
-  rownames(data)<-paste0("r",1:numSamples)
-  colnames(data)<-c(-2,-1,1)
+  dataMatrix<-matrix(c(0,0,0,1,1,1,1,1,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  rownames(dataMatrix)<-paste0("r",1:numSamples)
+  colnames(dataMatrix)<-c(-2,-1,1)
   #readClasses = apply(posteriorProb, 1, which.max)
   expectedClasses<- c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
 
   set.seed(1)
-  emClass<-runEM(data,numClasses,1e-6,100)
-  orderedData<-classifyAndSortReads(data, emClass$posteriorProb,
+  emClass<-runEM(dataMatrix,numClasses,1e-6,100)
+  orderedData<-classifyAndSortReads(dataMatrix, emClass$posteriorProb,
                                     previousClassMeans=NULL)
   results<-rownames(orderedData$data)
   testthat::expect_equal(results, expectedClasses)
@@ -86,25 +128,25 @@ testthat::test_that("classifying and sorting reads works", {
 testthat::test_that("classifying and sorting by previous class means works", {
   numClasses=3
   numSamples=6
-  data<-matrix(c(1,0.5,0,0,
+  dataMatrix<-matrix(c(1,0.5,0,0,
                  0,0,0,0,
                  1,1,1,1,
                  1,1,1,0,
                  0,0,0,1,
                  1,0.5,0.5,0),nrow=numSamples,byrow=T)
-  rownames(data)<-paste0("r",1:numSamples)
-  colnames(data)<-c(-2,-1,1,3)
+  rownames(dataMatrix)<-paste0("r",1:numSamples)
+  colnames(dataMatrix)<-c(-2,-1,1,3)
   #readClasses = apply(posteriorProb, 1, which.max)
   expectedClasses<- c("r2__class1", "r5__class1", "r3__class2", "r4__class2",
                       "r1__class3", "r6__class3")
 
   set.seed(1)
-  emClass<-runEM(data,numClasses,1e-6,100)
-  orderedData<-classifyAndSortReads(data, emClass$posteriorProb,
+  emClass<-runEM(dataMatrix,numClasses,1e-6,100)
+  orderedData<-classifyAndSortReads(dataMatrix, emClass$posteriorProb,
                                          previousClassMeans=NULL)
   results<-rownames(orderedData$data)
   previousClassMeans<-orderedData$classMeans
-  orderedData1<-classifyAndSortReads(data, emClass$posteriorProb,
+  orderedData1<-classifyAndSortReads(dataMatrix, emClass$posteriorProb,
                                     previousClassMeans=previousClassMeans)
   results1<-rownames(orderedData1$data)
   #classMeans<-orderedData1$classMeans
@@ -117,13 +159,13 @@ testthat::test_that("classifying and sorting by previous class means works", {
 
 testthat::test_that("plotting from single gene returns a plot" , {
   numSamples<-5
-  data<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
-  rownames(data)<-c("r2__class1","r3__class1",
+  dataMatrix<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  rownames(dataMatrix)<-c("r2__class1","r3__class1",
                     "r1__class3","r4__class3","r5__class3")
-  colnames(data)<-c(-200,-100, 200)
+  colnames(dataMatrix)<-c(-200,-100, 200)
 
   #testthat::expect_null(plotClassesSingleGene(matrix(c(0)),performSilhouette=F),)
-  p<-plotClassesSingleGene(data, xlim=c(-250,250),
+  p<-plotClassesSingleGene(dataMatrix, xRange=c(-250,250),
                         title="Reads by classes",
                         myXlab="CpG/GpC position",
                         featureLabel="TSS",
@@ -135,11 +177,11 @@ testthat::test_that("plotting from single gene returns a plot" , {
 
 testthat::test_that("silhouette plot works" , {
   numSamples<-5
-  data<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
-  rownames(data)<-c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
-  colnames(data)<-c(-200,-100, 200)
+  dataMatrix<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  rownames(dataMatrix)<-c("r2__class1","r3__class1","r1__class3","r4__class3","r5__class3")
+  colnames(dataMatrix)<-c(-200,-100, 200)
 
-  sp<-silhouettePlot(dataOrderedByClass=data, numClasses=3, regionName="blah")
+  sp<-silhouettePlot(dataOrderedByClass=dataMatrix, numClasses=3, outFileBase="blah")
   testthat::expect_equal(class(sp$stats),"data.frame")
   testthat::expect_equal(class(sp$plotObject),"silhouette")
 })
@@ -151,13 +193,13 @@ testthat::test_that("silhouette plot works" , {
 testthat::test_that("plotting class means returns a plot" , {
   numSamples<-5
   numClasses<-3
-  data<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
-  rownames(data)<-c("r2__class1","r3__class1",
+  dataMatrix<-matrix(c(1,1,1,1,1,0,0,0,0,0,0,1,0.5,0.5,0.5),nrow=numSamples,byrow=T)
+  rownames(dataMatrix)<-c("r2__class1","r3__class1",
                     "r1__class3","r4__class3","r5__class3")
-  colnames(data)<-c(-200,-100, 200)
-  emClass<-runEM(data,numClasses,1e-6,100)
+  colnames(dataMatrix)<-c(-200,-100, 200)
+  emClass<-runEM(dataMatrix,numClasses,1e-6,100)
 
-  p<-plotClassMeans(emClass$classes, xlim=c(-250,250), facet=TRUE, title="Class means",
+  p<-plotClassMeans(emClass$classes, xRange=c(-250,250), facet=TRUE, title="Class means",
                     myXlab="CpG/GpC position",featureLabel="TSS", baseFontSize=12)
   testthat::expect_equal(class(p),c("gg","ggplot"))
 })
@@ -171,7 +213,7 @@ testthat::test_that("plotting smoothed class means returns a plot" , {
                  class=factor(rep(1:3,3)),
                  replicate=factor(rep(1:3,each=3)),stringsAsFactors=FALSE)
 
-  p<-plotSmoothedClassMeans(df, xlim=c(-2,2))
+  p<-plotSmoothedClassMeans(df, xRange=c(-2,2))
   testthat::expect_equal(class(p),c("gg","ggplot"))
 })
 
@@ -179,20 +221,21 @@ testthat::test_that("plotting smoothed class means returns a plot" , {
 
 
 testthat::test_that("runEMrepeats class mean output is correct" , {
-  numClasses=3
   numSamples=6
-  data<-matrix(c(1,0.5,0,0,
-                 0,0,0,0,
-                 1,1,1,1,
-                 1,1,1,0,
-                 0,0,0,1,
-                 1,0.5,0.5,0),nrow=numSamples,byrow=T)
-  rownames(data)<-paste0("r",1:numSamples)
-  colnames(data)<-c(-2,-1,1,3)
+  numClasses=2
+  dataMatrix<-matrix(c(1,0.5,0,0,0,0,
+                 0,0,0,0,0,1,
+                 1,1,1,1,1,1,
+                 1,1,1,0,1,1,
+                 0,0,0,1,0,0,
+                 1,0.5,1,0,1,1),nrow=numSamples,byrow=T)
+  rownames(dataMatrix)<-paste0("r",1:numSamples)
+  colnames(dataMatrix)<-c(-3,-2,-1,1,2,3)
 
-  df<-runEMrepeats(data, repeats=2, xlim=c(-3,3))
-  testthat::expect_equal(dim(df),c(24,4))
-  testthat::expect_equal(df[3,3],"3")
+  set.seed(1)
+  df<-runEMrepeats(dataMatrix, numClasses=numClasses, repeats=3, xRange=c(-3,3))
+  testthat::expect_equal(dim(df),c(36,4))
+  testthat::expect_equal(df[3,3],"1")
 })
 
 
