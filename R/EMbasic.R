@@ -570,13 +570,13 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 
   # save silhouette for individual repeats if first round or if requested
   if(rep==1 | doIndividualPlots==TRUE) {
-    makeDirs(path=outPath,dirNameList=paste0("silhouettePlots","/",outFileBase))
-    grDevices::pdf(paste0(outPath,"/silhouettePlots/", outFileBase, "/",
-                          outFileBase,"_silhouette_K",
+    makeDirs(path=outPath,dirNameList=paste0("silPlts","/",outFileBase))
+    grDevices::pdf(paste0(outPath,"/silPlts/", outFileBase, "/",
+                          outFileBase,"_sil_K",
                           numClasses, "_rep", rep, ".pdf"),
                    paper="a4", height=11, width=8)
     graphics::plot(silList$plotObject)
-    graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
+    graphics::abline(v=silList$stats["silWidthMean"], col="black",lty=2)
     grDevices::dev.off()
   }
   return(silStats)
