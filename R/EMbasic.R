@@ -451,7 +451,7 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
 #' @param readNames A vector of read names by which to order the classes
 #' @return Classification of reads ordered by readNames
 #' @export
-getClasses<-function(dataOrderedByClass,readNames){
+getReadClass<-function(dataOrderedByClass,readNames){
   readClasses<-as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                            split="__class"),"[[",2))
   sortedReadNames<-sapply(strsplit(rownames(dataOrderedByClass),
@@ -595,6 +595,7 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return None
+#' @export
 plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFileBase,
                            outPath, xRange, myXlab, featureLabel, baseFontSize){
   # plot single molecules with final classes
@@ -656,16 +657,18 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   silStats<-NULL
   for (rep in 1:repeats) {
     # do classifiction
-    emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses, convergenceError=convergenceError,
+    emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
+                   convergenceError=convergenceError,
                    maxIterations=maxIterations)
 
     # order dataMatrix by class
-    orderedData<-classifyAndSortReads(dataMatrix=dataMatrix, posteriorProb=emClass$posteriorProb,
+    orderedData<-classifyAndSortReads(dataMatrix=dataMatrix,
+                                      posteriorProb=emClass$posteriorProb,
                                       previousClassMeans=previousClassMeans)
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
 
-    classVote[,paste0("rep",rep)]<-getClasses(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",rep)]<-getReadClass(dataOrderedByClass,classVote$read)
 
     #previousClassMeans<-setPreviousClassMeans(classMeans, previousClassMeans, allClassMeans)
     # store classMeans from first round as previousClassMeans to have consitent order
@@ -737,6 +740,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
+#' @return allClassMeans
 #' @export
 runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              maxIterations=100, repeats=10, outPath=".",
@@ -746,12 +750,12 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
   stopifnot(isMatrixValid(dataMatrix))
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))
-    allClassMeans<-runEMrepeats(dataMatrix, numClasses, convergenceError, maxIterations,
-                           repeats, outPath, xRange, outFileBase,
-                           myXlab, featureLabel,
-                           baseFontSize, doIndividualPlots)
+    allClassMeans[numClasses]<-runEMrepeats(dataMatrix, numClasses, convergenceError,
+                                            maxIterations, repeats, outPath, xRange,
+                                            outFileBase, myXlab, featureLabel,
+                                            baseFontSize, doIndividualPlots)
   }
-  return(1)
+  return(allClassMeans)
 }
 
 
@@ -773,15 +777,17 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
   for (rep in 1:repeats) {
     # do classifiction
-    emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses, convergenceError=convergenceError,
+    emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
+                   convergenceError=convergenceError,
                    maxIterations=maxIterations, printProgress=FALSE)
 
     # order dataMatrix by class
-    orderedData<-classifyAndSortReads(dataMatrix=dataMatrix, posteriorProb=emClass$posteriorProb,
+    orderedData<-classifyAndSortReads(dataMatrix=dataMatrix,
+                                      posteriorProb=emClass$posteriorProb,
                                       previousClassMeans=previousClassMeans)
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
-    classVote[,paste0("rep",rep)]<-getClasses(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",rep)]<-getReadClass(dataOrderedByClass,classVote$read)
 
     # store classMeans from first round as previousClassMeans to have consitent order
     if(is.null(previousClassMeans)) {
