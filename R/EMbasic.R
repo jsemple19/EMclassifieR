@@ -738,20 +738,21 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
 #' @export
-runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6, maxIterations=100,
-                       repeats=10, outPath=".", xRange=c(-250,250), outFileBase="",
-                       myXlab="CpG/GpC position", featureLabel="TSS",
-                       baseFontSize=12, doIndividualPlots=TRUE) {
+runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
+                             maxIterations=100, repeats=10, outPath=".",
+                             xRange=c(-250,250), outFileBase="",
+                             myXlab="CpG/GpC position", featureLabel="TSS",
+                             baseFontSize=12, doIndividualPlots=TRUE) {
   stopifnot(isMatrixValid(dataMatrix))
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))
-    runEMrepeats(dataMatrix, numClasses, convergenceError, maxIterations,
+    allClassMeans<-runEMrepeats(dataMatrix, numClasses, convergenceError, maxIterations,
                            repeats, outPath, xRange, outFileBase,
                            myXlab, featureLabel,
                            baseFontSize, doIndividualPlots)
   }
+  return(1)
 }
-
 
 
 
@@ -855,6 +856,7 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceEr
                          outFileBase,".pdf"),
                   plot=p, device="pdf", width=19,height=29,units="cm")
 }
+
 
 
 
