@@ -3,3 +3,8 @@ packrat/lib*/
 .DS_Store
 .Rhistory
 vignettes/resultsEM/*
+classMeanPlots
+classPlots
+dataOrdByClass
+silPlts
+

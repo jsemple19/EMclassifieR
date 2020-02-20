@@ -576,7 +576,7 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
                           numClasses, "_rep", rep, ".pdf"),
                    paper="a4", height=11, width=8)
     graphics::plot(silList$plotObject)
-    graphics::abline(v=silList$stats["silWidthMean"], col="black",lty=2)
+    graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
     grDevices::dev.off()
   }
   return(silStats)
