@@ -26,7 +26,7 @@ dim(dataMatrix)
 #  outPath="./resultsEM"
 #  
 #  set.seed(1)
-#  for (i in 2:nrow(matTable)){
+#  for (i in 1:nrow(matTable)){
 #    regionName=matTable$region[i]
 #    sampleName=matTable$sample[i]
 #    outFileBase=paste(sampleName, regionName, sep="_")
