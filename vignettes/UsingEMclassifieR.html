@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-04-09" />
+<meta name="date" content="2020-04-14" />
 
 <title>Using EMclassifieR on methylation data</title>
 
@@ -301,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-04-09</h4>
+<h4 class="date">2020-04-14</h4>
 
 
 
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-4" title="4">numRepeats=<span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></a>
 <a class="sourceLine" id="cb7-5" title="5">xRange=<span class="kw">c</span>(<span class="op">-</span><span class="dv">250</span>,<span class="dv">250</span>)</a>
 <a class="sourceLine" id="cb7-6" title="6">maxB=<span class="dv">100</span> <span class="co"># Number of randomised matrices to generate</span></a>
-<a class="sourceLine" id="cb7-7" title="7">outPath=<span class="st">&quot;./resultsEM&quot;</span></a>
+<a class="sourceLine" id="cb7-7" title="7">outPath=<span class="st">&quot;./EMres&quot;</span></a>
 <a class="sourceLine" id="cb7-8" title="8"></a>
 <a class="sourceLine" id="cb7-9" title="9"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
 <a class="sourceLine" id="cb7-10" title="10"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable)){</a>
@@ -368,6 +368,18 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-31" title="31">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
 <a class="sourceLine" id="cb7-32" title="32">  )</a>
 <a class="sourceLine" id="cb7-33" title="33">}</a></code></pre></div>
+<pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
+## [1] &quot;numClasses: 2&quot;
+## [1] &quot;converged: TRUE iterations:  26&quot;
+## [1] &quot;Clustering dS02-182_WBGene00015955&quot;
+## [1] &quot;Empty dimension&quot;
+## [1] &quot;Clustering dS02-182_WBGene00009620&quot;
+## [1] &quot;Empty dimension&quot;
+## [1] &quot;Clustering dS02-182_WBGene00009621&quot;
+## [1] &quot;Empty dimension&quot;
+## [1] &quot;Clustering dS02-182_WBGene00009801&quot;
+## [1] &quot;numClasses: 2&quot;
+## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
 </div>
 </div>
 

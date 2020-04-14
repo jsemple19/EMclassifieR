@@ -499,16 +499,16 @@ getClassVote<-function(classVote){
 #' @return Returns a ggplot2 object
 plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, rep,
                classMeans, xRange, myXlab, featureLabel, baseFontSize){
-  makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
-                                           "classMeanPlots"),"/",outFileBase))
+  #makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
+  #                                         "classMeanPlots"),"/",outFileBase))
   # do single molecule plots of classes
   p<-plotClassesSingleGene(dataOrderedByClass, xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=baseFontSize)
-
-  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/", outFileBase,
-                                "/classifiedReads_", outFileBase,"_K",
-                                numClasses,"_rep", rep, ".pdf"),
+  outPath<-gsub("\\/$","",outPath)
+  ggplot2::ggsave(filename=paste0(outPath,
+                                "/classReads_", outFileBase,"_K",
+                                numClasses,"_r", rep, ".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 
   #plot individual unsmoothed class means
@@ -517,9 +517,9 @@ plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, 
                   myXlab=myXlab, featureLabel=featureLabel,
                   baseFontSize=baseFontSize)
 
-  ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/", outFileBase,
+  ggplot2::ggsave(filename=paste0(outPath,
                                 "/classMeans_", outFileBase,"_K",
-                                numClasses, "_rep",rep,".pdf"),
+                                numClasses, "_r",rep,".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 }
 
@@ -541,7 +541,8 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
     ggplot2::geom_histogram(binwidth=0.1) + ggplot2::facet_wrap(.~topClass)
 
   p<-ggpubr::ggarrange(p1,p2,ncol=1,nrow=2)
-  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/classFreq_",
+  outPath<-gsub("\\/$","",outPath)
+  ggplot2::ggsave(filename=paste0(outPath,"/classFreq_",
                                 outFileBase,"_K",numClasses,".pdf"),
                 plot=p,device="pdf",width=19,height=29,units="cm")
   return(classVote)
@@ -570,10 +571,11 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 
   # save silhouette for individual repeats if first round or if requested
   if(rep==1 | doIndividualPlots==TRUE) {
-    makeDirs(path=outPath,dirNameList=paste0("silPlts","/",outFileBase))
-    grDevices::pdf(paste0(outPath,"/silPlts/", outFileBase, "/",
-                          outFileBase,"_sil_K",
-                          numClasses, "_rep", rep, ".pdf"),
+    #makeDirs(path=outPath,dirNameList=paste0("silPlts","/",outFileBase))
+    outPath<-gsub("\\/$","",outPath)
+    grDevices::pdf(paste0(outPath,"/sil_",
+                          outFileBase,"_K",
+                          numClasses, "_r", rep, ".pdf"),
                    paper="a4", height=11, width=8)
     graphics::plot(silList$plotObject)
     graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
@@ -602,8 +604,9 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
   p<-plotClassesSingleGene(dataOrderedByClass, xRange=xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=12)
-  ggplot2::ggsave(filename=paste0(outPath,"/classPlots/",
-                                "classifiedReads_", outFileBase,"_K",
+  outPath<-gsub("\\/$","",outPath)
+  ggplot2::ggsave(filename=paste0(outPath,
+                                "/finalClassReads_", outFileBase,"_K",
                                 numClasses, ".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 
@@ -615,7 +618,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
                           myXlab="CpG/GpC position", featureLabel="TSS",
                           baseFontSize=12)
 
-  ggplot2::ggsave(filename=paste0(outPath,"/classMeanPlots/smClassMeans_",
+  ggplot2::ggsave(filename=paste0(outPath,"/smClassMeans_",
                                 outFileBase,"_K", numClasses,".pdf"),
                 plot=p, device="pdf", width=29, height=19, units="cm")
 }
@@ -648,9 +651,11 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
                        baseFontSize=12, doIndividualPlots=FALSE){
   #initialise variables
   methFreq <- position <- NULL
+  #remove trailing / from outPath
+  outPath<-gsub("\\/$","",outPath)
   # make output directories
-  makeDirs(path=outPath,dirNameList=c("silPlts","dataOrdByClass","classPlots",
-                                      "classMeanPlots"))
+  #makeDirs(path=outPath,dirNameList=c("silPlts","dataOrdByClass","classPlots",
+  #                                    "classMeanPlots"))
 
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
@@ -707,8 +712,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",classVote$topClass[idx])
   dataOrderedByClassRep<-dataMatrix[order(classVote$topClass[idx]),]
 
-  saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/dataOrdByClass/",
-                                          outFileBase, "_K", numClasses, ".rds"))
+  saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/", outFileBase, "_K",
+                                             numClasses, ".rds"))
 
   plotFinalClasses(dataOrderedByClassRep, numClasses, allClassMeans, outFileBase,
                    outPath, xRange, myXlab, featureLabel, baseFontSize)
@@ -717,7 +722,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
-  utils::write.csv(silStats, file=paste0(outPath,"/silPlts/silStats_",
+  utils::write.csv(silStats, file=paste0(outPath,"/silStats_",
                                   outFileBase,"_K",numClasses,".csv"))
   return(allClassMeans)
 }
@@ -748,10 +753,12 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              myXlab="CpG/GpC position", featureLabel="TSS",
                              baseFontSize=12, doIndividualPlots=TRUE) {
   stopifnot(isMatrixValid(dataMatrix))
+  allClassMeans<-list()
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))
-    allClassMeans[numClasses]<-runEMrepeats(dataMatrix, numClasses, convergenceError,
-                                            maxIterations, repeats, outPath, xRange,
+    allClassMeans[numClasses]<-runEMrepeats(dataMatrix, numClasses,
+                                            convergenceError, maxIterations,
+                                            repeats, outPath, xRange,
                                             outFileBase, myXlab, featureLabel,
                                             baseFontSize, doIndividualPlots)
   }
@@ -826,14 +833,16 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @export
 plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceError=1e-6,
                                maxIterations=100, outPath=".", outFileBase=""){
-  # initialise varaibles
+  # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
-  clusterStats<-data.frame(numClasses=k_range, meanSilhouetteWidth=NA, elbowWSS=NA, gap=NA,
-                         stringsAsFactors=F)
+  clusterStats<-data.frame(numClasses=k_range, meanSilhouetteWidth=NA,
+                           elbowWSS=NA, gap=NA,
+                           stringsAsFactors=F)
+  outPath<-gsub("\\/$","",outPath)
   for (numClasses in k_range) {
-    silStats<-utils::read.csv(paste0(outPath,"/silPlts/silStats_",
+    silStats<-utils::read.csv(paste0(outPath,"/silStats_",
                             outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
-    randomisedMatrixStatsFile<-paste0(outPath,"/silPlts/randomMatStats_",
+    randomisedMatrixStatsFile<-paste0(outPath,"/randMatStats_",
                                     outFileBase,".csv")
     if (file.exists(randomisedMatrixStatsFile)) {
       randomWSS<-utils::read.csv(randomisedMatrixStatsFile,stringsAsFactors=F)
@@ -858,7 +867,7 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceEr
       ggplot2::geom_line() + ggplot2::geom_point() +
       ggplot2::ggtitle(paste("gap statistic", outFileBase))
     p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
-    ggplot2::ggsave(paste0(outPath,"/silPlts/clustStats_",
+    ggplot2::ggsave(paste0(outPath,"/clustStats_",
                          outFileBase,".pdf"),
                   plot=p, device="pdf", width=19,height=29,units="cm")
 }
