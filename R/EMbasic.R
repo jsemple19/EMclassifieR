@@ -723,7 +723,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
   utils::write.csv(silStats, file=paste0(outPath,"/silStats_",
-                                  outFileBase,"_K",numClasses,".csv"))
+                                  outFileBase,"_K",numClasses,".csv"),
+                   row.names=F)
   return(allClassMeans)
 }
 
@@ -845,11 +846,11 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceEr
     randomisedMatrixStatsFile<-paste0(outPath,"/randMatStats_",
                                     outFileBase,".csv")
     if (file.exists(randomisedMatrixStatsFile)) {
-      randomWSS<-utils::read.csv(randomisedMatrixStatsFile,stringsAsFactors=F)
+      randomWSS<-utils::read.csv(randomisedMatrixStatsFile, stringsAsFactors=F)
     } else {
       randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
                                      convergenceError, maxIterations)
-      utils::write.csv(randomWSS,randomisedMatrixStatsFile)
+      utils::write.csv(randomWSS, randomisedMatrixStatsFile, row.names=F)
     }
     nc<-which(clusterStats$numClasses==numClasses)
     clusterStats$meanSilhouetteWidth[nc]<-mean(silStats$silhouetteWidthMean)

@@ -53,7 +53,7 @@ randomiseMatrixRows<-function(dataMatrix){
 #' @export
 clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100){
-  totalWSS<-data.frame(numClasses=k_range,meanWSS=0,sumSq=0,sdWSS=NA)
+  totalWSS<-data.frame(numClasses=k_range, meanWSS=0, sumSq=0, sdWSS=NA)
   for (numClasses in k_range){
     print(paste0("numClasses: ",numClasses))
     nc<-which(totalWSS$numClasses==numClasses)
