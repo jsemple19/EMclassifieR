@@ -24,7 +24,10 @@ Imports:
       ggplot2,
       tidyr,
       plyr,
-      ggpubr
+      ggpubr,
+      parallel,
+      foreach,
+      doParallel
 Suggests: 
     knitr,
     rmarkdown,

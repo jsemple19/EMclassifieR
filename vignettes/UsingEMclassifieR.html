@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-04-14" />
+<meta name="date" content="2020-04-15" />
 
 <title>Using EMclassifieR on methylation data</title>
 
@@ -301,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-04-14</h4>
+<h4 class="date">2020-04-15</h4>
 
 
 
@@ -343,43 +343,33 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-6" title="6">maxB=<span class="dv">100</span> <span class="co"># Number of randomised matrices to generate</span></a>
 <a class="sourceLine" id="cb7-7" title="7">outPath=<span class="st">&quot;./EMres&quot;</span></a>
 <a class="sourceLine" id="cb7-8" title="8"></a>
-<a class="sourceLine" id="cb7-9" title="9"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb7-10" title="10"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable)){</a>
-<a class="sourceLine" id="cb7-11" title="11">  regionName=matTable<span class="op">$</span>region[i]</a>
-<a class="sourceLine" id="cb7-12" title="12">  sampleName=matTable<span class="op">$</span>sample[i]</a>
-<a class="sourceLine" id="cb7-13" title="13">  outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</a>
-<a class="sourceLine" id="cb7-14" title="14">  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</a>
-<a class="sourceLine" id="cb7-15" title="15">  dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], </a>
-<a class="sourceLine" id="cb7-16" title="16">                              <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</a>
-<a class="sourceLine" id="cb7-17" title="17">  <span class="kw">dim</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb7-18" title="18">  dataMatrix&lt;-<span class="kw">removeAllNArows</span>(dataMatrix)</a>
+<a class="sourceLine" id="cb7-9" title="9"><span class="co">#nThreads&lt;-detectCores()-1</span></a>
+<a class="sourceLine" id="cb7-10" title="10"></a>
+<a class="sourceLine" id="cb7-11" title="11"><span class="kw">set.seed</span>(<span class="dv">20200413</span>)</a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable)){</a>
+<a class="sourceLine" id="cb7-13" title="13">  regionName=matTable<span class="op">$</span>region[i]</a>
+<a class="sourceLine" id="cb7-14" title="14">  sampleName=matTable<span class="op">$</span>sample[i]</a>
+<a class="sourceLine" id="cb7-15" title="15">  outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</a>
+<a class="sourceLine" id="cb7-16" title="16">  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</a>
+<a class="sourceLine" id="cb7-17" title="17">  dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], </a>
+<a class="sourceLine" id="cb7-18" title="18">                              <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</a>
 <a class="sourceLine" id="cb7-19" title="19">  <span class="kw">dim</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb7-20" title="20">  </a>
-<a class="sourceLine" id="cb7-21" title="21">  <span class="kw">tryCatch</span>( </a>
-<a class="sourceLine" id="cb7-22" title="22">    {</a>
-<a class="sourceLine" id="cb7-23" title="23">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
-<a class="sourceLine" id="cb7-24" title="24">                     <span class="dt">repeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
-<a class="sourceLine" id="cb7-25" title="25">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
-<a class="sourceLine" id="cb7-26" title="26">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb7-27" title="27">  </a>
-<a class="sourceLine" id="cb7-28" title="28">      <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
-<a class="sourceLine" id="cb7-29" title="29">                       maxIterations, outPath, outFileBase)</a>
-<a class="sourceLine" id="cb7-30" title="30">    },</a>
-<a class="sourceLine" id="cb7-31" title="31">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-32" title="32">  )</a>
-<a class="sourceLine" id="cb7-33" title="33">}</a></code></pre></div>
-<pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
-## [1] &quot;numClasses: 2&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;Clustering dS02-182_WBGene00015955&quot;
-## [1] &quot;Empty dimension&quot;
-## [1] &quot;Clustering dS02-182_WBGene00009620&quot;
-## [1] &quot;Empty dimension&quot;
-## [1] &quot;Clustering dS02-182_WBGene00009621&quot;
-## [1] &quot;Empty dimension&quot;
-## [1] &quot;Clustering dS02-182_WBGene00009801&quot;
-## [1] &quot;numClasses: 2&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
+<a class="sourceLine" id="cb7-20" title="20">  dataMatrix&lt;-<span class="kw">removeAllNArows</span>(dataMatrix)</a>
+<a class="sourceLine" id="cb7-21" title="21">  <span class="kw">dim</span>(dataMatrix)</a>
+<a class="sourceLine" id="cb7-22" title="22">  </a>
+<a class="sourceLine" id="cb7-23" title="23">  <span class="kw">tryCatch</span>( </a>
+<a class="sourceLine" id="cb7-24" title="24">    {</a>
+<a class="sourceLine" id="cb7-25" title="25">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
+<a class="sourceLine" id="cb7-26" title="26">                     <span class="dt">repeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
+<a class="sourceLine" id="cb7-27" title="27">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
+<a class="sourceLine" id="cb7-28" title="28">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb7-29" title="29">  </a>
+<a class="sourceLine" id="cb7-30" title="30">      <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
+<a class="sourceLine" id="cb7-31" title="31">                       maxIterations, outPath, outFileBase)</a>
+<a class="sourceLine" id="cb7-32" title="32">    },</a>
+<a class="sourceLine" id="cb7-33" title="33">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-34" title="34">  )</a>
+<a class="sourceLine" id="cb7-35" title="35">}</a></code></pre></div>
 </div>
 </div>
 

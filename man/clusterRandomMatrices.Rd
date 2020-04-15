@@ -9,7 +9,8 @@ clusterRandomMatrices(
   k_range = 2:8,
   maxB = 100,
   convergenceError = 1e-06,
-  maxIterations = 100
+  maxIterations = 100,
+  nThreads = 1
 )
 }
 \arguments{
