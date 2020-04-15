@@ -52,20 +52,27 @@ randomiseMatrixRows<-function(dataMatrix){
 #' @return A data frame with the average of the total within class sum of squares for multiple randomised matrices and different numbers of classes
 #' @export
 clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
-                                convergenceError=1e-6, maxIterations=100){
+                                convergenceError=1e-6, maxIterations=100,
+                                nThreads=1){
   totalWSS<-data.frame(numClasses=k_range, meanWSS=0, sumSq=0, sdWSS=NA)
+  clst<-parallel::makeCluster(nThreads)
+  doParallel::registerDoParallel(clst)
   for (numClasses in k_range){
     print(paste0("numClasses: ",numClasses))
     nc<-which(totalWSS$numClasses==numClasses)
-    for (b in 1:maxB){
-      randMat<-randomiseMatrixRows(dataMatrix)
-      wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
+    allwss<-foreach::foreach(icount(maxB), .combine=c) %dopar%{
+    #for (b in 1:maxB){
+    randMat<-randomiseMatrixRows(dataMatrix)
+    wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
                                  maxIterations, repeats=1)
-      totalWSS[nc,"meanWSS"] <- totalWSS[nc,"meanWSS"]+wss/maxB
-      totalWSS[nc,"sumSq"] <- totalWSS[nc,"sumSq"]+(wss^2)/maxB
+      #totalWSS[nc,"meanWSS"] <- totalWSS[nc,"meanWSS"]+wss/maxB
+      #totalWSS[nc,"sumSq"] <- totalWSS[nc,"sumSq"]+(wss^2)/maxB
     }
+    totalWSS[nc,"meanWSS"] <- mean(wss)
+    totalWSS[nc,"sumSq"]<-sum(wss^2/maxB)
     totalWSS[nc,"sdWSS"] <- sqrt(totalWSS[nc,"sumSq"]-totalWSS[nc,"meanWSS"]^2)
   }
+  stopCluster(clst)
   return(totalWSS)
 }
 
