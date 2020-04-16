@@ -49,30 +49,35 @@ randomiseMatrixRows<-function(dataMatrix){
 #' @param maxB  The maximum number of randomisations to perform
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
+#' @nThreads Number of threads to use for generating background distribution (default is 1)
+#' @setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
 #' @return A data frame with the average of the total within class sum of squares for multiple randomised matrices and different numbers of classes
 #' @export
 clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100,
-                                nThreads=1){
+                                nThreads=1, setSeed=F){
   totalWSS<-data.frame(numClasses=k_range, meanWSS=0, sumSq=0, sdWSS=NA)
-  #clst<-parallel::makeCluster(nThreads)
-  #doParallel::registerDoParallel(clst)
+  clst<-parallel::makeCluster(nThreads)
+  doParallel::registerDoParallel(clst)
+  if(setSeed) { registerDoRNG(123) }
   for (numClasses in k_range){
     print(paste0("numClasses: ",numClasses))
     nc<-which(totalWSS$numClasses==numClasses)
-    #allwss<-foreach::foreach(1:maxB, .combine=c) %dopar%{
-    for (b in 1:maxB){
+    allwss<-foreach::foreach(1:maxB, .combine=c,
+                             .export=c("randomiseMatrixRows",
+                                       "runEMrepeats_withinSS")) %dopar%{
+    #for (b in 1:maxB){
     randMat<-randomiseMatrixRows(dataMatrix)
     wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
                                  maxIterations, repeats=1)
-      totalWSS[nc,"meanWSS"] <- totalWSS[nc,"meanWSS"]+wss/maxB
-      totalWSS[nc,"sumSq"] <- totalWSS[nc,"sumSq"]+(wss^2)/maxB
+      #totalWSS[nc,"meanWSS"] <- totalWSS[nc,"meanWSS"]+wss/maxB
+      #totalWSS[nc,"sumSq"] <- totalWSS[nc,"sumSq"]+(wss^2)/maxB
     }
-    #totalWSS[nc,"meanWSS"] <- mean(wss)
-    #totalWSS[nc,"sumSq"]<-sum(wss^2/maxB)
+    totalWSS[nc,"meanWSS"] <- mean(allwss)
+    totalWSS[nc,"sumSq"]<-sum(allwss^2/maxB)
     totalWSS[nc,"sdWSS"] <- sqrt(totalWSS[nc,"sumSq"]-totalWSS[nc,"meanWSS"]^2)
   }
-  #parallel::stopCluster(clst)
+  parallel::stopCluster(clst)
   return(totalWSS)
 }
 

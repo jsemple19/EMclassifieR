@@ -111,7 +111,6 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
   numSamples=dim(binaryData)[1]            # Number of samples
   posteriorProb=matrix(nrow=numSamples, ncol=numClasses)  # probability each sample (read) belongs to a particular class
 
-  # set.seed(12)    # same random probabilities each time
   for(i in 1:numClasses) {
     # Samples are randomly assigned probabilities (weights) for each class.
     posteriorProb[,i] = stats::rbeta(numSamples,numSamples**-0.5,1)
@@ -830,10 +829,14 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @param outPath A string with the path to the directory where the output should go
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
+#' @nThreads Number of threads to use for generating background distribution (default is 1)
+#' @setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
 #' @return None
 #' @export
-plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceError=1e-6,
-                               maxIterations=100, outPath=".", outFileBase=""){
+plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
+                                convergenceError=1e-6, maxIterations=100,
+                                outPath=".", outFileBase="",
+                                nThreads=1, setSeed=FALSE){
   # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
   clusterStats<-data.frame(numClasses=k_range, meanSilhouetteWidth=NA,
@@ -849,7 +852,8 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100, convergenceEr
       randomWSS<-utils::read.csv(randomisedMatrixStatsFile, stringsAsFactors=F)
     } else {
       randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
-                                     convergenceError, maxIterations)
+                                     convergenceError, maxIterations,
+                                     nThreads, setSeed)
       utils::write.csv(randomWSS, randomisedMatrixStatsFile, row.names=F)
     }
     nc<-which(clusterStats$numClasses==numClasses)

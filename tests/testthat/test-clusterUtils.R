@@ -23,19 +23,20 @@ testthat::test_that("randomiseMatrixRows returns a matrix randomised by row", {
 
 
 
-
+tic()
 testthat::test_that("clusterRandomMatrices returns correct WSS", {
-  dataMatrix<-matrix(sample(c(0,0.5,1),size=180,prob=c(0.5,0.05,0.45),
-                            replace=T),nrow=20)
+  dataMatrix<-matrix(rep(c(1,0,1,1,0,0.5),8),nrow=4)
   rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
   colnames(dataMatrix)<-paste0("c",1:dim(dataMatrix)[2])
-  set.seed(20200413)
-  WSS<-clusterRandomMatrices(dataMatrix, k_range=2:3, maxB=20,
-                             convergenceError=1e-6, maxIterations=10)
-  truth<-data.frame(numClasses=c(2:3), meanWSS=c(349,194),
-                    sumSq=c(123973,38262), sdWSS=c(39,19))
+  WSS<-clusterRandomMatrices(dataMatrix, k_range=2:3, maxB=100,
+                             convergenceError=1e-6, maxIterations=100,
+                             nThreads=1,setSeed=T)
+  floor(WSS)
+  truth<-data.frame(numClasses=c(2,3), meanWSS=c(9,4),
+                    sumSq=c(105,18), sdWSS=c(3,1))
   testthat::expect_equal(floor(WSS),truth)
 })
+toc()
 
 
 

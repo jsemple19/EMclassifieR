@@ -251,21 +251,3 @@ testthat::test_that("getClassVote returns table with most frequent class", {
 
 
 
-testthat::test_that("clustering random matrices works", {
-  numSamples=6
-  numClasses=2
-  dataMatrix<-matrix(sample(c(0,0.5,1),180,replace=T,prob=c(0.5,0.05,0.45)),nrow=20)
-  rownames(dataMatrix)<-paste0("row",1:dim(dataMatrix)[1])
-  colnames(dataMatrix)<-paste0("col",1:dim(dataMatrix)[2])
-  k_range=2:4
-  maxB=10
-  maxIterations=100
-  convergenceError=1e-6
-  set.seed(20200413)
-  randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB, convergenceError,
-                                   maxIterations)
-  truth<-data.frame(numClasses=c(2,3,4),meanWSS=c(366,198,154),
-                    sumSq=c(138018,39747,24564),
-                    sdWSS=c(61,20,28))
-  testthat::expect_equal(floor(randomWSS),truth)
-})
