@@ -45,8 +45,10 @@ runEMrepeats(
 \item{doIndividualPlots}{Produce individual plots for each repeat (default=F)}
 }
 \value{
-allClassMeans
+allClassMeans data.frame with columns: position, methFreq, class, replicate
 }
 \description{
-Perform EM clustering on the same matrix several times. Necessary to check that classes are stable despite the random assignment of methylation fractions.
+Perform EM clustering on the same matrix several times. Necessary to check ¨
+that classes are stable despite the random assignment of methylation
+fractions and the random assignment of starting conditions.
 }

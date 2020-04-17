@@ -344,7 +344,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-7" title="7">outPath=<span class="st">&quot;./EMres&quot;</span></a>
 <a class="sourceLine" id="cb7-8" title="8">maxTasks=<span class="dv">4</span></a>
 <a class="sourceLine" id="cb7-9" title="9">taskId=<span class="dv">1</span></a>
-<a class="sourceLine" id="cb7-10" title="10">nThreads=<span class="dv">1</span></a>
+<a class="sourceLine" id="cb7-10" title="10">nThreads=<span class="dv">4</span></a>
 <a class="sourceLine" id="cb7-11" title="11">setSeed=<span class="ot">FALSE</span></a>
 <a class="sourceLine" id="cb7-12" title="12"></a>
 <a class="sourceLine" id="cb7-13" title="13"><span class="co">#split table indecies into nTasks number of groups</span></a>
@@ -365,149 +365,262 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-28" title="28">  </a>
 <a class="sourceLine" id="cb7-29" title="29">  <span class="kw">tryCatch</span>( </a>
 <a class="sourceLine" id="cb7-30" title="30">    {</a>
-<a class="sourceLine" id="cb7-31" title="31">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
-<a class="sourceLine" id="cb7-32" title="32">                     <span class="dt">repeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
-<a class="sourceLine" id="cb7-33" title="33">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
-<a class="sourceLine" id="cb7-34" title="34">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb7-35" title="35">  </a>
-<a class="sourceLine" id="cb7-36" title="36">      <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
-<a class="sourceLine" id="cb7-37" title="37">                       maxIterations, outPath, outFileBase, nThreads,</a>
-<a class="sourceLine" id="cb7-38" title="38">                       setSeed)</a>
-<a class="sourceLine" id="cb7-39" title="39">    },</a>
-<a class="sourceLine" id="cb7-40" title="40">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-41" title="41">  )</a>
-<a class="sourceLine" id="cb7-42" title="42">}</a></code></pre></div>
+<a class="sourceLine" id="cb7-31" title="31">      <span class="kw">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</a>
+<a class="sourceLine" id="cb7-32" title="32">      allClassMeans&lt;-<span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
+<a class="sourceLine" id="cb7-33" title="33">                     <span class="dt">repeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
+<a class="sourceLine" id="cb7-34" title="34">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
+<a class="sourceLine" id="cb7-35" title="35">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb7-36" title="36">      <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</a>
+<a class="sourceLine" id="cb7-37" title="37">      </a>
+<a class="sourceLine" id="cb7-38" title="38">      <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics&quot;</span>)</a>
+<a class="sourceLine" id="cb7-39" title="39">      <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
+<a class="sourceLine" id="cb7-40" title="40">                       maxIterations, outPath, outFileBase, nThreads,</a>
+<a class="sourceLine" id="cb7-41" title="41">                       setSeed)</a>
+<a class="sourceLine" id="cb7-42" title="42">    },</a>
+<a class="sourceLine" id="cb7-43" title="43">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-44" title="44">  )</a>
+<a class="sourceLine" id="cb7-45" title="45">}</a></code></pre></div>
 <pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
+## [1] &quot;running EM for a range of class numbers&quot;
 ## [1] &quot;numClasses: 2&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 3&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  32&quot;
 ## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
+<pre><code>## [1] &quot;converged: TRUE iterations:  28&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  24&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  30&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  19&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  19&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  22&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  19&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  20&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 4&quot;
-## [1] &quot;converged: TRUE iterations:  48&quot;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 3&quot;
+## [1] &quot;converged: TRUE iterations:  23&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
+<pre><code>## [1] &quot;converged: TRUE iterations:  32&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  26&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  25&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  27&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  28&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  39&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 4&quot;
+## [1] &quot;converged: TRUE iterations:  48&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
 <pre><code>## [1] &quot;converged: TRUE iterations:  13&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  18&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  18&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  54&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  38&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  38&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  24&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  24&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  41&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;</code></pre>
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  24&quot;
+## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 5&quot;
-## [1] &quot;converged: TRUE iterations:  43&quot;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 5&quot;
+## [1] &quot;converged: TRUE iterations:  43&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
 <pre><code>## [1] &quot;converged: TRUE iterations:  44&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  36&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  28&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  55&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  47&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  24&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  73&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4
-## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 6&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  24&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 2</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  73&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 6&quot;
+## [1] &quot;converged: TRUE iterations:  24&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
 <pre><code>## [1] &quot;converged: TRUE iterations:  50&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  42&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  42&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 5</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  35&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  35&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 6</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  40&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  40&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  35&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 6, 3</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  15&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  15&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6
-## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 7&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 6</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 7&quot;
+## [1] &quot;converged: TRUE iterations:  36&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
 <pre><code>## [1] &quot;converged: TRUE iterations:  34&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 5</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  86&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  86&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 6</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  31&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4
-## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
-<pre><code>## [1] &quot;numClasses: 8&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  31&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;numClasses: 8&quot;
+## [1] &quot;converged: TRUE iterations:  28&quot;
+## [1] &quot;plotting silhouette statistics&quot;</code></pre>
 <pre><code>## [1] &quot;converged: TRUE iterations:  26&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  16&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  16&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  52&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 8</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  14&quot;
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  14&quot;
+## [1] &quot;plotting silhouette statistics&quot;
 ## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  32&quot;</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  32&quot;</code></pre>
 <pre><code>## The following `from` values were not present in `x`: 5, 6</code></pre>
-<pre><code>## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6, 3
-## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## Warning in allClassMeans[numClasses] &lt;- runEMrepeats(dataMatrix, numClasses, :
-## number of items to replace is not a multiple of replacement length</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
+<pre><code>## The following `from` values were not present in `x`: 6, 3</code></pre>
+<pre><code>## [1] &quot;plotting silhouette statistics&quot;
+## [1] &quot;plotting class stability&quot;</code></pre>
+<pre><code>## [1] &quot;saving data with most frequent class call&quot;
+## [1] &quot;plotting final classes&quot;</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## [1] &quot;calculating gap statistic&quot;
+## [1] &quot;saving silouhette stats&quot;
+## [1] &quot;plotting clustering metrics&quot;
+## [1] &quot;generating randomised matrices as null distribution&quot;
+## [1] &quot;numClasses: 2&quot;
+## [1] &quot;numClasses: 3&quot;
+## [1] &quot;numClasses: 4&quot;
+## [1] &quot;numClasses: 5&quot;
+## [1] &quot;numClasses: 6&quot;
+## [1] &quot;numClasses: 7&quot;
+## [1] &quot;numClasses: 8&quot;
+## [1] &quot;calculating summary statistics for clustering&quot;
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] &quot;plotting clustering statistics&quot;</code></pre>
 </div>
 </div>
 

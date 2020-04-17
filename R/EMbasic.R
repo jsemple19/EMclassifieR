@@ -377,6 +377,8 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE, title="Class me
 
   p<-ggplot2::ggplot(classMeans,ggplot2::aes(x=position,y=1-methFreq,group=class)) +
     ggplot2::geom_line(ggplot2::aes(color=class))  +
+    ggplot2::geom_point(ggplot2::aes(x=position,y=-0.07), size=0.5,
+                        colour="grey80") +
     ggplot2::ggtitle(title) +
     ggplot2::xlab(myXlab) +
     ggplot2::ylab("dSMF (1 - Methylation frequency)") +
@@ -389,7 +391,7 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE, title="Class me
                    legend.key.height = ggplot2::unit(0.5, "cm"),
                    legend.key.width=ggplot2::unit(0.3,"cm"))
   # add line for TSS
-  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,ymax=1),
+  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=-0.07, ymax=1),
                                color="grey80") +
     ggplot2::annotate(geom="text", x=1,y=0.01,
                       label=featureLabel,color="grey20")
@@ -416,8 +418,9 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE, title="Class me
 plotAllClassMeans<-function(allClassMeans,xRange=c(-250,250), facet=TRUE,
                             title="Class means of replicate EM runs",
                             myXlab="CpG/GpC position",featureLabel="TSS",
-                            aseFontSize=12){
+                            baseFontSize=12){
   # initialise variables
+  position <- methFreq <- NULL
   numClasses<-max(as.integer(allClassMeans$class))
   allClassMeans$class<-as.factor(paste0("class",allClassMeans$class))
   allClassMeans$replicate<-as.factor(allClassMeans$replicate)
@@ -425,8 +428,11 @@ plotAllClassMeans<-function(allClassMeans,xRange=c(-250,250), facet=TRUE,
 
 
   p<-ggplot2::ggplot(allClassMeans,ggplot2::aes(x=position, y=1-methFreq,
-                                             group=replicate, colour=replicate)) +
+                                             group=replicate,
+                                             colour=replicate)) +
     ggplot2::geom_line(ggplot2::aes(color=replicate),alpha=0.7)  +
+    ggplot2::geom_point(ggplot2::aes(x=position,y=-0.07), size=0.5,
+                        colour="grey80") +
     ggplot2::ggtitle(title) +
     ggplot2::xlab(myXlab) +
     ggplot2::ylab("dSMF (1 - Methylation frequency)") +
@@ -439,7 +445,7 @@ plotAllClassMeans<-function(allClassMeans,xRange=c(-250,250), facet=TRUE,
                    legend.key.height = ggplot2::unit(0.5, "cm"),
                    legend.key.width=ggplot2::unit(0.3,"cm"))
   # add line for TSS
-  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,ymax=1),
+  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=-0.07,ymax=1),
                                color="grey80") +
     ggplot2::annotate(geom="text", x=1,y=0.01,
                       label=featureLabel,color="grey20")
@@ -469,11 +475,16 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
                                  baseFontSize=12){
   #initialise variables
   position <- methFreq <- NULL
-  p<-ggplot2::ggplot(allClassMeans,ggplot2::aes(x=as.numeric(position),
+  #numClasses<-max(as.integer(allClassMeans$class))
+  allClassMeans$class<-as.factor(paste0("class",allClassMeans$class))
+  allClassMeans$position<-as.numeric(allClassMeans$position)
+
+  p<-ggplot2::ggplot(allClassMeans,ggplot2::aes(x=position,
                                                 y=1-methFreq,
                                                 group=class)) +
     ggplot2::geom_point(ggplot2::aes(colour=class),alpha=0.1) +
-    ggplot2::geom_smooth(method="loess",span=0.5, ggplot2::aes(color=class, fill=class)) +
+    ggplot2::geom_smooth(method="loess",span=0.5,
+                         ggplot2::aes(color=class, fill=class)) +
     ggplot2::ggtitle(title) +
     ggplot2::xlab(myXlab) +
     ggplot2::ylab("dSMF (1 - Methylation frequency)") +
@@ -664,9 +675,10 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
   # plot all class means (faceted)
   p<-plotAllClassMeans(allClassMeans,xRange=xRange, facet=TRUE,
                               title=paste0(outFileBase, " class means of ",
-                                           repeats," EM runs"),
+                                           max(allClassMeans$replicate),
+                                           " EM runs"),
                               myXlab="CpG/GpC position", featureLabel="TSS",
-                              aseFontSize=12)
+                              baseFontSize=12)
 
   ggplot2::ggsave(filename=paste0(outPath,"/allClassMeans_",
                                   outFileBase,"_K", numClasses,".pdf"),
@@ -692,7 +704,9 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 
 #' Run several repeats of iterative EM
 #'
-#' Perform EM clustering on the same matrix several times. Necessary to check that classes are stable despite the random assignment of methylation fractions.
+#' Perform EM clustering on the same matrix several times. Necessary to check ¨
+#' that classes are stable despite the random assignment of methylation
+#' fractions and the random assignment of starting conditions.
 #'
 #' @param dataMatrix A matrix of methylation or bincount values (reads x position)
 #' @param numClasses An integer indicating the number of classes to learn
@@ -706,7 +720,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
-#' @return  allClassMeans
+#' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxIterations=100,
                        repeats=10, outPath=".", xRange=c(-250,250), outFileBase="",
@@ -725,10 +739,14 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   silStats<-NULL
 
   # check if repeats necessary for this matrix
-  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
+  #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
   # if there are no fractions in matrix, set repeats to 1
   #repeats<-ifelse(sum(fractionIdx)>0,repeats,1)
+  # add parallelisation
+  #clst<-parallel::makeCluster(nThreads)
+  #doParallel::registerDoParallel(clst)
+  #if(setSeed) { doRNG::registerDoRNG(123) }
   for (rep in 1:repeats) {
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
@@ -761,22 +779,24 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 
     # plot the results for individual repeats if first round and/or if requested
     if(doIndividualPlots==TRUE) { #if want 1 repeat can add:  | rep==1
-
+      print("plotting individual EMruns")
       plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, rep,
                      classMeans, xRange, myXlab, featureLabel, baseFontSize)
     }
-
+    print("plotting silhouette statistics")
     # do silhouette plot and save silhouette stats
-    silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase, outPath,
-                                 rep, doIndividualPlots, silStats)
+    silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
+                                 outPath, rep, doIndividualPlots, silStats)
   }
 
-  # plots histograms of consistency of classfiications over multiple repeats
+  print("plotting class stability")
+  # plots barplots of consistency of classfiications over multiple repeats
   classVote<-getClassVote(classVote)
   classVote$topClass<-factor(classVote$topClass)
   plotClassStability(classVote,outFileBase,outPath,numClasses)
 
   # save data with most frequent class call.
+  print("saving data with most frequent class call")
   idx<-match(row.names(dataMatrix),classVote$read)
   row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",
                                 classVote$topClass[idx])
@@ -784,14 +804,16 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 
   saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/", outFileBase, "_K",
                                              numClasses, ".rds"))
-
+  print("plotting final classes")
   plotFinalClasses(dataOrderedByClassRep, numClasses, allClassMeans, outFileBase,
                    outPath, xRange, myXlab, featureLabel, baseFontSize)
 
   #calculate elbow and gap statistic
+  print("calculating gap statistic")
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
+  print("saving silouhette stats")
   utils::write.csv(silStats, file=paste0(outPath,"/silStats_",
                                   outFileBase,"_K",numClasses,".csv"),
                    row.names=F)
@@ -816,7 +838,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
-#' @return allClassMeans
+#' @return allClassMeans list of different class numbers each containing a data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              maxIterations=100, repeats=10, outPath=".",
@@ -827,7 +849,7 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
   allClassMeans<-list()
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))
-    allClassMeans[numClasses]<-runEMrepeats(dataMatrix, numClasses,
+    allClassMeans[[numClasses]]<-runEMrepeats(dataMatrix, numClasses,
                                             convergenceError, maxIterations,
                                             repeats, outPath, xRange,
                                             outFileBase, myXlab, featureLabel,
@@ -914,36 +936,44 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                            elbowWSS=NA, gap=NA,
                            stringsAsFactors=F)
   outPath<-gsub("\\/$","",outPath)
-  for (numClasses in k_range) {
-    silStats<-utils::read.csv(paste0(outPath,"/silStats_",
-                            outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
-    randomisedMatrixStatsFile<-paste0(outPath,"/randMatStats_",
+
+  print("generating randomised matrices as null distribution")
+  randomisedMatrixStatsFile<-paste0(outPath,"/randMatStats_",
                                     outFileBase,".csv")
-    if (file.exists(randomisedMatrixStatsFile)) {
-      randomWSS<-utils::read.csv(randomisedMatrixStatsFile, stringsAsFactors=F)
-    } else {
-      randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
+  if (file.exists(randomisedMatrixStatsFile)) {
+    randomWSS<-utils::read.csv(randomisedMatrixStatsFile, stringsAsFactors=F)
+  } else {
+    randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
                                      convergenceError, maxIterations,
                                      nThreads, setSeed)
-      utils::write.csv(randomWSS, randomisedMatrixStatsFile, row.names=F)
-    }
+    utils::write.csv(randomWSS, randomisedMatrixStatsFile, row.names=F)
+  }
+
+  print("calculating summary statistics for clustering")
+  for (numClasses in k_range) {
+    print(numClasses)
+    silStats<-utils::read.csv(paste0(outPath,"/silStats_",
+                            outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
+
     nc<-which(clusterStats$numClasses==numClasses)
     clusterStats$meanSilhouetteWidth[nc]<-mean(silStats$silhouetteWidthMean)
     clusterStats$elbowWSS[nc]<-mean(silStats$elbowWSS)
     clusterStats$gap[nc]<-
       randomWSS[randomWSS$numClasses==numClasses,"sumSq"]-clusterStats$elbowWSS[nc]
   }
-    p1<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
-      ggplot2::geom_line() + ggplot2::geom_point() +
-      ggplot2::ggtitle(paste("Silhouette width", outFileBase))
-    p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
-      ggplot2::geom_line() + ggplot2::geom_point() +
-      ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
-    p3<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=gap)) +
-      ggplot2::geom_line() + ggplot2::geom_point() +
-      ggplot2::ggtitle(paste("gap statistic", outFileBase))
-    p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
-    ggplot2::ggsave(paste0(outPath,"/clustStats_",
+
+  print("plotting clustering statistics")
+  p1<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
+    ggplot2::geom_line() + ggplot2::geom_point() +
+    ggplot2::ggtitle(paste("Silhouette width", outFileBase))
+  p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
+    ggplot2::geom_line() + ggplot2::geom_point() +
+    ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
+  p3<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=gap)) +
+    ggplot2::geom_line() + ggplot2::geom_point() +
+    ggplot2::ggtitle(paste("gap statistic", outFileBase))
+  p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
+  ggplot2::ggsave(paste0(outPath,"/clustStats_",
                          outFileBase,".pdf"),
                   plot=p, device="pdf", width=19,height=29,units="cm")
 }

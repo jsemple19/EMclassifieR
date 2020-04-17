@@ -48,7 +48,7 @@ maxB=100 # Number of randomised matrices to generate
 outPath="./EMres"
 maxTasks=4
 taskId=1
-nThreads=1
+nThreads=4
 setSeed=FALSE
 
 #split table indecies into nTasks number of groups
@@ -69,11 +69,14 @@ for (i in taskSubList[[taskId]]){
   
   tryCatch( 
     {
-      runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+      print("running EM for a range of class numbers")
+      allClassMeans<-runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
                      repeats=numRepeats, outPath=outPath, xRange=xRange, 
                      outFileBase=paste(sampleName, regionName, sep="_"),
                      doIndividualPlots=FALSE)
-  
+      saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
+      
+      print("plotting clustering metrics")
       plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
                        maxIterations, outPath, outFileBase, nThreads,
                        setSeed)

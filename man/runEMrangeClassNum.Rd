@@ -45,7 +45,7 @@ runEMrangeClassNum(
 \item{doIndividualPlots}{Produce individual plots for each repeat (default=F)}
 }
 \value{
-allClassMeans
+allClassMeans list of different class numbers each containing a data.frame with columns: position, methFreq, class, replicate
 }
 \description{
 Perform EM clustering on the same matrix with a range of different class numbers.

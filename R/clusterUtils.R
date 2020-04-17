@@ -63,12 +63,11 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
   for (numClasses in k_range){
     print(paste0("numClasses: ",numClasses))
     nc<-which(totalWSS$numClasses==numClasses)
-    allwss<-foreach::foreach(1:maxB, .combine=c,
-                             .export=c("randomiseMatrixRows",
+    allwss<-foreach::foreach(1:maxB, .combine=c,.export=c("randomiseMatrixRows",
                                        "runEMrepeats_withinSS")) %dopar%{
-    #for (b in 1:maxB){
-    randMat<-randomiseMatrixRows(dataMatrix)
-    wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
+      #for (b in 1:maxB){
+      randMat<-randomiseMatrixRows(dataMatrix)
+      wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
                                  maxIterations, repeats=1)
       #totalWSS[nc,"meanWSS"] <- totalWSS[nc,"meanWSS"]+wss/maxB
       #totalWSS[nc,"sumSq"] <- totalWSS[nc,"sumSq"]+(wss^2)/maxB
