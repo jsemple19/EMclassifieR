@@ -193,7 +193,7 @@ order_by_prev_cluster <- function(numClasses, classMeans, prev_classMeans) {
 #'
 #' Classify reads by their posterior probability of belonging to a specific class
 #' Then sort the classes by using similarity to the mean profile of previous classes.
-#' If the means of previous classes was not provided, hclust is used to cluste classes by their similarity.
+#' If the means of previous classes was not provided, hclust is used to cluster classes by their similarity.
 #' @param dataMatrix A matrix of methylation or bincount values (reads x position)
 #' @param posteriorProb posteriorProb: a matrix of probabilites of each sample belonging to a particular class (samples x class)
 #' @param previousClassMeans A matrix of the class means from a previous round of clustering
@@ -741,12 +741,6 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
-  # if there are no fractions in matrix, set repeats to 1
-  #repeats<-ifelse(sum(fractionIdx)>0,repeats,1)
-  # add parallelisation
-  #clst<-parallel::makeCluster(nThreads)
-  #doParallel::registerDoParallel(clst)
-  #if(setSeed) { doRNG::registerDoRNG(123) }
   for (rep in 1:repeats) {
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
