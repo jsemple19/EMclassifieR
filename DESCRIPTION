@@ -27,7 +27,9 @@ Imports:
       ggpubr,
       parallel,
       foreach,
-      doParallel
+      doParallel,
+      magrittr,
+      doRNG
 Suggests: 
     knitr,
     rmarkdown,

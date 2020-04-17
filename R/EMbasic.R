@@ -98,14 +98,15 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
   #
   # Complete algorithm for partitioning with random seeds
 
-  # To deal with fractions in methlyation dataMatrix (when opposite strand do not agree on
-  # methylation status), the methylation status will be applied at random with
-  # probability given by the fraction.
+  # To deal with fractions in methlyation dataMatrix (when opposite strands do
+  # not agree on methylation status), the methylation status will be applied at
+  # random with probability given by the fraction.
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
-    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
+    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx), size=1,
+                                           prob=dataMatrix[fractionIdx])
   }
 
   numSamples=dim(binaryData)[1]            # Number of samples
@@ -400,6 +401,56 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE, title="Class me
 
 
 
+#' Plot all class means from multiple repeats
+#'
+#' Create line plots for class means
+#' @param allClassMeans A table of positions, fraction methylation, classes for replicate EM runs
+#' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param facet Plot mean profiles separately as a facet_wrap plot (default=TRUE)
+#' @param title A title for the plot (default is "Class means of replicate EM runs")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return Returns a ggplot2 object
+#' @export
+plotAllClassMeans<-function(allClassMeans,xRange=c(-250,250), facet=TRUE,
+                            title="Class means of replicate EM runs",
+                            myXlab="CpG/GpC position",featureLabel="TSS",
+                            aseFontSize=12){
+  # initialise variables
+  numClasses<-max(as.integer(allClassMeans$class))
+  allClassMeans$class<-as.factor(paste0("class",allClassMeans$class))
+  allClassMeans$replicate<-as.factor(allClassMeans$replicate)
+  allClassMeans$position<-as.numeric(allClassMeans$position)
+
+
+  p<-ggplot2::ggplot(allClassMeans,ggplot2::aes(x=position, y=1-methFreq,
+                                             group=replicate, colour=replicate)) +
+    ggplot2::geom_line(ggplot2::aes(color=replicate),alpha=0.7)  +
+    ggplot2::ggtitle(title) +
+    ggplot2::xlab(myXlab) +
+    ggplot2::ylab("dSMF (1 - Methylation frequency)") +
+    ggplot2::xlim(xRange) +
+    ggplot2::theme_light(base_size=baseFontSize) +
+    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+                   legend.position="right",legend.box = "vertical",
+                   legend.key.height = ggplot2::unit(0.5, "cm"),
+                   legend.key.width=ggplot2::unit(0.3,"cm"))
+  # add line for TSS
+  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,ymax=1),
+                               color="grey80") +
+    ggplot2::annotate(geom="text", x=1,y=0.01,
+                      label=featureLabel,color="grey20")
+  if (facet==TRUE) {
+    p<-p+ggplot2::facet_wrap(~class,nrow=numClasses)
+  }
+  return(p)
+}
+
+
+
 #' Plot smoothed class means from multiple repeats
 #'
 #' Plot loess-smoothed class means from multiple repeats of EM.
@@ -609,6 +660,19 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
                                 numClasses, ".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 
+
+  # plot all class means (faceted)
+  p<-plotAllClassMeans(allClassMeans,xRange=xRange, facet=TRUE,
+                              title=paste0(outFileBase, " class means of ",
+                                           repeats," EM runs"),
+                              myXlab="CpG/GpC position", featureLabel="TSS",
+                              aseFontSize=12)
+
+  ggplot2::ggsave(filename=paste0(outPath,"/allClassMeans_",
+                                  outFileBase,"_K", numClasses,".pdf"),
+                  plot=p, device="pdf", width=19, height=29, units="cm")
+
+
   # plots smoothed average class means +- StdErr
   repeats<-max(allClassMeans$replicate)
   p<-plotSmoothedClassMeans(allClassMeans, xRange=xRange, facet=TRUE,
@@ -619,7 +683,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 
   ggplot2::ggsave(filename=paste0(outPath,"/smClassMeans_",
                                 outFileBase,"_K", numClasses,".pdf"),
-                plot=p, device="pdf", width=29, height=19, units="cm")
+                plot=p, device="pdf", width=25, height=12, units="cm")
 }
 
 
@@ -659,6 +723,12 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
   silStats<-NULL
+
+  # check if repeats necessary for this matrix
+  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
+  stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  # if there are no fractions in matrix, set repeats to 1
+  #repeats<-ifelse(sum(fractionIdx)>0,repeats,1)
   for (rep in 1:repeats) {
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
@@ -690,7 +760,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
     }
 
     # plot the results for individual repeats if first round and/or if requested
-    if(rep==1 | doIndividualPlots==TRUE) {
+    if(doIndividualPlots==TRUE) { #if want 1 repeat can add:  | rep==1
 
       plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, rep,
                      classMeans, xRange, myXlab, featureLabel, baseFontSize)
@@ -708,7 +778,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
 
   # save data with most frequent class call.
   idx<-match(row.names(dataMatrix),classVote$read)
-  row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",classVote$topClass[idx])
+  row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",
+                                classVote$topClass[idx])
   dataOrderedByClassRep<-dataMatrix[order(classVote$topClass[idx]),]
 
   saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/", outFileBase, "_K",
@@ -829,8 +900,8 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @param outPath A string with the path to the directory where the output should go
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
-#' @nThreads Number of threads to use for generating background distribution (default is 1)
-#' @setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
+#' @param nThreads Number of threads to use for generating background distribution (default is 1)
+#' @param setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
 #' @return None
 #' @export
 plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,

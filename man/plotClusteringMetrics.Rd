@@ -11,7 +11,9 @@ plotClusteringMetrics(
   convergenceError = 1e-06,
   maxIterations = 100,
   outPath = ".",
-  outFileBase = ""
+  outFileBase = "",
+  nThreads = 1,
+  setSeed = FALSE
 )
 }
 \arguments{
@@ -28,6 +30,10 @@ plotClusteringMetrics(
 \item{outPath}{A string with the path to the directory where the output should go}
 
 \item{outFileBase}{A string that will be used in the filenames and titles of the plots produced (default is "")}
+
+\item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
+
+\item{setSeed}{Logical value to determine if seed should be set for randomisation (default is FALSE)}
 }
 \value{
 None

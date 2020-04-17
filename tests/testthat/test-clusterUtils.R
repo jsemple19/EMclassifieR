@@ -23,7 +23,7 @@ testthat::test_that("randomiseMatrixRows returns a matrix randomised by row", {
 
 
 
-tic()
+
 testthat::test_that("clusterRandomMatrices returns correct WSS", {
   dataMatrix<-matrix(rep(c(1,0,1,1,0,0.5),8),nrow=4)
   rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
@@ -32,11 +32,11 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
                              convergenceError=1e-6, maxIterations=100,
                              nThreads=1,setSeed=T)
   floor(WSS)
-  truth<-data.frame(numClasses=c(2,3), meanWSS=c(9,4),
-                    sumSq=c(105,18), sdWSS=c(3,1))
+  truth<-data.frame(numClasses=c(2,3), meanWSS=c(10,3),
+                    sumSq=c(124,17), sdWSS=c(3,1))
   testthat::expect_equal(floor(WSS),truth)
 })
-toc()
+
 
 
 

@@ -49,8 +49,8 @@ randomiseMatrixRows<-function(dataMatrix){
 #' @param maxB  The maximum number of randomisations to perform
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
-#' @nThreads Number of threads to use for generating background distribution (default is 1)
-#' @setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
+#' @param nThreads Number of threads to use for generating background distribution (default is 1)
+#' @param setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
 #' @return A data frame with the average of the total within class sum of squares for multiple randomised matrices and different numbers of classes
 #' @export
 clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
@@ -59,7 +59,7 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
   totalWSS<-data.frame(numClasses=k_range, meanWSS=0, sumSq=0, sdWSS=NA)
   clst<-parallel::makeCluster(nThreads)
   doParallel::registerDoParallel(clst)
-  if(setSeed) { registerDoRNG(123) }
+  if(setSeed) { doRNG::registerDoRNG(123) }
   for (numClasses in k_range){
     print(paste0("numClasses: ",numClasses))
     nc<-which(totalWSS$numClasses==numClasses)

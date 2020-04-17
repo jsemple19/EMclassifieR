@@ -10,7 +10,8 @@ clusterRandomMatrices(
   maxB = 100,
   convergenceError = 1e-06,
   maxIterations = 100,
-  nThreads = 1
+  nThreads = 1,
+  setSeed = F
 )
 }
 \arguments{
@@ -23,6 +24,10 @@ clusterRandomMatrices(
 \item{convergenceError}{An float indicating the convergence threshold for stopping iteration}
 
 \item{maxIterations}{An integer indicating the max number of iterations to perform even if the algorithm has not converged}
+
+\item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
+
+\item{setSeed}{Logical value to determine if seed should be set for randomisation (default is FALSE)}
 }
 \value{
 A data frame with the average of the total within class sum of squares for multiple randomised matrices and different numbers of classes
