@@ -970,6 +970,7 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
   ggplot2::ggsave(paste0(outPath,"/clustStats_",
                          outFileBase,".pdf"),
                   plot=p, device="pdf", width=19,height=29,units="cm")
+  return("Clustering metrics plotted successfully")
 }
 
 
