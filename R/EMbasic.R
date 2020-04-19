@@ -319,16 +319,19 @@ plotClassesSingleGene<-function(dataOrderedByClass,
 #' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
 #' @param numClasses An integer with the number of classes learned
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced
+#' @param EMrep An integer indicating which EM repeat this is
 #' @return A list of two items: a dataframe with silhouette stats and a silhouette plot object. The dataframe contains mean and SD of silhouette width overall, and per class, as well as number of reads per class
 #' @export
-silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase){
+silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase, EMrep=NULL){
+  # deal with EMrep==NULL
+  EMrep<-ifelse(is.null(EMrep),0,EMrep)
   # split off class number from row name
   classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                         split="__class"),"[[",2))
   dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
   sil<-cluster::silhouette(classes,dis) # calculate silhouette
   # make data.frame with silhouette stats
-  df<-data.frame(regionName=outFileBase,numClasses=numClasses,
+  df<-data.frame(regionName=outFileBase, numClasses=numClasses, EMrep=EMrep,
                  silhouetteWidthMean=mean(sil[, 3],na.rm=T),
                  silhouetteWidthSD=stats::sd(sil[, 3],na.rm=T),stringsAsFactors=F)
 
@@ -551,14 +554,14 @@ getClassVote<-function(classVote){
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced
 #' @param outPath path to directory where plots will be saved
 #' @param numClasses An integer indicating the number of classes to learn
-#' @param rep An integer indicating which repeat this is
+#' @param EMrep An integer indicating which repeat of the EM this is
 #' @param classMeans A matrix (classes x position) of the average methlyation profile of each class classes
 #' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return Returns a ggplot2 object
-plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, rep,
+plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, EMrep,
                classMeans, xRange, myXlab, featureLabel, baseFontSize){
   #makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
   #                                         "classMeanPlots"),"/",outFileBase))
@@ -569,18 +572,18 @@ plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, 
   outPath<-gsub("\\/$","",outPath)
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/classReads_", outFileBase,"_K",
-                                numClasses,"_r", rep, ".pdf"),
+                                numClasses,"_r", EMrep, ".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 
   #plot individual unsmoothed class means
   p<-plotClassMeans(classMeans,xRange=xRange, facet=TRUE,
-                  title=paste(outFileBase, "Class means, repeat ", rep),
+                  title=paste(outFileBase, "Class means, repeat ", EMrep),
                   myXlab=myXlab, featureLabel=featureLabel,
                   baseFontSize=baseFontSize)
 
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/classMeans_", outFileBase,"_K",
-                                numClasses, "_r",rep,".pdf"),
+                                numClasses, "_r",EMrep,".pdf"),
                 plot=p, device="pdf", width=19, height=29, units="cm")
 }
 
@@ -617,12 +620,12 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @param numClasses An integer indicating the number of classes to learn
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced
 #' @param outPath path to directory where plots will be saved
-#' @param rep An integer indicating which repeat this is
+#' @param EMrep An integer indicating which EM repeat this is
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
 #' @param silStats data.frame with statistics about the silhouette plots (default=NULL)
 #' @return silStats data.frame with statistics about the silhouette plots
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
-                             rep=NULL, doIndividualPlots=FALSE, silStats=NULL){
+                             EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL){
   silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
   if (!is.null(silStats)) {
     silStats<-rbind(silStats,silList$stats)
@@ -631,15 +634,16 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
   }
 
   # save silhouette for individual repeats if first round or if requested
-  if(is.null(rep) | doIndividualPlots==TRUE) {
+  if(is.null(EMrep) | doIndividualPlots==TRUE) {
     #makeDirs(path=outPath,dirNameList=paste0("silPlts","/",outFileBase))
-    repTxt<-ifelse(is.null(rep),"",paste0("_r",rep))
+    repTxt<-ifelse(is.null(EMrep),"",paste0("_r",EMrep))
     outPath<-gsub("\\/$","",outPath)
     grDevices::pdf(paste0(outPath,"/sil_",
                           outFileBase,"_K",
                           numClasses, repTxt, ".pdf"),
                    paper="a4", height=11, width=8)
-    graphics::plot(silList$plotObject)
+    graphics::plot(silList$plotObject,main=paste0("Silhouette: ",
+    outFileBase," with ",numClasses," classes",repTxt))
     graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
     grDevices::dev.off()
   }
@@ -687,10 +691,10 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 
 
   # plots smoothed average class means +- StdErr
-  repeats<-max(allClassMeans$replicate)
+  EMrepeats<-max(allClassMeans$replicate)
   p<-plotSmoothedClassMeans(allClassMeans, xRange=xRange, facet=TRUE,
                           title=paste(outFileBase, " Class means, ",
-                                      repeats ," repeats"),
+                                      EMrepeats ," repeats"),
                           myXlab="CpG/GpC position", featureLabel="TSS",
                           baseFontSize=12)
 
@@ -713,7 +717,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 #' @param numClasses An integer indicating the number of classes to learn
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
-#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param EMrepeats An integer indicating the number of times to repeat the clustering (default=10)
 #' @param outPath A string with the path to the directory where the output should go
 #' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
@@ -724,7 +728,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 #' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
-                       maxIterations=100, repeats=10, outPath=".",
+                       maxIterations=100, EMrepeats=10, outPath=".",
                        xRange=c(-250,250), outFileBase="",
                        myXlab="CpG/GpC position", featureLabel="TSS",
                        baseFontSize=12, doIndividualPlots=FALSE){
@@ -743,7 +747,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
-  for (rep in 1:repeats) {
+  for (EMrep in 1:EMrepeats) {
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
                    convergenceError=convergenceError,
@@ -756,7 +760,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
 
-    classVote[,paste0("rep",rep)]<-getReadClass(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,classVote$read)
 
     #previousClassMeans<-setPreviousClassMeans(classMeans, previousClassMeans, allClassMeans)
     # store classMeans from first round as previousClassMeans to have consitent order
@@ -765,25 +769,25 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
       previousClassMeans<-classMeans
       allClassMeans<-tidyr::gather(classMeans,key="position",value="methFreq")
       allClassMeans$class<-rep(rownames(classMeans),ncol(classMeans))
-      allClassMeans$replicate<-rep
+      allClassMeans$replicate<-EMrep
     } else {
       tmpMeans<-tidyr::gather(classMeans,key="position",value="methFreq")
       tmpMeans$class<-rep(rownames(classMeans),ncol(classMeans))
-      tmpMeans$replicate<-rep
+      tmpMeans$replicate<-EMrep
       allClassMeans<-rbind(allClassMeans,tmpMeans)
     }
 
     # plot the results for individual repeats if first round and/or if requested
-    if(doIndividualPlots==TRUE) { #if want 1 repeat can add:  | rep==1
+    if(doIndividualPlots==TRUE) { #if want 1 repeat can add:  | EMrep==1
       print("plotting individual EMruns")
-      plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, rep,
+      plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, EMrep,
                      classMeans, xRange, myXlab, featureLabel, baseFontSize)
 
     }
     print("getting silhouette statistics")
     # do silhouette plot and save silhouette stats
     silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
-                                 outPath, rep, doIndividualPlots, silStats)
+                                 outPath, EMrep, doIndividualPlots, silStats)
   }
 
   #print("plotting class stability")
@@ -808,7 +812,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   #print("plotting silhouette statistics")
   # do silhouette plot and save silhouette stats
   silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
-                               outPath, rep=NULL,silStats=silStats)
+                               outPath, EMrep=NULL,silStats=silStats)
 
   #calculate elbow and gap statistic
   #print("calculating gap statistic")
@@ -832,7 +836,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param k_range A vector indicating different numbers of classes to learn
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
-#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param EMrepeats An integer indicating the number of times to repeat the clustering (default=10)
 #' @param outPath A string with the path to the directory where the output should go
 #' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
@@ -843,7 +847,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @return allClassMeans list of different class numbers each containing a data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
-                             maxIterations=100, repeats=10, outPath=".",
+                             maxIterations=100, EMrepeats=10, outPath=".",
                              xRange=c(-250,250), outFileBase="",
                              myXlab="CpG/GpC position", featureLabel="TSS",
                              baseFontSize=12, doIndividualPlots=TRUE) {
@@ -853,7 +857,7 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
     print(paste("numClasses:",numClasses))
     allClassMeans[[numClasses]]<-runEMrepeats(dataMatrix, numClasses,
                                             convergenceError, maxIterations,
-                                            repeats, outPath, xRange,
+                                            EMrepeats, outPath, xRange,
                                             outFileBase, myXlab, featureLabel,
                                             baseFontSize, doIndividualPlots)
   }
@@ -870,14 +874,14 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
 #' @param numClasses An integer indicating the number of classes to learn
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
-#' @param repeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param EMrepeats An integer indicating the number of times to repeat the clustering (default=10)
 #' @return  Numeric. Total within cluster sum of squares.
 #' @export
 runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
-                                maxIterations=100, repeats=10){
+                                maxIterations=100, EMrepeats=10){
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
-  for (rep in 1:repeats) {
+  for (EMrep in 1:EMrepeats) {
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
                    convergenceError=convergenceError,
@@ -889,7 +893,7 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                                       previousClassMeans=previousClassMeans)
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
-    classVote[,paste0("rep",rep)]<-getReadClass(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,classVote$read)
 
     # store classMeans from first round as previousClassMeans to have consitent order
     if(is.null(previousClassMeans)) {
@@ -924,20 +928,29 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @param outPath A string with the path to the directory where the output should go
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced (default is "")
+#' @param EMrep An integer indicating which EM repeat this is
 #' @param nThreads Number of threads to use for generating background distribution (default is 1)
 #' @param setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
 #' @return None
 #' @export
 plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100,
-                                outPath=".", outFileBase="",
+                                outPath=".", outFileBase="", EMrep=NULL,
                                 nThreads=1, setSeed=FALSE){
   # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
+  classMean <- classNumber <- NULL
+  outPath<-gsub("\\/$","",outPath)
+  EMrep<-ifelse(is.null(EMrep),0,EMrep)
+
   clusterStats<-data.frame(numClasses=k_range, meanSilhouetteWidth=NA,
                            elbowWSS=NA, gap=NA,
                            stringsAsFactors=F)
-  outPath<-gsub("\\/$","",outPath)
+  # add columns for individual class silhouette widths
+  individClassSil<-data.frame(matrix(data=NA,nrow=length(k_range),
+                                     ncol=max(k_range)),stringsAsFactors=F)
+  colnames(individClassSil)<-paste0("class",1:max(k_range),"_silMean")
+  clusterStats<-cbind(clusterStats,individClassSil)
 
   print("generating randomised matrices as null distribution")
   randomisedMatrixStatsFile<-paste0(outPath,"/randMatStats_",
@@ -958,23 +971,43 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                             outFileBase,"_K",numClasses,".csv"),stringsAsFactors=F)
 
     nc<-which(clusterStats$numClasses==numClasses)
-    clusterStats$meanSilhouetteWidth[nc]<-mean(silStats$silhouetteWidthMean)
+    # add individual class mean silhouette widths
+    # silStats$EMrep==EMrep
+    classSilMeanCols<-silStats[11,grep("_silMean",colnames(silStats))]
+    classSilMeanCols[is.na(classSilMeanCols)]<-0
+    clusterStats[nc,colnames(classSilMeanCols)]<-classSilMeanCols
+
+    # add overall silhouette mean width
+    # silStats$EMrep==EMrep
+    clusterStats$meanSilhouetteWidth[nc]<-silStats$silhouetteWidthMean[11]
+
     clusterStats$elbowWSS[nc]<-mean(silStats$elbowWSS)
     clusterStats$gap[nc]<-
       randomWSS[randomWSS$numClasses==numClasses,"sumSq"]-clusterStats$elbowWSS[nc]
   }
 
+  classMeanCols<-colnames(clusterStats)[grep("_silMean",colnames(clusterStats))]
+  long<-tidyr::gather(clusterStats,key="classNumber",
+                      value="classMean", classMeanCols)
+  long$classNumber<-gsub("_silMean","",long$classNumber)
+
   print("plotting clustering statistics")
-  p1<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
-    ggplot2::geom_line() + ggplot2::geom_point() +
+  p1<-ggplot2::ggplot(long,ggplot2::aes(x=numClasses,
+                                                y=meanSilhouetteWidth)) +
+    ggplot2::geom_line(ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
+    ggplot2::geom_point(ggplot2::aes(x=numClasses,y=classMean,
+                                     colour=classNumber), alpha=0.5) +
+    ggplot2::geom_hline(yintercept=0, colour="red",size=0.2)+
     ggplot2::ggtitle(paste("Silhouette width", outFileBase))
-  p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
-    ggplot2::geom_line() + ggplot2::geom_point() +
-    ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
+
+  #p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
+  #  ggplot2::geom_line() + ggplot2::geom_point() +
+  #  ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
   p3<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=gap)) +
     ggplot2::geom_line() + ggplot2::geom_point() +
     ggplot2::ggtitle(paste("gap statistic", outFileBase))
-  p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
+  #p<-ggpubr::ggarrange(p1,p2,p3,nrow=3,ncol=1)
+  p<-ggpubr::ggarrange(p1,p3,nrow=2,ncol=1)
   ggplot2::ggsave(paste0(outPath,"/clustStats_",
                          outFileBase,".pdf"),
                   plot=p, device="pdf", width=19,height=29,units="cm")

@@ -233,7 +233,7 @@ testthat::test_that("runEMrepeats class mean output is correct" , {
   colnames(dataMatrix)<-c(-3,-2,-1,1,2,3)
 
   set.seed(1)
-  df<-runEMrepeats(dataMatrix, numClasses=numClasses, repeats=3, xRange=c(-3,3))
+  df<-runEMrepeats(dataMatrix, numClasses=numClasses, EMrepeats=3, xRange=c(-3,3))
   testthat::expect_equal(dim(df),c(36,4))
   testthat::expect_equal(df[3,3],"1")
 })

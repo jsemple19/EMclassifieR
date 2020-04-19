@@ -71,7 +71,7 @@ for (i in taskSubList[[taskId]]){
     {
       print("running EM for a range of class numbers")
       runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
-                     repeats=numRepeats, outPath=outPath, xRange=xRange, 
+                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange, 
                      outFileBase=paste(sampleName, regionName, sep="_"),
                      doIndividualPlots=FALSE)
     },

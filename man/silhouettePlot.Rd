@@ -4,7 +4,7 @@
 \alias{silhouettePlot}
 \title{Plot silhouette plot to evaluate classification}
 \usage{
-silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
+silhouettePlot(dataOrderedByClass, numClasses, outFileBase, EMrep = NULL)
 }
 \arguments{
 \item{dataOrderedByClass}{A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.}
@@ -12,6 +12,8 @@ silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
 \item{numClasses}{An integer with the number of classes learned}
 
 \item{outFileBase}{A string that will be used in the filenames and titles of the plots produced}
+
+\item{EMrep}{An integer indicating which EM repeat this is}
 }
 \value{
 A list of two items: a dataframe with silhouette stats and a silhouette plot object. The dataframe contains mean and SD of silhouette width overall, and per class, as well as number of reads per class

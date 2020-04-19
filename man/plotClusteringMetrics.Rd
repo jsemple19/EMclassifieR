@@ -12,6 +12,7 @@ plotClusteringMetrics(
   maxIterations = 100,
   outPath = ".",
   outFileBase = "",
+  EMrep = NULL,
   nThreads = 1,
   setSeed = FALSE
 )
@@ -30,6 +31,8 @@ plotClusteringMetrics(
 \item{outPath}{A string with the path to the directory where the output should go}
 
 \item{outFileBase}{A string that will be used in the filenames and titles of the plots produced (default is "")}
+
+\item{EMrep}{An integer indicating which EM repeat this is}
 
 \item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
 

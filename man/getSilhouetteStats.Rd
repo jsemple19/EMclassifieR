@@ -9,8 +9,8 @@ getSilhouetteStats(
   numClasses,
   outFileBase,
   outPath,
-  rep,
-  doIndividualPlots,
+  EMrep = NULL,
+  doIndividualPlots = FALSE,
   silStats = NULL
 )
 }
@@ -23,7 +23,7 @@ getSilhouetteStats(
 
 \item{outPath}{path to directory where plots will be saved}
 
-\item{rep}{An integer indicating which repeat this is}
+\item{EMrep}{An integer indicating which EM repeat this is}
 
 \item{doIndividualPlots}{Produce individual plots for each repeat (default=F)}
 

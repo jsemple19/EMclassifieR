@@ -9,7 +9,7 @@ plotEachRepeat(
   outFileBase,
   outPath,
   numClasses,
-  rep,
+  EMrep,
   classMeans,
   xRange,
   myXlab,
@@ -26,7 +26,7 @@ plotEachRepeat(
 
 \item{numClasses}{An integer indicating the number of classes to learn}
 
-\item{rep}{An integer indicating which repeat this is}
+\item{EMrep}{An integer indicating which repeat of the EM this is}
 
 \item{classMeans}{A matrix (classes x position) of the average methlyation profile of each class classes}
 

@@ -19,5 +19,5 @@ Returns a matrix with the reads classified (__classX is appended to the read nam
 \description{
 Classify reads by their posterior probability of belonging to a specific class
 Then sort the classes by using similarity to the mean profile of previous classes.
-If the means of previous classes was not provided, hclust is used to cluste classes by their similarity.
+If the means of previous classes was not provided, hclust is used to cluster classes by their similarity.
 }

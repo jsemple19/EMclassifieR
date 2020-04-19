@@ -9,7 +9,7 @@ runEMrepeats(
   numClasses = 3,
   convergenceError = 1e-06,
   maxIterations = 100,
-  repeats = 10,
+  EMrepeats = 10,
   outPath = ".",
   xRange = c(-250, 250),
   outFileBase = "",
@@ -28,7 +28,7 @@ runEMrepeats(
 
 \item{maxIterations}{An integer indicating the max number of iterations to perform even if the algorithm has not converged}
 
-\item{repeats}{An integer indicating the number of times to repeat the clustering (default=10)}
+\item{EMrepeats}{An integer indicating the number of times to repeat the clustering (default=10)}
 
 \item{outPath}{A string with the path to the directory where the output should go}
 

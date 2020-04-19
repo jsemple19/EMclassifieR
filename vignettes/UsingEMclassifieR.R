@@ -45,22 +45,31 @@ for (i in taskSubList[[taskId]]){
   dataMatrix<-removeAllNArows(dataMatrix)
   dim(dataMatrix)
   
-  tryCatch( 
+  allClassMeans<-tryCatch( 
     {
       print("running EM for a range of class numbers")
-      allClassMeans<-runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
-                     repeats=numRepeats, outPath=outPath, xRange=xRange, 
+      runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange, 
                      outFileBase=paste(sampleName, regionName, sep="_"),
                      doIndividualPlots=FALSE)
-      saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
-      
-      print("plotting clustering metrics")
-      plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-                       maxIterations, outPath, outFileBase, nThreads,
-                       setSeed)
     },
     error=function(e){"Matrix not valid"}
+    )
+      
+  if(is.list(dim(allClassMeans))){
+     	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
+  } else {
+     	print(allClassMeans) # error message
+  }
+
+  clustMetrics<-tryCatch( {
+	print("plotting clustering metrics for a range of class sizes")
+	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+		maxIterations, outPath, outFileBase, nThreads, setSeed)
+  },
+  error=function(e){"Matrix not valid"}
   )
+  print(clustMetrics)
 }
 
 

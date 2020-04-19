@@ -9,7 +9,7 @@ runEMrepeats_withinSS(
   numClasses = 3,
   convergenceError = 1e-06,
   maxIterations = 100,
-  repeats = 10
+  EMrepeats = 10
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ runEMrepeats_withinSS(
 
 \item{maxIterations}{An integer indicating the max number of iterations to perform even if the algorithm has not converged}
 
-\item{repeats}{An integer indicating the number of times to repeat the clustering (default=10)}
+\item{EMrepeats}{An integer indicating the number of times to repeat the clustering (default=10)}
 }
 \value{
 Numeric. Total within cluster sum of squares.
