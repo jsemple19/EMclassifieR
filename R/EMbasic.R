@@ -333,7 +333,8 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase, EMrep=NULL
   # make data.frame with silhouette stats
   df<-data.frame(regionName=outFileBase, numClasses=numClasses, EMrep=EMrep,
                  silhouetteWidthMean=mean(sil[, 3],na.rm=T),
-                 silhouetteWidthSD=stats::sd(sil[, 3],na.rm=T),stringsAsFactors=F)
+                 silhouetteWidthSD=stats::sd(sil[, 3],na.rm=T),
+                 stringsAsFactors=F)
 
   classTable <- table(paste0("class",classes))
 
@@ -626,7 +627,9 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @return silStats data.frame with statistics about the silhouette plots
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
                              EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL){
-  silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
+  silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase,
+                          EMrep=EMrep)
+
   if (!is.null(silStats)) {
     silStats<-rbind(silStats,silList$stats)
   } else {
@@ -747,7 +750,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
-  for (EMrep in 1:EMrepeats) {
+  for (EMrep in 1:EMrepeats){
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
                    convergenceError=convergenceError,
