@@ -87,7 +87,8 @@ for (i in taskSubList[[taskId]]){
   clustMetrics<-tryCatch( {
 	print("plotting clustering metrics for a range of class sizes")
 	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		maxIterations, outPath, outFileBase, nThreads, setSeed)
+		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads, 
+		setSeed=setSeed)
   },
   error=function(e){"Matrix not valid"}
   )
