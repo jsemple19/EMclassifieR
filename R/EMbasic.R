@@ -972,14 +972,14 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
 
     nc<-which(clusterStats$numClasses==numClasses)
     # add individual class mean silhouette widths
-    # silStats$EMrep==EMrep
-    classSilMeanCols<-silStats[11,grep("_silMean",colnames(silStats))]
+    classSilMeanCols<-silStats[silStats$EMrep==EMrep,
+                               grep("_silMean",colnames(silStats))]
     classSilMeanCols[is.na(classSilMeanCols)]<-0
     clusterStats[nc,colnames(classSilMeanCols)]<-classSilMeanCols
 
     # add overall silhouette mean width
-    # silStats$EMrep==EMrep
-    clusterStats$meanSilhouetteWidth[nc]<-silStats$silhouetteWidthMean[11]
+    clusterStats$meanSilhouetteWidth[nc]<-
+      silStats$silhouetteWidthMean[silStats$EMrep==EMrep]
 
     clusterStats$elbowWSS[nc]<-mean(silStats$elbowWSS)
     clusterStats$gap[nc]<-
@@ -997,9 +997,8 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
     ggplot2::geom_line(ggplot2::aes(x=numClasses,y=meanSilhouetteWidth)) +
     ggplot2::geom_point(ggplot2::aes(x=numClasses,y=classMean,
                                      colour=classNumber), alpha=0.5) +
-    ggplot2::geom_hline(yintercept=0, colour="red",size=0.2)+
+    ggplot2::geom_hline(yintercept=0, colour="red", size=0.2)+
     ggplot2::ggtitle(paste("Silhouette width", outFileBase))
-
   #p2<-ggplot2::ggplot(clusterStats,ggplot2::aes(x=numClasses,y=elbowWSS)) +
   #  ggplot2::geom_line() + ggplot2::geom_point() +
   #  ggplot2::ggtitle(paste("Within class Sum of Squares", outFileBase))
