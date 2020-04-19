@@ -622,7 +622,7 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @param silStats data.frame with statistics about the silhouette plots (default=NULL)
 #' @return silStats data.frame with statistics about the silhouette plots
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
-                             rep, doIndividualPlots, silStats=NULL){
+                             rep=NULL, doIndividualPlots=FALSE, silStats=NULL){
   silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase)
   if (!is.null(silStats)) {
     silStats<-rbind(silStats,silList$stats)
@@ -631,12 +631,13 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
   }
 
   # save silhouette for individual repeats if first round or if requested
-  if(rep==1 | doIndividualPlots==TRUE) {
+  if(is.null(rep) | doIndividualPlots==TRUE) {
     #makeDirs(path=outPath,dirNameList=paste0("silPlts","/",outFileBase))
+    repTxt<-ifelse(is.null(rep),"",paste0("_r",rep))
     outPath<-gsub("\\/$","",outPath)
     grDevices::pdf(paste0(outPath,"/sil_",
                           outFileBase,"_K",
-                          numClasses, "_r", rep, ".pdf"),
+                          numClasses, repTxt, ".pdf"),
                    paper="a4", height=11, width=8)
     graphics::plot(silList$plotObject)
     graphics::abline(v=silList$stats["silhouetteWidthMean"], col="black",lty=2)
@@ -722,8 +723,9 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
 #' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
 #' @export
-runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxIterations=100,
-                       repeats=10, outPath=".", xRange=c(-250,250), outFileBase="",
+runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
+                       maxIterations=100, repeats=10, outPath=".",
+                       xRange=c(-250,250), outFileBase="",
                        myXlab="CpG/GpC position", featureLabel="TSS",
                        baseFontSize=12, doIndividualPlots=FALSE){
   #initialise variables
@@ -776,21 +778,22 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
       print("plotting individual EMruns")
       plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, rep,
                      classMeans, xRange, myXlab, featureLabel, baseFontSize)
+
     }
-    print("plotting silhouette statistics")
+    print("getting silhouette statistics")
     # do silhouette plot and save silhouette stats
     silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
                                  outPath, rep, doIndividualPlots, silStats)
   }
 
-  print("plotting class stability")
+  #print("plotting class stability")
   # plots barplots of consistency of classfiications over multiple repeats
   classVote<-getClassVote(classVote)
   classVote$topClass<-factor(classVote$topClass)
   plotClassStability(classVote,outFileBase,outPath,numClasses)
 
   # save data with most frequent class call.
-  print("saving data with most frequent class call")
+  #print("saving data with most frequent class call")
   idx<-match(row.names(dataMatrix),classVote$read)
   row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",
                                 classVote$topClass[idx])
@@ -802,12 +805,17 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6, maxItera
   plotFinalClasses(dataOrderedByClassRep, numClasses, allClassMeans, outFileBase,
                    outPath, xRange, myXlab, featureLabel, baseFontSize)
 
+  #print("plotting silhouette statistics")
+  # do silhouette plot and save silhouette stats
+  silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
+                               outPath, rep=NULL,silStats=silStats)
+
   #calculate elbow and gap statistic
-  print("calculating gap statistic")
+  #print("calculating gap statistic")
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
-  print("saving silouhette stats")
+  #print("saving silouhette stats")
   utils::write.csv(silStats, file=paste0(outPath,"/silStats_",
                                   outFileBase,"_K",numClasses,".csv"),
                    row.names=F)
