@@ -760,7 +760,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
 
-    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,
+                                                  classVote$read)
 
     #previousClassMeans<-setPreviousClassMeans(classMeans, previousClassMeans, allClassMeans)
     # store classMeans from first round as previousClassMeans to have consitent order
@@ -811,12 +812,13 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 
   #print("plotting silhouette statistics")
   # do silhouette plot and save silhouette stats
-  silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
+  silStats<-getSilhouetteStats(dataOrderedByClassRep, numClasses, outFileBase,
                                outPath, EMrep=NULL,silStats=silStats)
 
   #calculate elbow and gap statistic
   #print("calculating gap statistic")
-  readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
+  readClasses <- sapply(strsplit(rownames(dataOrderedByClassRep),
+                                 split="__"),"[[",2)
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
 
   #print("saving silouhette stats")
@@ -893,7 +895,8 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                                       previousClassMeans=previousClassMeans)
     dataOrderedByClass<-orderedData$data
     classMeans<-orderedData$classMeans
-    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,classVote$read)
+    classVote[,paste0("rep",EMrep)]<-getReadClass(dataOrderedByClass,
+                                                  classVote$read)
 
     # store classMeans from first round as previousClassMeans to have consitent order
     if(is.null(previousClassMeans)) {
