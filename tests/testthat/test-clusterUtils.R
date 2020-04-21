@@ -95,7 +95,7 @@ testthat::test_that("euclidean distance measure works", {
   r2<-sample(c(0,1),19,replace=T)
   wrongLength<-try(euclideanDist(r1,r2[1:18]))
   testthat::expect_equal(length(r1),length(r2))
-  testthat::expect_equal(euclidean(r1,r2),as.numeric(dist(rbind(r1,r2))))
+  testthat::expect_equal(euclidean(r1,r2),as.numeric(stats::dist(rbind(r1,r2))))
   testthat::expect_equal(class(wrongLength),"try-error")
 })
 
@@ -106,7 +106,7 @@ testthat::test_that("euclidean window calculation works", {
   r2<-sample(c(0,1),19,replace=T)
   wrongLength<-try(euclidWin(r1,r2[1:18]))
   testthat::expect_equal(length(r1),length(r2))
-  testthat::expect_equal(euclidWin(r1,r2),as.numeric(dist(rbind(r1,r2))))
+  testthat::expect_equal(floor(euclidWin(r1,r2)),19)
   testthat::expect_equal(class(wrongLength),"try-error")
 })
 

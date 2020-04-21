@@ -176,5 +176,5 @@ euclidWinDist<-function(binMat,winSize=3){
   }
   rownames(distMat)<-rownames(binMat)
   colnames(distMat)<-rownames(binMat)
-  return(as.dist(distMat))
+  return(stats::as.dist(distMat))
 }
