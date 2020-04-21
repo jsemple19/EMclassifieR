@@ -6,7 +6,8 @@
 #' @return Numeric. The sum of the sum or square distances between the rows of the matrix.
 #' @export
 SumSqMatrixRows<-function(dataMatrix) {
-  sum(stats::dist(dataMatrix)^2)
+  #sum(stats::dist(dataMatrix)^2)
+  sum(euclidWinDist(dataMatrix)^2)
 }
 
 
@@ -116,4 +117,64 @@ isMatrixValid<-function(dataMatrix,valueRange=c(0,1),NAsValid=FALSE){
 }
 
 
+#' Calculate Euclidean distance between two vectors
+#'
+#' @param r1 A numeric vector
+#' @param r2 Second numeric vector of same length as r1
+#' @return Euclidean distance between two vectors
+#' @export
+euclideanDist<-function(r1,r2){
+  if(length(r1)!=length(r2)){
+    stop("vectors must be same length")
+  }
+  sqrt(sum((r1-r2)^2))
+}
 
+
+#' Calculate Euclidean distance between two vectors with sliding windows
+#'
+#' To increase dynamic range and spatial information in comparin two binary
+#' vectors, a sliding window is used. The euclidean distance is computed within
+#' each window, and then moved by a step of 1.
+#' @param r1 A numeric vector
+#' @param r2 Second numeric vector of same length as r1
+#' @param winSize Sliding window size (number of values to combine)
+#' @return Euclidean distance between two vectors
+#' @export
+euclidWin<-function(r1,r2,winSize=3){
+  if(length(r1)!=length(r2)){
+    stop("vectors must be same length")
+  }
+  distSum<-0
+  for(i in 1:(length(r1)-winSize+1)) {
+    distSum<-distSum+euclideanDist(r1[i:(i+winSize-1)],r2[i:(i+winSize-1)])
+  }
+  return(distSum)
+}
+
+
+
+
+#' Calculate Euclidean distance between all rows of a matrix with sliding window
+#'
+#' To increase dynamic range and spatial information in comparing a matrix of
+#' vectors, a sliding window is used. The euclidean distance is computed within
+#' each window, and then moved by a step of 1.
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @param winSize Sliding window size (number of values to combine)
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+euclidWinDist<-function(binMat,winSize=3){
+  numRows<-nrow(binMat)
+  distMat<-matrix(rep(NA,numRows^2),nrow=numRows,ncol=numRows)
+  for(i in 1:numRows){
+    for(j in 1:i){
+      distMat[i,j]<-euclidWin(binMat[i,],binMat[j,])
+    }
+  }
+  rownames(distMat)<-rownames(binMat)
+  colnames(distMat)<-rownames(binMat)
+  return(as.dist(distMat))
+}

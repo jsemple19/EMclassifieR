@@ -328,7 +328,8 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase, EMrep=NULL
   # split off class number from row name
   classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                         split="__class"),"[[",2))
-  dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
+  #dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
+  dis<-euclidWinDist(dataOrderedByClass)
   sil<-cluster::silhouette(classes,dis) # calculate silhouette
   # make data.frame with silhouette stats
   df<-data.frame(regionName=outFileBase, numClasses=numClasses, EMrep=EMrep,
