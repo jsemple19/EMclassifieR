@@ -32,8 +32,10 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
                              convergenceError=1e-6, maxIterations=100,
                              nThreads=1,setSeed=T)
   floor(WSS)
-  truth<-data.frame(numClasses=c(2,3), meanWSS=c(10,3),
-                    sumSq=c(124,17), sdWSS=c(3,1))
+#  truth<-data.frame(numClasses=c(2,3), meanWSS=c(10,3),
+#                    sumSq=c(124,17), sdWSS=c(3,1))
+  truth<-data.frame(numClasses=c(2,3), meanWSS=c(233,84),
+                    sumSq=c(62055,8597), sdWSS=c(88,38))
   testthat::expect_equal(floor(WSS),truth)
 })
 
