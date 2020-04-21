@@ -42,7 +42,6 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
 
 
 
-
 testthat::test_that("isMatrixValid returns TRUE for valid matrix", {
   numSamples=6
   dataMatrix<-matrix(c(1,0.5,0,0,0,0,

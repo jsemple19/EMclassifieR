@@ -122,7 +122,6 @@ isMatrixValid<-function(dataMatrix,valueRange=c(0,1),NAsValid=FALSE){
 #' @param r1 A numeric vector
 #' @param r2 Second numeric vector of same length as r1
 #' @return Euclidean distance between two vectors
-#' @export
 euclideanDist<-function(r1,r2){
   if(length(r1)!=length(r2)){
     stop("vectors must be same length")
@@ -140,7 +139,6 @@ euclideanDist<-function(r1,r2){
 #' @param r2 Second numeric vector of same length as r1
 #' @param winSize Sliding window size (number of values to combine)
 #' @return Euclidean distance between two vectors
-#' @export
 euclidWin<-function(r1,r2,winSize=3){
   if(length(r1)!=length(r2)){
     stop("vectors must be same length")
