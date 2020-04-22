@@ -161,17 +161,27 @@ euclidWin<-function(r1,r2,winSize=3){
 #' @param binMat A matrix of numbers for which you want to calculate the
 #' distance between rows
 #' @param winSize Sliding window size (number of values to combine)
+#' @param nThreads Number of threads to use for generating background distribution (default is 1)
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-euclidWinDist<-function(binMat,winSize=3){
+euclidWinDist<-function(binMat,winSize=3,nThreads=1){
   numRows<-nrow(binMat)
   distMat<-matrix(rep(NA,numRows^2),nrow=numRows,ncol=numRows)
-  for(i in 1:numRows){
-    for(j in 1:i){
-      distMat[i,j]<-euclidWin(binMat[i,],binMat[j,])
-    }
+  clst<-parallel::makeCluster(nThreads)
+  doParallel::registerDoParallel(clst)
+  distList<-foreach::foreach(i=2:numRows,.combine=c,.export=c("euclidWin",
+                                                              "euclidean")) %:%
+    foreach::foreach(j=1:(i-1),.combine=c) %dopar%{
+  #for(i in 1:numRows){
+    #for(j in 1:i){
+      #distMat[i,j]<-euclidWin(binMat[i,],binMat[j,])
+      euclidWin(binMat[i,],binMat[j,])
+
+    #}
   }
+  distMat[upper.tri(distMat)]<-t(distList)
+  distMat<-t(distMat)
   rownames(distMat)<-rownames(binMat)
   colnames(distMat)<-rownames(binMat)
   return(stats::as.dist(distMat))

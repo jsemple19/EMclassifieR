@@ -29,6 +29,10 @@ taskId=1
 nThreads=4
 setSeed=FALSE
 
+if(!dir.exists(outPath)){
+  dir.create(outPath)
+}
+
 #split table indecies into nTasks number of groups
 taskSubList<-split(1:nrow(matTable),sort(1:nrow(matTable)%%maxTasks))
 
@@ -39,23 +43,23 @@ for (i in taskSubList[[taskId]]){
   sampleName=matTable$sample[i]
   outFileBase=paste(sampleName, regionName, sep="_")
   print(paste("Clustering", outFileBase))
-  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
+  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i],
                               package = "EMclassifieR", mustWork=TRUE))
   dim(dataMatrix)
   dataMatrix<-removeAllNArows(dataMatrix)
   dim(dataMatrix)
-  
-  allClassMeans<-tryCatch( 
+
+  allClassMeans<-tryCatch(
     {
       print("running EM for a range of class numbers")
       runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
-                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange, 
+                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange,
                      outFileBase=paste(sampleName, regionName, sep="_"),
                      doIndividualPlots=FALSE)
     },
     error=function(e){"Matrix not valid"}
     )
-      
+
   if(is.list(allClassMeans)){
      	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
   } else {
@@ -65,7 +69,7 @@ for (i in taskSubList[[taskId]]){
   clustMetrics<-tryCatch( {
 	print("plotting clustering metrics for a range of class sizes")
 	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads, 
+		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
 		setSeed=setSeed)
   },
   error=function(e){"Matrix not valid"}

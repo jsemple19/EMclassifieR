@@ -51,7 +51,11 @@ taskId=1
 nThreads=4
 setSeed=FALSE
 
-#split table indecies into nTasks number of groups
+if(!dir.exists(outPath)){
+  dir.create(outPath)
+}
+
+#split table indicies into nTasks number of groups
 taskSubList<-split(1:nrow(matTable),sort(1:nrow(matTable)%%maxTasks))
 
 set.seed(200413)
