@@ -122,7 +122,7 @@ isMatrixValid<-function(dataMatrix,valueRange=c(0,1),NAsValid=FALSE){
 #' @param r1 A numeric vector
 #' @param r2 Second numeric vector of same length as r1
 #' @return Euclidean distance between two vectors
-euclideanDist<-function(r1,r2){
+euclidean<-function(r1,r2){
   if(length(r1)!=length(r2)){
     stop("vectors must be same length")
   }
@@ -145,7 +145,7 @@ euclidWin<-function(r1,r2,winSize=3){
   }
   distSum<-0
   for(i in 1:(length(r1)-winSize+1)) {
-    distSum<-distSum+euclideanDist(r1[i:(i+winSize-1)],r2[i:(i+winSize-1)])
+    distSum<-distSum+euclidean(r1[i:(i+winSize-1)],r2[i:(i+winSize-1)])
   }
   return(distSum)
 }

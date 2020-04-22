@@ -22,7 +22,7 @@ maxIterations = 100 # number of iterations of EM clustering to perform if it doe
 convergenceError = 10e-6
 numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
 xRange=c(-250,250)
-maxB=100 # Number of randomised matrices to generate
+maxB=50 # Number of randomised matrices to generate
 outPath="./EMres"
 maxTasks=4
 taskId=1
@@ -56,7 +56,7 @@ for (i in taskSubList[[taskId]]){
     error=function(e){"Matrix not valid"}
     )
       
-  if(is.list(dim(allClassMeans))){
+  if(is.list(allClassMeans)){
      	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
   } else {
      	print(allClassMeans) # error message
@@ -65,11 +65,14 @@ for (i in taskSubList[[taskId]]){
   clustMetrics<-tryCatch( {
 	print("plotting clustering metrics for a range of class sizes")
 	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		maxIterations, outPath, outFileBase, nThreads, setSeed)
+		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads, 
+		setSeed=setSeed)
   },
   error=function(e){"Matrix not valid"}
   )
-  print(clustMetrics)
+  if(length(clustMetrics)==1) {
+    print(clustMetrics)
+  }
 }
 
 

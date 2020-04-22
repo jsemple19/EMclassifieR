@@ -94,7 +94,7 @@ testthat::test_that("euclidean distance measure works", {
   set.seed(200413)
   r1<-sample(c(0,1),19,replace=T)
   r2<-sample(c(0,1),19,replace=T)
-  wrongLength<-try(euclideanDist(r1,r2[1:18]))
+  wrongLength<-try(euclidean(r1,r2[1:18]))
   testthat::expect_equal(length(r1),length(r2))
   testthat::expect_equal(euclidean(r1,r2),as.numeric(stats::dist(rbind(r1,r2))))
   testthat::expect_equal(class(wrongLength),"try-error")
