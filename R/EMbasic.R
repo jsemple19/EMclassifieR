@@ -320,16 +320,19 @@ plotClassesSingleGene<-function(dataOrderedByClass,
 #' @param numClasses An integer with the number of classes learned
 #' @param outFileBase A string that will be used in the filenames and titles of the plots produced
 #' @param EMrep An integer indicating which EM repeat this is
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return A list of two items: a dataframe with silhouette stats and a silhouette plot object. The dataframe contains mean and SD of silhouette width overall, and per class, as well as number of reads per class
 #' @export
-silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase, EMrep=NULL){
+silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase,
+                         EMrep=NULL, distMetric=list(name="euclidean")){
   # deal with EMrep==NULL
   EMrep<-ifelse(is.null(EMrep),0,EMrep)
   # split off class number from row name
   classes <- as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                         split="__class"),"[[",2))
   #dis<-stats::dist(dataOrderedByClass) # get distance matrix between reads
-  dis<-euclidWinDist(dataOrderedByClass)
+  dis<-getDistMatrix(dataOrderedByClass,distMetric)
   sil<-cluster::silhouette(classes,dis) # calculate silhouette
   # make data.frame with silhouette stats
   df<-data.frame(regionName=outFileBase, numClasses=numClasses, EMrep=EMrep,
@@ -625,11 +628,14 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @param EMrep An integer indicating which EM repeat this is
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
 #' @param silStats data.frame with statistics about the silhouette plots (default=NULL)
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return silStats data.frame with statistics about the silhouette plots
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
-                             EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL){
+                             EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL,
+                             distMetric=list(name="euclidean")){
   silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase,
-                          EMrep=EMrep)
+                          EMrep, distMetric)
 
   if (!is.null(silStats)) {
     silStats<-rbind(silStats,silList$stats)
@@ -729,13 +735,16 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFil
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                        maxIterations=100, EMrepeats=10, outPath=".",
                        xRange=c(-250,250), outFileBase="",
                        myXlab="CpG/GpC position", featureLabel="TSS",
-                       baseFontSize=12, doIndividualPlots=FALSE){
+                       baseFontSize=12, doIndividualPlots=FALSE,
+                       distMetric=list(name="euclidean")){
   #initialise variables
   methFreq <- position <- NULL
   #remove trailing / from outPath
@@ -792,7 +801,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
     print("getting silhouette statistics")
     # do silhouette plot and save silhouette stats
     silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
-                                 outPath, EMrep, doIndividualPlots, silStats)
+                                 outPath, EMrep, doIndividualPlots, silStats,
+                                 distMetric)
   }
 
   #print("plotting class stability")
@@ -817,13 +827,15 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   #print("plotting silhouette statistics")
   # do silhouette plot and save silhouette stats
   silStats<-getSilhouetteStats(dataOrderedByClassRep, numClasses, outFileBase,
-                               outPath, EMrep=NULL,silStats=silStats)
+                               outPath, EMrep=NULL, silStats=silStats,
+                               distMetric=distMetric)
 
   #calculate elbow and gap statistic
   #print("calculating gap statistic")
   readClasses <- sapply(strsplit(rownames(dataOrderedByClassRep),
                                  split="__"),"[[",2)
-  silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep,readClasses)
+  silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep, readClasses,
+                                     distMetric)
 
   #print("saving silouhette stats")
   utils::write.csv(silStats, file=paste0(outPath,"/silStats_",
@@ -850,13 +862,16 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param doIndividualPlots Produce individual plots for each repeat (default=F)
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return allClassMeans list of different class numbers each containing a data.frame with columns: position, methFreq, class, replicate
 #' @export
 runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              maxIterations=100, EMrepeats=10, outPath=".",
                              xRange=c(-250,250), outFileBase="",
                              myXlab="CpG/GpC position", featureLabel="TSS",
-                             baseFontSize=12, doIndividualPlots=TRUE) {
+                             baseFontSize=12, doIndividualPlots=TRUE,
+                             distMetric=list(name="euclidean")) {
   stopifnot(isMatrixValid(dataMatrix))
   allClassMeans<-list()
   for (numClasses in k_range) {
@@ -865,7 +880,8 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                                             convergenceError, maxIterations,
                                             EMrepeats, outPath, xRange,
                                             outFileBase, myXlab, featureLabel,
-                                            baseFontSize, doIndividualPlots)
+                                            baseFontSize, doIndividualPlots,
+                                            distMetric)
   }
   return(allClassMeans)
 }
@@ -881,10 +897,13 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
 #' @param convergenceError An float indicating the convergence threshold for stopping iteration
 #' @param maxIterations An integer indicating the max number of iterations to perform even if the algorithm has not converged
 #' @param EMrepeats An integer indicating the number of times to repeat the clustering (default=10)
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return  Numeric. Total within cluster sum of squares.
 #' @export
 runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
-                                maxIterations=100, EMrepeats=10){
+                                maxIterations=100, EMrepeats=10,
+                                distMetric=list(name="euclidean")){
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
   for (EMrep in 1:EMrepeats) {
@@ -915,7 +934,7 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   # calculate total within cluster sum of squares
   idx<-match(row.names(dataMatrix),classVote$read)
   classes<-classVote$topClass[idx]
-  withinSS<-withinClusterSS(dataMatrix,classes)
+  withinSS<-withinClusterSS(dataMatrix,classes,distMetric)
   return(withinSS)
 }
 
@@ -938,12 +957,15 @@ runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 #' @param EMrep An integer indicating which EM repeat this is
 #' @param nThreads Number of threads to use for generating background distribution (default is 1)
 #' @param setSeed Logical value to determine if seed should be set for randomisation (default is FALSE)
+#' @param distMetric A list with the name of the distance metric and any
+#' parameters it might require
 #' @return None
 #' @export
 plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100,
                                 outPath=".", outFileBase="", EMrep=NULL,
-                                nThreads=1, setSeed=FALSE){
+                                nThreads=1, setSeed=FALSE,
+                                distMetric=list(name="euclidean")){
   # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
   classMean <- classNumber <- NULL
@@ -967,7 +989,7 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
   } else {
     randomWSS<-clusterRandomMatrices(dataMatrix, k_range, maxB,
                                      convergenceError, maxIterations,
-                                     nThreads, setSeed)
+                                     nThreads, setSeed, distMetric)
     utils::write.csv(randomWSS, randomisedMatrixStatsFile, row.names=F)
   }
 

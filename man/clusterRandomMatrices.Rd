@@ -11,7 +11,8 @@ clusterRandomMatrices(
   convergenceError = 1e-06,
   maxIterations = 100,
   nThreads = 1,
-  setSeed = F
+  setSeed = F,
+  distMetric = list(name = "euclidean")
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ clusterRandomMatrices(
 \item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
 
 \item{setSeed}{Logical value to determine if seed should be set for randomisation (default is FALSE)}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
 A data frame with the average of the total within class sum of squares for multiple randomised matrices and different numbers of classes

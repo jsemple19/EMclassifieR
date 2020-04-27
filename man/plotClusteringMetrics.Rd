@@ -14,7 +14,8 @@ plotClusteringMetrics(
   outFileBase = "",
   EMrep = NULL,
   nThreads = 1,
-  setSeed = FALSE
+  setSeed = FALSE,
+  distMetric = list(name = "euclidean")
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ plotClusteringMetrics(
 \item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
 
 \item{setSeed}{Logical value to determine if seed should be set for randomisation (default is FALSE)}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
 None

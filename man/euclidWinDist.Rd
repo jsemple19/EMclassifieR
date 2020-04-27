@@ -4,13 +4,15 @@
 \alias{euclidWinDist}
 \title{Calculate Euclidean distance between all rows of a matrix with sliding window}
 \usage{
-euclidWinDist(binMat, winSize = 3)
+euclidWinDist(binMat, winSize = 3, nThreads = 1)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
 distance between rows}
 
 \item{winSize}{Sliding window size (number of values to combine)}
+
+\item{nThreads}{Number of threads to use for generating background distribution (default is 1)}
 }
 \value{
 A distance object (lower triangle) with the distances between all

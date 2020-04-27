@@ -4,15 +4,16 @@
 \name{reexports}
 \alias{reexports}
 \alias{\%dopar\%}
+\alias{\%:\%}
 \alias{\%>\%}
-\title{import magittr function}
+\title{import dopar function}
 \keyword{internal}
 \description{
 These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{foreach}{\code{\link[foreach]{\%dopar\%}}}
+  \item{foreach}{\code{\link[foreach]{\%:\%}}, \code{\link[foreach]{\%dopar\%}}}
 
   \item{magrittr}{\code{\link[magrittr]{\%>\%}}}
 }}

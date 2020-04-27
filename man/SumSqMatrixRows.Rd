@@ -4,13 +4,16 @@
 \alias{SumSqMatrixRows}
 \title{Calculate the sum of square distances between rows of a matrix}
 \usage{
-SumSqMatrixRows(dataMatrix)
+SumSqMatrixRows(dataMatrix, distMetric = list(name = "euclidean"))
 }
 \arguments{
 \item{dataMatrix}{A matrix for which to calcluate the sum of the sum of square distances between its rows.}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
-Numeric. The sum of the sum or square distances between the rows of the matrix.
+Numeric. The sum of the square distances between the rows of the matrix.
 }
 \description{
 Calculate the sum of square distances between rows of a matrix

@@ -28,12 +28,13 @@ maxTasks=4
 taskId=1
 nThreads=4
 setSeed=FALSE
+distMetric=list(name="euclidWinDist",winSize=3,nThreads=nThreads)
 
 if(!dir.exists(outPath)){
   dir.create(outPath)
 }
 
-#split table indecies into nTasks number of groups
+#split table indicies into nTasks number of groups
 taskSubList<-split(1:nrow(matTable),sort(1:nrow(matTable)%%maxTasks))
 
 set.seed(200413)
@@ -55,7 +56,8 @@ for (i in taskSubList[[taskId]]){
       runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
                      EMrepeats=numRepeats, outPath=outPath, xRange=xRange,
                      outFileBase=paste(sampleName, regionName, sep="_"),
-                     doIndividualPlots=FALSE)
+                     doIndividualPlots=FALSE, distMetric=distMetric)
+
     },
     error=function(e){"Matrix not valid"}
     )
@@ -70,7 +72,7 @@ for (i in taskSubList[[taskId]]){
 	print("plotting clustering metrics for a range of class sizes")
 	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
 		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
-		setSeed=setSeed)
+		setSeed=setSeed, distMetric=distMetric)
   },
   error=function(e){"Matrix not valid"}
   )

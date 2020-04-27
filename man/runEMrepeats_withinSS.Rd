@@ -9,7 +9,8 @@ runEMrepeats_withinSS(
   numClasses = 3,
   convergenceError = 1e-06,
   maxIterations = 100,
-  EMrepeats = 10
+  EMrepeats = 10,
+  distMetric = list(name = "euclidean")
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ runEMrepeats_withinSS(
 \item{maxIterations}{An integer indicating the max number of iterations to perform even if the algorithm has not converged}
 
 \item{EMrepeats}{An integer indicating the number of times to repeat the clustering (default=10)}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
 Numeric. Total within cluster sum of squares.

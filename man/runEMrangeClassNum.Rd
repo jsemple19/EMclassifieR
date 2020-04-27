@@ -16,7 +16,8 @@ runEMrangeClassNum(
   myXlab = "CpG/GpC position",
   featureLabel = "TSS",
   baseFontSize = 12,
-  doIndividualPlots = TRUE
+  doIndividualPlots = TRUE,
+  distMetric = list(name = "euclidean")
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ runEMrangeClassNum(
 \item{baseFontSize}{The base font for the plotting theme (default=12 works well for 4x plots per A4 page)}
 
 \item{doIndividualPlots}{Produce individual plots for each repeat (default=F)}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
 allClassMeans list of different class numbers each containing a data.frame with columns: position, methFreq, class, replicate

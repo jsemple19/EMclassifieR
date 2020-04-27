@@ -11,7 +11,8 @@ getSilhouetteStats(
   outPath,
   EMrep = NULL,
   doIndividualPlots = FALSE,
-  silStats = NULL
+  silStats = NULL,
+  distMetric = list(name = "euclidean")
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ getSilhouetteStats(
 \item{doIndividualPlots}{Produce individual plots for each repeat (default=F)}
 
 \item{silStats}{data.frame with statistics about the silhouette plots (default=NULL)}
+
+\item{distMetric}{A list with the name of the distance metric and any
+parameters it might require}
 }
 \value{
 silStats data.frame with statistics about the silhouette plots
