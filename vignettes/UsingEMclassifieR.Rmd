@@ -50,7 +50,7 @@ maxTasks=4
 taskId=1
 nThreads=4
 setSeed=FALSE
-distMetric=list(name="euclidWinDist",winSize=3,nThreads=nThreads)
+distMetric=list(name="euclidWinDist",winSize=3)
 
 if(!dir.exists(outPath)){
   dir.create(outPath)
@@ -93,7 +93,7 @@ for (i in taskSubList[[taskId]]){
   clustMetrics<-tryCatch( {
 	print("plotting clustering metrics for a range of class sizes")
 	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=1,
+		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
 		setSeed=setSeed, distMetric=distMetric)
   },
   error=function(e){"Matrix not valid"}
