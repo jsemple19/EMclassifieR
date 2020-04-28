@@ -91,31 +91,6 @@ testthat::test_that("isMatrixValid returns FALSE for empty or non-matrices", {
 
 
 
-# testthat::test_that("euclidean distance measure works", {
-#   set.seed(200413)
-#   r1<-sample(c(0,1),19,replace=T)
-#   r2<-sample(c(0,1),19,replace=T)
-#   wrongLength<-try(euclidean(r1,r2[1:18]), silent=T)
-#   testthat::expect_equal(length(r1),length(r2))
-#   testthat::expect_equal(euclidean(r1,r2),as.numeric(stats::dist(rbind(r1,r2))))
-#   testthat::expect_equal(class(wrongLength),"try-error")
-# })
-#
-#
-# testthat::test_that("euclidean window calculation works", {
-#   set.seed(200413)
-#   r1<-sample(c(0,1),19,replace=T)
-#   r2<-sample(c(0,1),19,replace=T)
-#   wrongLength<-try(euclidWin(r1,r2[1:18]), silent=T)
-#   tooShort<-try(euclidWin(r1[1:2],r2[1:2]), silent=T)
-#   testthat::expect_equal(length(r1),length(r2))
-#   testthat::expect_equal(floor(euclidWin(r1,r2,winSize=3)),19)
-#   testthat::expect_equal(class(wrongLength),"try-error")
-#   testthat::expect_equal(class(tooShort),"try-error")
-# })
-
-
-
 testthat::test_that("euclidean window distance object is made", {
   set.seed(200413)
   binMat<-matrix(sample(c(0,1),95,replace=T),nrow=5)
