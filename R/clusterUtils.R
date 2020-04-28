@@ -210,13 +210,15 @@ isMatrixValid<-function(dataMatrix,valueRange=c(0,1),NAsValid=FALSE){
 #' @param binMat A matrix of numbers for which you want to calculate the
 #' distance between rows
 #' @param winSize Sliding window size (number of values to combine)
+#' @param stepSize How far to move the sliding window
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-euclidWinDist<-function(binMat,winSize=3){
+euclidWinDist<-function(binMat,winSize=3,stepSize=1){
   i <- NULL
+  stopifnot(stepSize<=winSize)
   distSum<-0
-  for(i in 1:(ncol(binMat)-winSize+1)){
+  for(i in seq(1,ncol(binMat)-winSize+1,by=stepSize)){
     distSum<-distSum+stats::dist(binMat[,i:(i+winSize-1)])
   }
   return(distSum)
@@ -240,5 +242,6 @@ euclidWinDist<-function(binMat,winSize=3){
 getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
   switch(distMetric$name,
          euclidean=stats::dist(binMat),
-         euclidWinDist=euclidWinDist(binMat,winSize=distMetric$winSize))
+         euclidWinDist=euclidWinDist(binMat, winSize=distMetric$winSize,
+                                     stepSize=distMetric$stepSize))
 }

@@ -28,7 +28,7 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
   dataMatrix<-matrix(rep(c(1,0,1,1,0,0.5),8),nrow=4)
   rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
   colnames(dataMatrix)<-paste0("c",1:dim(dataMatrix)[2])
-  distMetric=list(name="euclidWinDist",winSize=3)
+  distMetric=list(name="euclidWinDist", winSize=3, stepSize=1)
   WSS<-clusterRandomMatrices(dataMatrix, k_range=2:3, maxB=10,
                              convergenceError=1e-6, maxIterations=100,
                              nThreads=1,setSeed=T, distMetric=distMetric)
@@ -119,7 +119,11 @@ testthat::test_that("isMatrixValid returns FALSE for empty or non-matrices", {
 testthat::test_that("euclidean window distance object is made", {
   set.seed(200413)
   binMat<-matrix(sample(c(0,1),95,replace=T),nrow=5)
-  result<-sum(euclidWinDist(binMat))
+  result<-sum(euclidWinDist(binMat,winSize=3,stepSize=1))
+  result1<-sum(euclidWinDist(binMat,winSize=5,stepSize=3))
+  result2<-try(euclidWinDist(binMat,winSize=3,stepSize=5), silent=T)
   testthat::expect_equal(floor(result),187)
+  testthat::expect_equal(floor(result1),226)
+  testthat::expect_equal(class(result2),"try-error")
   testthat::expect_equal(class(euclidWinDist(binMat)),"dist")
 })

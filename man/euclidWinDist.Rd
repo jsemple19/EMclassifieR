@@ -13,13 +13,15 @@ euclidean<-function(r1,r2){
   sqrt(sum((r1-r2)^2))
 }}
 \usage{
-euclidWinDist(binMat, winSize = 3)
+euclidWinDist(binMat, winSize = 3, stepSize = 1)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
 distance between rows}
 
 \item{winSize}{Sliding window size (number of values to combine)}
+
+\item{stepSize}{How far to move the sliding window}
 }
 \value{
 A distance object (lower triangle) with the distances between all

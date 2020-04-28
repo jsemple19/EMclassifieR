@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-04-27" />
+<meta name="date" content="2020-04-28" />
 
 <title>Using EMclassifieR on methylation data</title>
 
@@ -301,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-04-27</h4>
+<h4 class="date">2020-04-28</h4>
 
 
 
@@ -346,7 +346,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-9" title="9">taskId=<span class="dv">1</span></a>
 <a class="sourceLine" id="cb7-10" title="10">nThreads=<span class="dv">4</span></a>
 <a class="sourceLine" id="cb7-11" title="11">setSeed=<span class="ot">FALSE</span></a>
-<a class="sourceLine" id="cb7-12" title="12">distMetric=<span class="kw">list</span>(<span class="dt">name=</span><span class="st">&quot;euclidWinDist&quot;</span>,<span class="dt">winSize=</span><span class="dv">3</span>,<span class="dt">nThreads=</span>nThreads)</a>
+<a class="sourceLine" id="cb7-12" title="12">distMetric=<span class="kw">list</span>(<span class="dt">name=</span><span class="st">&quot;euclidWinDist&quot;</span>,<span class="dt">winSize=</span><span class="dv">5</span>,<span class="dt">stepSize=</span><span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb7-13" title="13"></a>
 <a class="sourceLine" id="cb7-14" title="14"><span class="cf">if</span>(<span class="op">!</span><span class="kw">dir.exists</span>(outPath)){</a>
 <a class="sourceLine" id="cb7-15" title="15">  <span class="kw">dir.create</span>(outPath)</a>
@@ -374,397 +374,30 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-37" title="37">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
 <a class="sourceLine" id="cb7-38" title="38">                     <span class="dt">EMrepeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
 <a class="sourceLine" id="cb7-39" title="39">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
-<a class="sourceLine" id="cb7-40" title="40">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">winSize=</span><span class="dv">3</span>, <span class="dt">nThreads=</span>nThreads)</a>
-<a class="sourceLine" id="cb7-41" title="41">    },</a>
-<a class="sourceLine" id="cb7-42" title="42">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-43" title="43">    )</a>
-<a class="sourceLine" id="cb7-44" title="44">      </a>
-<a class="sourceLine" id="cb7-45" title="45">  <span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</a>
-<a class="sourceLine" id="cb7-46" title="46">        <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</a>
-<a class="sourceLine" id="cb7-47" title="47">  } <span class="cf">else</span> {</a>
-<a class="sourceLine" id="cb7-48" title="48">        <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></a>
-<a class="sourceLine" id="cb7-49" title="49">  }</a>
-<a class="sourceLine" id="cb7-50" title="50"></a>
-<a class="sourceLine" id="cb7-51" title="51">  clustMetrics&lt;-<span class="kw">tryCatch</span>( {</a>
-<a class="sourceLine" id="cb7-52" title="52">    <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</a>
-<a class="sourceLine" id="cb7-53" title="53">    <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
-<a class="sourceLine" id="cb7-54" title="54">        maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>, <span class="dt">nThreads=</span>nThreads, </a>
-<a class="sourceLine" id="cb7-55" title="55">        <span class="dt">setSeed=</span>setSeed)</a>
-<a class="sourceLine" id="cb7-56" title="56">  },</a>
-<a class="sourceLine" id="cb7-57" title="57">  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-58" title="58">  )</a>
-<a class="sourceLine" id="cb7-59" title="59">  <span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</a>
-<a class="sourceLine" id="cb7-60" title="60">    <span class="kw">print</span>(clustMetrics)</a>
-<a class="sourceLine" id="cb7-61" title="61">  }</a>
-<a class="sourceLine" id="cb7-62" title="62">}</a></code></pre></div>
-<pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
-## [1] &quot;running EM for a range of class numbers&quot;
-## [1] &quot;Matrix not valid&quot;
-## [1] &quot;plotting clustering metrics for a range of class sizes&quot;
-## [1] &quot;generating randomised matrices as null distribution&quot;
-## [1] &quot;numClasses: 2&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;numClasses: 3&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;numClasses: 4&quot;
-## [1] &quot;converged: TRUE iterations:  70&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  94&quot;
-## [1] &quot;converged: TRUE iterations:  88&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  63&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  13&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: FALSE iterations:  100&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  56&quot;
-## [1] &quot;converged: TRUE iterations:  44&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  40&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  88&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  72&quot;
-## [1] &quot;converged: TRUE iterations:  41&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  13&quot;
-## [1] &quot;converged: TRUE iterations:  64&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;numClasses: 5&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  74&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;converged: TRUE iterations:  42&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  89&quot;
-## [1] &quot;converged: TRUE iterations:  63&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  16&quot;
-## [1] &quot;converged: TRUE iterations:  60&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  61&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  66&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  80&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  69&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;converged: TRUE iterations:  46&quot;
-## [1] &quot;converged: TRUE iterations:  41&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;converged: TRUE iterations:  95&quot;
-## [1] &quot;converged: TRUE iterations:  76&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  68&quot;
-## [1] &quot;numClasses: 6&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  68&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  15&quot;
-## [1] &quot;converged: TRUE iterations:  74&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  66&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;converged: TRUE iterations:  79&quot;
-## [1] &quot;converged: TRUE iterations:  90&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  53&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  65&quot;
-## [1] &quot;converged: TRUE iterations:  68&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  61&quot;
-## [1] &quot;converged: FALSE iterations:  100&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;converged: TRUE iterations:  85&quot;
-## [1] &quot;converged: TRUE iterations:  93&quot;
-## [1] &quot;converged: TRUE iterations:  67&quot;
-## [1] &quot;converged: TRUE iterations:  70&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  42&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  99&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  57&quot;
-## [1] &quot;converged: TRUE iterations:  49&quot;
-## [1] &quot;converged: TRUE iterations:  46&quot;
-## [1] &quot;converged: TRUE iterations:  61&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;converged: TRUE iterations:  57&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;numClasses: 7&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  54&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  90&quot;
-## [1] &quot;converged: TRUE iterations:  65&quot;
-## [1] &quot;converged: TRUE iterations:  50&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  42&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;converged: TRUE iterations:  75&quot;
-## [1] &quot;converged: TRUE iterations:  48&quot;
-## [1] &quot;converged: TRUE iterations:  57&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;converged: TRUE iterations:  45&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  45&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;converged: TRUE iterations:  57&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;
-## [1] &quot;converged: TRUE iterations:  63&quot;
-## [1] &quot;converged: TRUE iterations:  56&quot;
-## [1] &quot;converged: TRUE iterations:  90&quot;
-## [1] &quot;converged: TRUE iterations:  87&quot;
-## [1] &quot;converged: TRUE iterations:  57&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  48&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  78&quot;
-## [1] &quot;converged: TRUE iterations:  64&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  55&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;converged: TRUE iterations:  46&quot;
-## [1] &quot;converged: TRUE iterations:  61&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;converged: TRUE iterations:  78&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  21&quot;
-## [1] &quot;converged: TRUE iterations:  49&quot;
-## [1] &quot;converged: TRUE iterations:  45&quot;
-## [1] &quot;converged: TRUE iterations:  74&quot;
-## [1] &quot;numClasses: 8&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;converged: TRUE iterations:  76&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;converged: TRUE iterations:  90&quot;
-## [1] &quot;converged: TRUE iterations:  79&quot;
-## [1] &quot;converged: TRUE iterations:  74&quot;
-## [1] &quot;converged: TRUE iterations:  60&quot;
-## [1] &quot;converged: TRUE iterations:  53&quot;
-## [1] &quot;converged: TRUE iterations:  79&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;converged: TRUE iterations:  81&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;converged: TRUE iterations:  51&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  29&quot;
-## [1] &quot;converged: TRUE iterations:  85&quot;
-## [1] &quot;converged: TRUE iterations:  62&quot;
-## [1] &quot;converged: TRUE iterations:  91&quot;
-## [1] &quot;converged: TRUE iterations:  78&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;converged: TRUE iterations:  40&quot;
-## [1] &quot;converged: TRUE iterations:  55&quot;
-## [1] &quot;converged: TRUE iterations:  44&quot;
-## [1] &quot;converged: TRUE iterations:  65&quot;
-## [1] &quot;converged: TRUE iterations:  42&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;converged: TRUE iterations:  70&quot;
-## [1] &quot;converged: TRUE iterations:  56&quot;
-## [1] &quot;converged: TRUE iterations:  62&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;
-## [1] &quot;converged: TRUE iterations:  8&quot;
-## [1] &quot;converged: TRUE iterations:  77&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  46&quot;
-## [1] &quot;converged: TRUE iterations:  59&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;
-## [1] &quot;converged: TRUE iterations:  44&quot;
-## [1] &quot;converged: TRUE iterations:  72&quot;
-## [1] &quot;converged: TRUE iterations:  82&quot;
-## [1] &quot;converged: TRUE iterations:  55&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;
-## [1] &quot;converged: TRUE iterations:  59&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;
-## [1] &quot;converged: TRUE iterations:  50&quot;
-## [1] &quot;converged: TRUE iterations:  80&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;converged: TRUE iterations:  41&quot;
-## [1] &quot;converged: TRUE iterations:  70&quot;
-## [1] &quot;converged: TRUE iterations:  75&quot;
-## [1] &quot;calculating summary statistics for clustering&quot;
-## [1] 2
-## [1] 3</code></pre>
-<pre><code>## Warning in file(file, &quot;rt&quot;): cannot open file &#39;./EMres/
-## silStats_dS02-182_WBGene00015947_K3.csv&#39;: No such file or directory</code></pre>
-<pre><code>## [1] &quot;Matrix not valid&quot;</code></pre>
+<a class="sourceLine" id="cb7-40" title="40">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">distMetric=</span>distMetric)</a>
+<a class="sourceLine" id="cb7-41" title="41">      </a>
+<a class="sourceLine" id="cb7-42" title="42">    },</a>
+<a class="sourceLine" id="cb7-43" title="43">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-44" title="44">    )</a>
+<a class="sourceLine" id="cb7-45" title="45">      </a>
+<a class="sourceLine" id="cb7-46" title="46">  <span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</a>
+<a class="sourceLine" id="cb7-47" title="47">        <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</a>
+<a class="sourceLine" id="cb7-48" title="48">  } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb7-49" title="49">        <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></a>
+<a class="sourceLine" id="cb7-50" title="50">  }</a>
+<a class="sourceLine" id="cb7-51" title="51"></a>
+<a class="sourceLine" id="cb7-52" title="52">  clustMetrics&lt;-<span class="kw">tryCatch</span>( {</a>
+<a class="sourceLine" id="cb7-53" title="53">    <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</a>
+<a class="sourceLine" id="cb7-54" title="54">    <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
+<a class="sourceLine" id="cb7-55" title="55">        maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>, <span class="dt">nThreads=</span>nThreads,</a>
+<a class="sourceLine" id="cb7-56" title="56">        <span class="dt">setSeed=</span>setSeed, <span class="dt">distMetric=</span>distMetric)</a>
+<a class="sourceLine" id="cb7-57" title="57">  },</a>
+<a class="sourceLine" id="cb7-58" title="58">  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-59" title="59">  )</a>
+<a class="sourceLine" id="cb7-60" title="60">  <span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</a>
+<a class="sourceLine" id="cb7-61" title="61">    <span class="kw">print</span>(clustMetrics)</a>
+<a class="sourceLine" id="cb7-62" title="62">  }</a>
+<a class="sourceLine" id="cb7-63" title="63">}</a></code></pre></div>
 </div>
 </div>
 
