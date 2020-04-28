@@ -123,7 +123,8 @@ testthat::test_that("euclidean window distance object is made", {
   result1<-sum(euclidWinDist(binMat,winSize=5,stepSize=3))
   result2<-try(euclidWinDist(binMat,winSize=3,stepSize=5), silent=T)
   testthat::expect_equal(floor(result),187)
-  testthat::expect_equal(floor(result1),226)
+  testthat::expect_equal(floor(result1),73)
   testthat::expect_equal(class(result2),"try-error")
-  testthat::expect_equal(class(euclidWinDist(binMat)),"dist")
+  testthat::expect_equal(class(euclidWinDist(binMat,winSize=3,stepSize=1)),
+                         "dist")
 })
