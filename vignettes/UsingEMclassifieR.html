@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-04-28" />
+<meta name="date" content="2020-05-02" />
 
 <title>Using EMclassifieR on methylation data</title>
 
@@ -301,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-04-28</h4>
+<h4 class="date">2020-05-02</h4>
 
 
 
@@ -368,36 +368,54 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-31" title="31">  dataMatrix&lt;-<span class="kw">removeAllNArows</span>(dataMatrix)</a>
 <a class="sourceLine" id="cb7-32" title="32">  <span class="kw">dim</span>(dataMatrix)</a>
 <a class="sourceLine" id="cb7-33" title="33">  </a>
-<a class="sourceLine" id="cb7-34" title="34">  allClassMeans&lt;-<span class="kw">tryCatch</span>( </a>
-<a class="sourceLine" id="cb7-35" title="35">    {</a>
-<a class="sourceLine" id="cb7-36" title="36">      <span class="kw">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</a>
-<a class="sourceLine" id="cb7-37" title="37">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
-<a class="sourceLine" id="cb7-38" title="38">                     <span class="dt">EMrepeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange, </a>
-<a class="sourceLine" id="cb7-39" title="39">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
-<a class="sourceLine" id="cb7-40" title="40">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">distMetric=</span>distMetric)</a>
-<a class="sourceLine" id="cb7-41" title="41">      </a>
-<a class="sourceLine" id="cb7-42" title="42">    },</a>
-<a class="sourceLine" id="cb7-43" title="43">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-44" title="44">    )</a>
-<a class="sourceLine" id="cb7-45" title="45">      </a>
-<a class="sourceLine" id="cb7-46" title="46">  <span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</a>
-<a class="sourceLine" id="cb7-47" title="47">        <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</a>
-<a class="sourceLine" id="cb7-48" title="48">  } <span class="cf">else</span> {</a>
-<a class="sourceLine" id="cb7-49" title="49">        <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></a>
-<a class="sourceLine" id="cb7-50" title="50">  }</a>
-<a class="sourceLine" id="cb7-51" title="51"></a>
-<a class="sourceLine" id="cb7-52" title="52">  clustMetrics&lt;-<span class="kw">tryCatch</span>( {</a>
-<a class="sourceLine" id="cb7-53" title="53">    <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</a>
-<a class="sourceLine" id="cb7-54" title="54">    <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
-<a class="sourceLine" id="cb7-55" title="55">        maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>, <span class="dt">nThreads=</span>nThreads,</a>
-<a class="sourceLine" id="cb7-56" title="56">        <span class="dt">setSeed=</span>setSeed, <span class="dt">distMetric=</span>distMetric)</a>
-<a class="sourceLine" id="cb7-57" title="57">  },</a>
-<a class="sourceLine" id="cb7-58" title="58">  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-59" title="59">  )</a>
-<a class="sourceLine" id="cb7-60" title="60">  <span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</a>
-<a class="sourceLine" id="cb7-61" title="61">    <span class="kw">print</span>(clustMetrics)</a>
-<a class="sourceLine" id="cb7-62" title="62">  }</a>
-<a class="sourceLine" id="cb7-63" title="63">}</a></code></pre></div>
+<a class="sourceLine" id="cb7-34" title="34"><span class="co">#   allClassMeans&lt;-tryCatch( </span></a>
+<a class="sourceLine" id="cb7-35" title="35"><span class="co">#     {</span></a>
+<a class="sourceLine" id="cb7-36" title="36"><span class="co">#       print(&quot;running EM for a range of class numbers&quot;)</span></a>
+<a class="sourceLine" id="cb7-37" title="37"><span class="co">#       runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,</span></a>
+<a class="sourceLine" id="cb7-38" title="38"><span class="co">#                      EMrepeats=numRepeats, outPath=outPath, xRange=xRange, </span></a>
+<a class="sourceLine" id="cb7-39" title="39"><span class="co">#                      outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;),</span></a>
+<a class="sourceLine" id="cb7-40" title="40"><span class="co">#                      doIndividualPlots=FALSE, distMetric=distMetric)</span></a>
+<a class="sourceLine" id="cb7-41" title="41"><span class="co">#       </span></a>
+<a class="sourceLine" id="cb7-42" title="42"><span class="co">#     },</span></a>
+<a class="sourceLine" id="cb7-43" title="43"><span class="co">#       error=function(e){&quot;Matrix not valid&quot;}</span></a>
+<a class="sourceLine" id="cb7-44" title="44"><span class="co">#   )</span></a>
+<a class="sourceLine" id="cb7-45" title="45"><span class="co">#       </span></a>
+<a class="sourceLine" id="cb7-46" title="46"><span class="co">#   if(is.list(allClassMeans)){</span></a>
+<a class="sourceLine" id="cb7-47" title="47"><span class="co">#       saveRDS(allClassMeans,paste0(outPath,&quot;/allClassMeans_&quot;,outFileBase,&quot;.rds&quot;))</span></a>
+<a class="sourceLine" id="cb7-48" title="48"><span class="co">#   } else {</span></a>
+<a class="sourceLine" id="cb7-49" title="49"><span class="co">#       print(allClassMeans) # error message</span></a>
+<a class="sourceLine" id="cb7-50" title="50"><span class="co">#   }</span></a>
+<a class="sourceLine" id="cb7-51" title="51"><span class="co"># </span></a>
+<a class="sourceLine" id="cb7-52" title="52"><span class="co">#   clustMetrics&lt;-tryCatch( </span></a>
+<a class="sourceLine" id="cb7-53" title="53"><span class="co">#     {</span></a>
+<a class="sourceLine" id="cb7-54" title="54"><span class="co">#       print(&quot;plotting clustering metrics for a range of class sizes&quot;)</span></a>
+<a class="sourceLine" id="cb7-55" title="55"><span class="co">#       plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,</span></a>
+<a class="sourceLine" id="cb7-56" title="56"><span class="co">#           maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,</span></a>
+<a class="sourceLine" id="cb7-57" title="57"><span class="co">#           setSeed=setSeed, distMetric=distMetric)</span></a>
+<a class="sourceLine" id="cb7-58" title="58"><span class="co">#     },</span></a>
+<a class="sourceLine" id="cb7-59" title="59"><span class="co">#     error=function(e){&quot;Matrix not valid&quot;}</span></a>
+<a class="sourceLine" id="cb7-60" title="60"><span class="co">#   )</span></a>
+<a class="sourceLine" id="cb7-61" title="61"><span class="co">#   if(length(clustMetrics)==1) {</span></a>
+<a class="sourceLine" id="cb7-62" title="62"><span class="co">#     print(clustMetrics)</span></a>
+<a class="sourceLine" id="cb7-63" title="63"><span class="co">#   }</span></a>
+<a class="sourceLine" id="cb7-64" title="64">  </a>
+<a class="sourceLine" id="cb7-65" title="65">  pcaPlots&lt;-<span class="kw">tryCatch</span>( </a>
+<a class="sourceLine" id="cb7-66" title="66">    {</a>
+<a class="sourceLine" id="cb7-67" title="67">      <span class="kw">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</a>
+<a class="sourceLine" id="cb7-68" title="68">      <span class="kw">plotPCAmatrices</span>(k_range, outPath, outFileBase)</a>
+<a class="sourceLine" id="cb7-69" title="69">    },</a>
+<a class="sourceLine" id="cb7-70" title="70">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-71" title="71">   )</a>
+<a class="sourceLine" id="cb7-72" title="72">  <span class="cf">if</span>(<span class="kw">length</span>(pcaPlots)<span class="op">==</span><span class="dv">1</span>) {</a>
+<a class="sourceLine" id="cb7-73" title="73">    <span class="kw">print</span>(pcaPlots)</a>
+<a class="sourceLine" id="cb7-74" title="74">  }</a>
+<a class="sourceLine" id="cb7-75" title="75">  </a>
+<a class="sourceLine" id="cb7-76" title="76">}</a></code></pre></div>
+<pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
+## [1] &quot;plotting PCA of clusters&quot;</code></pre>
+<pre><code>## Warning in gzfile(file, &quot;rb&quot;): cannot open compressed file &#39;./EMres/
+## dS02-182_WBGene00015947_K2.rds&#39;, probable reason &#39;No such file or directory&#39;</code></pre>
+<pre><code>## [1] &quot;Matrix not valid&quot;</code></pre>
 </div>
 </div>
 

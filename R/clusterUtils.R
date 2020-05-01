@@ -220,6 +220,8 @@ plotMatPCA<-function(dataMatrix,classes){
 #' @param k_range range of number of classes
 #' @param outPath Path for out put file
 #' @param outFileBase the basename of the file of the matrices
+#' @return successful completion message
+#' @export
 plotPCAmatrices<-function(k_range, outPath, outFileBase){
   for(numClasses in k_range) {
    dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
@@ -231,5 +233,5 @@ plotPCAmatrices<-function(k_range, outPath, outFileBase){
                                    outFileBase,"_K", numClasses,".pdf"),
                    plot=p, device="pdf", width=29, height=19, units="cm")
   }
-  return("PCA plotted correctlys")
+  return("PCA plotted correctly")
 }

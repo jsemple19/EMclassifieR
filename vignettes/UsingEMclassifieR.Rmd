@@ -72,37 +72,36 @@ for (i in taskSubList[[taskId]]){
   dataMatrix<-removeAllNArows(dataMatrix)
   dim(dataMatrix)
   
-  allClassMeans<-tryCatch( 
-    {
-      print("running EM for a range of class numbers")
-      runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
-                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange, 
-                     outFileBase=paste(sampleName, regionName, sep="_"),
-                     doIndividualPlots=FALSE, distMetric=distMetric)
-      
-    },
-    error=function(e){"Matrix not valid"}
-  )
-      
-  if(is.list(allClassMeans)){
-     	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
-  } else {
-     	print(allClassMeans) # error message
-  }
-
-  clustMetrics<-tryCatch( 
-    {
-	    print("plotting clustering metrics for a range of class sizes")
-	    plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		    maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
-		    setSeed=setSeed, distMetric=distMetric)
-    },
-    error=function(e){"Matrix not valid"}
-  )
-  if(length(clustMetrics)==1) {
-    print(clustMetrics)
-  }
-  
+#   allClassMeans<-tryCatch( 
+#     {
+#       print("running EM for a range of class numbers")
+#       runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+#                      EMrepeats=numRepeats, outPath=outPath, xRange=xRange, 
+#                      outFileBase=paste(sampleName, regionName, sep="_"),
+#                      doIndividualPlots=FALSE, distMetric=distMetric)
+#       
+#     },
+#       error=function(e){"Matrix not valid"}
+#   )
+#       
+#   if(is.list(allClassMeans)){
+#      	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
+#   } else {
+#      	print(allClassMeans) # error message
+#   }
+# 
+#   clustMetrics<-tryCatch( 
+#     {
+# 	    print("plotting clustering metrics for a range of class sizes")
+# 	    plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+# 		    maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
+# 		    setSeed=setSeed, distMetric=distMetric)
+#     },
+#     error=function(e){"Matrix not valid"}
+#   )
+#   if(length(clustMetrics)==1) {
+#     print(clustMetrics)
+#   }
   
   pcaPlots<-tryCatch( 
     {

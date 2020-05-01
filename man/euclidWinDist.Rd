@@ -2,16 +2,7 @@
 % Please edit documentation in R/clusterUtils.R
 \name{euclidWinDist}
 \alias{euclidWinDist}
-\title{#' Calculate Euclidean distance between two vectors
-#'
-#' @param r1 A numeric vector
-#' @param r2 Second numeric vector of same length as r1
-#' @return Euclidean distance between two vectors
-#' @export
-euclidean<-function(r1,r2){
-  stopifnot(length(r1)==length(r2))
-  sqrt(sum((r1-r2)^2))
-}}
+\title{Calculate Euclidean distance between all rows of a matrix with sliding window}
 \usage{
 euclidWinDist(binMat, winSize = 3, stepSize = 1)
 }
@@ -28,64 +19,6 @@ A distance object (lower triangle) with the distances between all
 rows of the input matrix
 }
 \description{
-#' Calculate Euclidean distance between two vectors with sliding windows
-#'
-#' To increase dynamic range and spatial information in comparin two binary
-#' vectors, a sliding window is used. The euclidean distance is computed within
-#' each window, and then moved by a step of 1.
-#' @param r1 A numeric vector
-#' @param r2 Second numeric vector of same length as r1
-#' @param winSize Sliding window size (number of values to combine)
-#' @return Euclidean distance between two vectors
-#' @export
-euclidWin<-function(r1,r2,winSize=3){
-  stopifnot(length(r1)==length(r2), length(r1)>=winSize)
-  distSum<-0
-  for(i in 1:(length(r1)-winSize+1)){
-    distSum<-distSum+euclidean(r1[i:(i+winSize-1)],r2[i:(i+winSize-1)])
-    #print(distSum)
-  }
-  return(distSum)
-}
-}
-\details{
-#' Calculate Euclidean distance between all rows of a matrix with sliding window
-#'
-#' To increase dynamic range and spatial information in comparing a matrix of
-#' vectors, a sliding window is used. The euclidean distance is computed within
-#' each window, and then moved by a step of 1.
-#' @param binMat A matrix of numbers for which you want to calculate the
-#' distance between rows
-#' @param winSize Sliding window size (number of values to combine)
-#' @param nThreads Number of threads to use for generating background distribution (default is 1)
-#' @return A distance object (lower triangle) with the distances between all
-#' rows of the input matrix
-#' @export
-euclidWinDist_slow<-function(binMat,winSize=3,nThreads=1){
-  i <- j <- NULL
-  numRows<-nrow(binMat)
-  distMat<-matrix(rep(NA,numRows^2),nrow=numRows,ncol=numRows)
-  clst<-parallel::makeCluster(nThreads)
-  doParallel::registerDoParallel(clst)
-  distList<-foreach::foreach(i=2:numRows,.combine=c,.export=c("euclidWin",
-                                                              "euclidean")) %:%
-    foreach::foreach(j=1:(i-1),.combine=c) %dopar%{
-  #for(i in 1:numRows){
-    #for(j in 1:i){
-      #distMat[i,j]<-euclidWin(binMat[i,],binMat[j,])
-      euclidWin(binMat[i,],binMat[j,],winSize=winSize)
-
-    #}
-    }
-  parallel::stopCluster(clst)
-  distMat[upper.tri(distMat)]<-t(distList)
-  distMat<-t(distMat)
-  rownames(distMat)<-rownames(binMat)
-  colnames(distMat)<-rownames(binMat)
-  return(stats::as.dist(distMat))
-}
-Calculate Euclidean distance between all rows of a matrix with sliding window
-
 To increase dynamic range and spatial information in comparing a matrix of
 vectors, a sliding window is used. The euclidean distance is computed within
 each window, and then moved by a step of 1.
