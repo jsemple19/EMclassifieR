@@ -153,6 +153,20 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 }
 
 
+#' Calculate cosine distance between all rows of a matrix with sliding window
+#'
+#'Using the cosine distance function form las package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+cosineDist<-function(binMat){
+  i <- NULL
+  distSum<-0
+  return(distSum)
+}
+
 
 
 #' A generic function for implementing various distance metrics
@@ -172,4 +186,50 @@ getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
          euclidean=stats::dist(binMat),
          euclidWinDist=euclidWinDist(binMat, winSize=distMetric$winSize,
                                      stepSize=distMetric$stepSize))
+}
+
+
+
+
+
+#' Plot pca of data matrix
+#'
+#' @param dataMatrix Matrix for PCA with row names containing __classNumber at
+#' the end
+#' @param classes Vactor of classifications for all the rows
+#' @return pca plots
+#' @export
+plotMatPCA<-function(dataMatrix,classes){
+  matpca<-prcomp(dataMatrix,center=T,scale=T)
+  p1<-ggbiplot::ggbiplot(matpca,choices=c(1,2),labels=classes,groups=classes,
+                    var.axes=F) + theme(legend.position = "none")
+  p2<-ggbiplot::ggbiplot(matpca,choices=c(3,4),labels=classes,groups=classes,
+               var.axes=F) + theme(legend.position = "none")
+  p3<-ggbiplot::ggbiplot(matpca,choices=c(5,6),labels=classes,groups=classes,
+               var.axes=F) + theme(legend.position = "none")
+  p4<-ggbiplot::ggbiplot(matpca,choices=c(7,8),labels=classes,groups=classes,
+               var.axes=F) + theme(legend.position = "none")
+  p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
+  return(p)
+}
+
+
+
+#' Plot matricies for different classifications
+#'
+#' @param k_range range of number of classes
+#' @param outPath Path for out put file
+#' @param outFileBase the basename of the file of the matrices
+plotPCAmatrices<-function(k_range, outPath, outFileBase){
+  for(numClasses in k_range) {
+   dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
+                              numClasses, ".rds"))
+   classes<-gsub("^.*__class","",rownames(dataMatrix))
+   p<-plotMatPCA(dataMatrix,classes)
+   p<-ggpubr::annotate_figure(p,top=ggpubr::text_grob(outFileBase,size=14))
+   ggplot2::ggsave(filename=paste0(outPath,"/classPCA_",
+                                   outFileBase,"_K", numClasses,".pdf"),
+                   plot=p, device="pdf", width=29, height=19, units="cm")
+  }
+  return("PCA plotted correctlys")
 }

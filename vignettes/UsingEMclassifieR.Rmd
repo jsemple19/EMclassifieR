@@ -82,7 +82,7 @@ for (i in taskSubList[[taskId]]){
       
     },
     error=function(e){"Matrix not valid"}
-    )
+  )
       
   if(is.list(allClassMeans)){
      	saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
@@ -90,17 +90,31 @@ for (i in taskSubList[[taskId]]){
      	print(allClassMeans) # error message
   }
 
-  clustMetrics<-tryCatch( {
-	print("plotting clustering metrics for a range of class sizes")
-	plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
-		maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
-		setSeed=setSeed, distMetric=distMetric)
-  },
-  error=function(e){"Matrix not valid"}
+  clustMetrics<-tryCatch( 
+    {
+	    print("plotting clustering metrics for a range of class sizes")
+	    plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+		    maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
+		    setSeed=setSeed, distMetric=distMetric)
+    },
+    error=function(e){"Matrix not valid"}
   )
   if(length(clustMetrics)==1) {
     print(clustMetrics)
   }
+  
+  
+  pcaPlots<-tryCatch( 
+    {
+      print("plotting PCA of clusters")
+      plotPCAmatrices(k_range, outPath, outFileBase)
+    },
+    error=function(e){"Matrix not valid"}
+   )
+  if(length(pcaPlots)==1) {
+    print(pcaPlots)
+  }
+  
 }
 
 ```
