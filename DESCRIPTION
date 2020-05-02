@@ -29,7 +29,10 @@ Imports:
       foreach,
       doParallel,
       magrittr,
-      doRNG
+      doRNG,
+      lsa,
+      ggbiplot,
+      TSdist
 Suggests: 
     knitr,
     rmarkdown,

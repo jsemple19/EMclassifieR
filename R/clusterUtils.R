@@ -153,7 +153,7 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 }
 
 
-#' Calculate cosine distance between all rows of a matrix with sliding window
+#' Calculate cosine distance between all rows of a matrix
 #'
 #'Using the cosine distance function form las package
 #' @param binMat A matrix of numbers for which you want to calculate the
@@ -162,10 +162,30 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 #' rows of the input matrix
 #' @export
 cosineDist<-function(binMat){
-  i <- NULL
-  cosDist<-lower.tri(lsa::cosine(t(binMat))
-  return(distSum)
+  cosDist<-stats::as.dist(1-lsa::cosine(t(binMat)))
+  return(cosDist)
 }
+
+
+
+#' Calculate cross correlation distance between all rows of a matrix
+#'
+#'Using the cosine distance function form las package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+crossCorDist<-function(binMat){
+  for(i in 1:nrow(binMat)) {
+    for(j in 1:(i-1)) {
+      ccDist<-stats::as.dist(TSdist::CCorDistance(binMat[1]))
+    }
+  }
+  return(ccDist)
+}
+
+
 
 
 
@@ -201,15 +221,15 @@ getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
 #' @return pca plots
 #' @export
 plotMatPCA<-function(dataMatrix,classes){
-  matpca<-prcomp(dataMatrix,center=T,scale=T)
+  matpca<-stats::prcomp(dataMatrix,center=T,scale=T)
   p1<-ggbiplot::ggbiplot(matpca,choices=c(1,2),labels=classes,groups=classes,
-                    var.axes=F) + theme(legend.position = "none")
+                    var.axes=F) + ggplot2::theme(legend.position = "none")
   p2<-ggbiplot::ggbiplot(matpca,choices=c(3,4),labels=classes,groups=classes,
-               var.axes=F) + theme(legend.position = "none")
+               var.axes=F) + ggplot2::theme(legend.position = "none")
   p3<-ggbiplot::ggbiplot(matpca,choices=c(5,6),labels=classes,groups=classes,
-               var.axes=F) + theme(legend.position = "none")
+               var.axes=F) + ggplot2::theme(legend.position = "none")
   p4<-ggbiplot::ggbiplot(matpca,choices=c(7,8),labels=classes,groups=classes,
-               var.axes=F) + theme(legend.position = "none")
+               var.axes=F) + ggplot2::theme(legend.position = "none")
   p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
   return(p)
 }
