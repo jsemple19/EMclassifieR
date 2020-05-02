@@ -103,3 +103,13 @@ testthat::test_that("euclidean window distance object is made", {
   testthat::expect_equal(class(euclidWinDist(binMat,winSize=3,stepSize=1)),
                          "dist")
 })
+
+
+
+testthat::test_that("cosine distance object is made", {
+  set.seed(200413)
+  binMat<-matrix(sample(c(0,1),95,replace=T),nrow=5)
+  result<-sum(cosineDist(binMat))
+  testthat::expect_equal(floor(result),4)
+  testthat::expect_equal(class(cosineDist(binMat)), "dist")
+})

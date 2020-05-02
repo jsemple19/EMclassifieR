@@ -163,7 +163,7 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 #' @export
 cosineDist<-function(binMat){
   i <- NULL
-  distSum<-0
+  cosDist<-lower.tri(lsa::cosine(t(binMat))
   return(distSum)
 }
 
@@ -185,7 +185,8 @@ getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
   switch(distMetric$name,
          euclidean=stats::dist(binMat),
          euclidWinDist=euclidWinDist(binMat, winSize=distMetric$winSize,
-                                     stepSize=distMetric$stepSize))
+                                     stepSize=distMetric$stepSize),
+         cosineDist=cosineDist(binMat))
 }
 
 
