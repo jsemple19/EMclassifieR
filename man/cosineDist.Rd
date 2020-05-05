@@ -4,11 +4,16 @@
 \alias{cosineDist}
 \title{Calculate cosine distance between all rows of a matrix}
 \usage{
-cosineDist(binMat)
+cosineDist(binMat, val0 = 0, valNA = 0)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
 distance between rows}
+
+\item{val0}{Value to give 0s in matrix (might wish to use this when
+matrices have NAs)}
+
+\item{valNA}{Value to give NAs in matrix}
 }
 \value{
 A distance object (lower triangle) with the distances between all

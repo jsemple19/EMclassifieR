@@ -113,3 +113,17 @@ testthat::test_that("cosine distance object is made", {
   testthat::expect_equal(floor(result),4)
   testthat::expect_equal(class(cosineDist(binMat)), "dist")
 })
+
+
+
+testthat::test_that("discrimination between distance metrics", {
+  binMat<-matrix(rbind(c(0,0,1,1,1,1,1,0,0), c(0,0,1,0,1,0,1,0,0),
+                 c(0,0,1,1,1,0,0,0,0), c(1,1,1,1,1,0,0,0,0),
+                 c(0,1,1,1,1,0,0,0,0), c(0,1,1,1,1,0,0,0,1),
+                 c(0,0,1,0,1,0,0,0,0), c(0,0,1,0,1,0,NA,0,0)), nrow=8)
+  result1<-dist(binMat)
+  result2<-cosineDist(binMat)
+  #result3<-cosineDist(binMat,val0=0.1,valNA=0)
+  testthat::expect_equal(floor(sum(result1)),39)
+  testthat::expect_equal(floor(sum(result2)),7)
+})

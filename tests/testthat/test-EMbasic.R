@@ -50,6 +50,7 @@ testthat::test_that("EM_basic fails if data not in 0-1 range", {
   classes = matrix(rep(0.5,6),nrow=2)
   priorProb=rep(1/numClasses,numClasses)
   result<-try(em_basic(classes,priorProb,dataMatrix),silent=TRUE)
+
   testthat::expect_equal(class(result), "try-error")
 })
 
@@ -61,7 +62,8 @@ testthat::test_that("1 round of EM works with fractions", {
   classes = matrix(rep(0.5,numClasses*numSamples),nrow=numClasses)
   priorProb=rep(1/numClasses,numClasses)
 
-  testthat::expect_equal(em_basic(classes,priorProb,dataMatrix)$posteriorProb,
+  testthat::expect_equal(em_basic(classes, priorProb,
+                                  dataMatrix)$posteriorProb,
                matrix(rep(1/3,numSamples*numClasses),nrow=numSamples))
 })
 
@@ -78,6 +80,7 @@ testthat::test_that("running multiple rounds of EM  works", {
   testthat::expect_equal(result,
                matrix(c(1,0,0,1,0,1,1,0),nrow=numSamples,byrow=T))
 })
+
 
 
 testthat::test_that("running multiple rounds of EM with fractions works", {

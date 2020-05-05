@@ -158,10 +158,15 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 #'Using the cosine distance function form las package
 #' @param binMat A matrix of numbers for which you want to calculate the
 #' distance between rows
+#' @param val0 Value to give 0s in matrix (might wish to use this when
+#' matrices have NAs)
+#' @param valNA Value to give NAs in matrix
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-cosineDist<-function(binMat){
+cosineDist<-function(binMat, val0=0, valNA=0){
+  binMat[binMat==0]<-val0
+  binMat[is.na(binMat)]<-valNA
   cosDist<-stats::as.dist(1-lsa::cosine(t(binMat)))
   return(cosDist)
 }
@@ -177,9 +182,11 @@ cosineDist<-function(binMat){
 #' rows of the input matrix
 #' @export
 crossCorDist<-function(binMat){
-  for(i in 1:nrow(binMat)) {
+  ccDist<-matrix(rep(NA,nrow(binMat)),nrow=nrow(binMat),ncol=nrow(binMat))
+  for(i in 2:nrow(binMat)) {
     for(j in 1:(i-1)) {
-      ccDist<-stats::as.dist(TSdist::CCorDistance(binMat[1]))
+      ccDist[i,j]<-TSdist::CCorDistance(as.vector(binMat[i,]),
+                                        as.vector(binMat[j,]))
     }
   }
   return(ccDist)
@@ -221,7 +228,7 @@ getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
 #' @return pca plots
 #' @export
 plotMatPCA<-function(dataMatrix,classes){
-  matpca<-stats::prcomp(dataMatrix,center=T,scale=T)
+  matpca<-stats::prcomp(dataMatrix,center=T)
   p1<-ggbiplot::ggbiplot(matpca,choices=c(1,2),labels=classes,groups=classes,
                     var.axes=F) + ggplot2::theme(legend.position = "none")
   p2<-ggbiplot::ggbiplot(matpca,choices=c(3,4),labels=classes,groups=classes,
