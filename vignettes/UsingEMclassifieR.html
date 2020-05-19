@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-05-05" />
+<meta name="date" content="2020-05-18" />
 
 <title>Using EMclassifieR on methylation data</title>
 
@@ -301,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-05-05</h4>
+<h4 class="date">2020-05-18</h4>
 
 
 
@@ -402,7 +402,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-65" title="65">  pcaPlots&lt;-<span class="kw">tryCatch</span>( </a>
 <a class="sourceLine" id="cb7-66" title="66">    {</a>
 <a class="sourceLine" id="cb7-67" title="67">      <span class="kw">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</a>
-<a class="sourceLine" id="cb7-68" title="68">      <span class="kw">plotPCAmatrices</span>(k_range, outPath, outFileBase)</a>
+<a class="sourceLine" id="cb7-68" title="68">      <span class="kw">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</a>
 <a class="sourceLine" id="cb7-69" title="69">    },</a>
 <a class="sourceLine" id="cb7-70" title="70">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
 <a class="sourceLine" id="cb7-71" title="71">   )</a>
@@ -410,7 +410,18 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-73" title="73">    <span class="kw">print</span>(pcaPlots)</a>
 <a class="sourceLine" id="cb7-74" title="74">  }</a>
 <a class="sourceLine" id="cb7-75" title="75">  </a>
-<a class="sourceLine" id="cb7-76" title="76">}</a></code></pre></div>
+<a class="sourceLine" id="cb7-76" title="76">  umapPlots&lt;-<span class="kw">tryCatch</span>( </a>
+<a class="sourceLine" id="cb7-77" title="77">    {</a>
+<a class="sourceLine" id="cb7-78" title="78">      <span class="kw">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</a>
+<a class="sourceLine" id="cb7-79" title="79">      <span class="kw">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</a>
+<a class="sourceLine" id="cb7-80" title="80">    },</a>
+<a class="sourceLine" id="cb7-81" title="81">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
+<a class="sourceLine" id="cb7-82" title="82">   )</a>
+<a class="sourceLine" id="cb7-83" title="83">  <span class="cf">if</span>(<span class="kw">length</span>(umapPlots)<span class="op">==</span><span class="dv">1</span>) {</a>
+<a class="sourceLine" id="cb7-84" title="84">    <span class="kw">print</span>(umapPlots)</a>
+<a class="sourceLine" id="cb7-85" title="85">  }</a>
+<a class="sourceLine" id="cb7-86" title="86">  </a>
+<a class="sourceLine" id="cb7-87" title="87">}</a></code></pre></div>
 <pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
 ## [1] &quot;running EM for a range of class numbers&quot;
 ## [1] &quot;numClasses: 2&quot;
@@ -620,7 +631,10 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <pre><code>## Warning: Removed 21 rows containing missing values (geom_point).</code></pre>
 <pre><code>## [1] &quot;Clustering metrics plotted successfully&quot;
 ## [1] &quot;plotting PCA of clusters&quot;</code></pre>
-<pre><code>## [1] &quot;PCA plotted correctly&quot;</code></pre>
+<pre><code>## Warning: package &#39;scales&#39; was built under R version 3.6.2</code></pre>
+<pre><code>## [1] &quot;PCA plotted correctly&quot;
+## [1] &quot;plotting UMAP of clusters&quot;
+## [1] &quot;Matrix not valid&quot;</code></pre>
 </div>
 </div>
 

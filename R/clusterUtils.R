@@ -243,14 +243,14 @@ plotMatPCA<-function(dataMatrix,classes){
 
 
 
-#' Plot matricies for different classifications
+#' Plot PCAs of matricies for different classifications
 #'
 #' @param k_range range of number of classes
 #' @param outPath Path for out put file
 #' @param outFileBase the basename of the file of the matrices
 #' @return successful completion message
 #' @export
-plotPCAmatrices<-function(k_range, outPath, outFileBase){
+plotPCAofMatrixClasses<-function(k_range, outPath, outFileBase){
   for(numClasses in k_range) {
    dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
                               numClasses, ".rds"))
@@ -262,4 +262,87 @@ plotPCAmatrices<-function(k_range, outPath, outFileBase){
                    plot=p, device="pdf", width=29, height=19, units="cm")
   }
   return("PCA plotted correctly")
+}
+
+
+
+#' Plot UMAP of data matrix
+#'
+#' @param dataMatrix Matrix for UMAP dimentionality reduction
+#' @param classes Factorised vector of classifications for all the rows
+#' @param custom.settings Settings for UMAP plotting. Based on umap.defaults.
+#' @return single UMAP plot
+#' @export
+doSingleUMAPplot<-function(dataMatrix,classes,custom.settings=umap::umap.defaults){
+  X1 <- X2 <- NULL
+  mumap<-umap::umap(dataMatrix,config=custom.settings)
+  colnames(mumap$layout)<-c("X1","X2")
+  p<-ggplot2::ggplot(data=as.data.frame(mumap$layout),ggplot2::aes(x=X1,y=X2)) +
+    ggplot2::geom_point(ggplot2::aes(colour=classes)) +
+    ggplot2::ggtitle(paste0("UMAP with ",custom.settings$metric,
+                            " distance, min_dist=",custom.settings$min_dist))+
+    ggplot2::theme(plot.title = ggplot2::element_text(size=10),
+                   axis.title.x = ggplot2::element_text(size=8),
+                   axis.title.y = ggplot2::element_text(size=8))
+  return(p)
+}
+
+
+
+
+#' Plot UMAP of data matrix
+#'
+#' @param dataMatrix Matrix for UMAP dimentionality reduction
+#' @param classes Vector of classifications for all the rows
+#' @return umap plots with different distance metrics
+#' @export
+plotMatUMAP<-function(dataMatrix,classes){
+  dups<-duplicated(dataMatrix)
+  dataMatrix<-dataMatrix[!dups,]
+  readClasses<-factor(classes)
+  numClasses<-length(levels(readClasses))
+
+  custom.settings = umap::umap.defaults
+  custom.settings$n_neighbors = floor(length(readClasses)/numClasses)
+  custom.settings$min_dist = 0.1
+  custom.settings$spread=1
+
+  custom.settings$metric = "euclidean"
+  p1<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+
+  custom.settings$metric = "manhattan"
+  p2<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+
+  custom.settings$metric = "cosine"
+  p3<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+
+  custom.settings$metric = "cosine"
+  custom.settings$min_dist = 0.05
+  p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+
+  p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
+  return(p)
+}
+
+
+
+#' Plot UMAP for different classifications
+#'
+#' @param k_range range of number of classes
+#' @param outPath Path for out put file
+#' @param outFileBase the basename of the file of the matrices
+#' @return successful completion message
+#' @export
+plotUMAPofMatrixClasses<-function(k_range, outPath, outFileBase){
+  for(numClasses in k_range) {
+    dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
+                               numClasses, ".rds"))
+    classes<-gsub("^.*__class","",rownames(dataMatrix))
+    p<-plotMatUMAP(dataMatrix,classes)
+    p<-ggpubr::annotate_figure(p,top=ggpubr::text_grob(outFileBase,size=14))
+    ggplot2::ggsave(filename=paste0(outPath,"/classUMAP_",
+                                    outFileBase,"_K", numClasses,".pdf"),
+                    plot=p, device="pdf", width=29, height=19, units="cm")
+  }
+  return("UMAP plotted correctly")
 }

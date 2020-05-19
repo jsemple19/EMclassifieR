@@ -32,7 +32,8 @@ Imports:
       doRNG,
       lsa,
       ggbiplot,
-      TSdist
+      TSdist,
+      umap
 Suggests: 
     knitr,
     rmarkdown,
