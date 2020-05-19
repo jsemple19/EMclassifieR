@@ -299,7 +299,7 @@ doSingleUMAPplot<-function(dataMatrix,classes,custom.settings=umap::umap.default
 plotMatUMAP<-function(dataMatrix,classes){
   dups<-duplicated(dataMatrix)
   dataMatrix<-dataMatrix[!dups,]
-  readClasses<-factor(classes)
+  readClasses<-factor(classes[!dups])
   numClasses<-length(levels(readClasses))
 
   custom.settings = umap::umap.defaults
@@ -334,7 +334,7 @@ plotMatUMAP<-function(dataMatrix,classes){
 #' @return successful completion message
 #' @export
 plotUMAPofMatrixClasses<-function(k_range, outPath, outFileBase){
-  for(numClasses in k_range) {
+  for(numClasses in k_range){
     dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
                                numClasses, ".rds"))
     classes<-gsub("^.*__class","",rownames(dataMatrix))

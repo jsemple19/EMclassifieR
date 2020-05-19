@@ -44,12 +44,12 @@ for (i in taskSubList[[taskId]]){
   sampleName=matTable$sample[i]
   outFileBase=paste(sampleName, regionName, sep="_")
   print(paste("Clustering", outFileBase))
-  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
+  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i],
                               package = "EMclassifieR", mustWork=TRUE))
   dim(dataMatrix)
   dataMatrix<-removeAllNArows(dataMatrix)
   dim(dataMatrix)
-  
+
   allClassMeans<-tryCatch(
     {
       print("running EM for a range of class numbers")
@@ -80,8 +80,8 @@ for (i in taskSubList[[taskId]]){
   if(length(clustMetrics)==1) {
     print(clustMetrics)
   }
-  
-  pcaPlots<-tryCatch( 
+
+  pcaPlots<-tryCatch(
     {
       print("plotting PCA of clusters")
       plotPCAofMatrixClasses(k_range, outPath, outFileBase)
@@ -91,8 +91,8 @@ for (i in taskSubList[[taskId]]){
   if(length(pcaPlots)==1) {
     print(pcaPlots)
   }
-  
-  umapPlots<-tryCatch( 
+
+  umapPlots<-tryCatch(
     {
       print("plotting UMAP of clusters")
       plotUMAPofMatrixClasses(k_range, outPath, outFileBase)
@@ -102,7 +102,7 @@ for (i in taskSubList[[taskId]]){
   if(length(umapPlots)==1) {
     print(umapPlots)
   }
-  
+
 }
 
 

@@ -102,8 +102,8 @@ for (i in taskSubList[[taskId]]){
   if(length(clustMetrics)==1) {
     print(clustMetrics)
   }
-  
-  pcaPlots<-tryCatch( 
+
+  pcaPlots<-tryCatch(
     {
       print("plotting PCA of clusters")
       plotPCAofMatrixClasses(k_range, outPath, outFileBase)
@@ -113,7 +113,7 @@ for (i in taskSubList[[taskId]]){
   if(length(pcaPlots)==1) {
     print(pcaPlots)
   }
-  
+
   umapPlots<-tryCatch( 
     {
       print("plotting UMAP of clusters")
