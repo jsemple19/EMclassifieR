@@ -372,7 +372,61 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase,
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return Returns a ggplot2 object
 #' @export
-plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE, title="Class means",
+plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
+                         title="Class means",
+                         myXlab="CpG/GpC position",featureLabel="TSS",
+                         baseFontSize=12){
+  # initialise variables
+  position <- methFreq <- NULL
+  numClasses<-nrow(classes)
+  classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
+  classMeans$class<-as.factor(rep(paste0("class",1:numClasses),ncol(classes)))
+  classMeans$position<-as.numeric(classMeans$position)
+
+
+  p<-ggplot2::ggplot(classMeans,ggplot2::aes(x=position,y=1-methFreq,group=class)) +
+    ggplot2::geom_line(ggplot2::aes(color=class))  +
+    ggplot2::geom_point(ggplot2::aes(x=position,y=-0.07), size=0.5,
+                        colour="grey80") +
+    ggplot2::ggtitle(title) +
+    ggplot2::xlab(myXlab) +
+    ggplot2::ylab("dSMF (1 - Methylation frequency)") +
+    ggplot2::xlim(xRange) +
+    ggplot2::theme_light(base_size=baseFontSize) +
+    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+                   legend.position="right",legend.box = "vertical",
+                   legend.key.height = ggplot2::unit(0.5, "cm"),
+                   legend.key.width=ggplot2::unit(0.3,"cm"))
+  # add line for TSS
+  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=-0.07, ymax=1),
+                               color="grey80") +
+    ggplot2::annotate(geom="text", x=1,y=0.01,
+                      label=featureLabel,color="grey20")
+  if (facet==TRUE) {
+    p<-p+ggplot2::facet_wrap(~class,nrow=nrow(classes))
+  }
+  return(p)
+}
+
+
+
+
+#' Plot class Means
+#'
+#' Create line plots for class means
+#' @param classes A matrix of methylation or bincount values (classes x position) for each class
+#' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param facet Plot mean profiles separately as a facet_wrap plot (default=TRUE)
+#' @param title A title for the plot (default is "Class means")
+#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
+#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
+#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @return Returns a ggplot2 object
+#' @export
+plotClassMeansWithTracks<-function(classes,xRange=c(-250,250), facet=TRUE,
+                         title="Class means",
                          myXlab="CpG/GpC position",featureLabel="TSS",
                          baseFontSize=12){
   # initialise variables
@@ -566,8 +620,9 @@ getClassVote<-function(classVote){
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return Returns a ggplot2 object
-plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses, EMrep,
-               classMeans, xRange, myXlab, featureLabel, baseFontSize){
+plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses,
+                         EMrep, classMeans, xRange, myXlab, featureLabel,
+                         baseFontSize){
   #makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
   #                                         "classMeanPlots"),"/",outFileBase))
   # do single molecule plots of classes
