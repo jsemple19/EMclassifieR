@@ -132,7 +132,7 @@ for (i in taskSubList[[taskId]]){
 ```
 
 ## Plotting classes with track data
-```{r}
+```{r,eval=F}
 
 i=1
 dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
@@ -192,5 +192,28 @@ grDevices::pdf(paste0(outPath,"/tracks_",
 plotClassMeansWithTracks(allClassMeans, regionGR, "middle", txdb, featureGR, 
                          bigwigListFile, strandedBwFile)
 dev.off()
+```
+
+## Multigene classification
+
+First you must create a data set combining and equal amount of reads from 
+different matrices
+```{r}
+i=1
+addToReadName=outFileBase
+multiGeneMat<-NULL
+for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
+  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
+                                  package = "EMclassifieR", mustWork=TRUE))
+  
+  tmpMat<-selectReadsFromMatrix(dataMatrix, minReads=50,
+                                addToReadName=outFileBase,
+                                preferBest=T)
+  if(is.null(multiGeneMat) & !is.null(tmpMat)){
+    multiGeneMat<-tmpMat
+  } else if(!is.null(tmpMat)) {
+    multiGeneMat<-c(multiGeneMat,tmpMat)
+  }
+}
 ```
 
