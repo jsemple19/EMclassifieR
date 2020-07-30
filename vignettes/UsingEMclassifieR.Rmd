@@ -25,6 +25,8 @@ head(matTable)
 ```
 
 The matrices are in RDS format. For learning it is probably best to process them to remove any reads containing NAs.
+
+
 ```{r}
 i=1
 dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
@@ -37,7 +39,7 @@ dim(dataMatrix)
 ## Learning classes for single genes
 To look at one gene at a time one can use the minimal matrix which includes only positions with a CpG or GpC motif in them.
 
-```{r,eval=T}
+```{r,eval=F}
 
 k_range = 2:8      # Number of classes to be found
 maxIterations = 100 # number of iterations of EM clustering to perform if it does not converge
@@ -128,3 +130,67 @@ for (i in taskSubList[[taskId]]){
 }
 
 ```
+
+## Plotting classes with track data
+```{r}
+
+i=1
+dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
+regionName=matTable$region[i]
+sampleName=matTable$sample[i]
+outFileBase=paste(sampleName, regionName, sep="_")
+
+allClassMeansList<-readRDS("/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/allClassMeans_dS02-182_WBGene00015947.rds")
+numClasses=5
+allClassMeans<-allClassMeansList[[numClasses]]
+allClassMeans
+
+ampTSS<-readRDS('/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS')
+
+
+winSize=500
+tssWin<-ampTSS
+GenomicRanges::mcols(tssWin)$TSS<-GenomicRanges::start(tssWin)
+tssWin<-GenomicRanges::resize(tssWin,width=winSize,fix="center")
+
+
+names(GenomicRanges::mcols(tssWin))[1]<-"ID"
+regionGR<-tssWin[i]
+featureGR<-ampTSS[i]
+regionName=matTable$region[i]
+sampleName=matTable$sample[i]
+outFileBase=paste(sampleName, regionName, sep="_")
+#seqlevels(ampTSS)<-seqlevels(Celegans)
+#seqinfo(ampTSS)<-seqinfo(Celegans)
+#saveRDS(ampTSS,'/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS')
+
+# genomeVer="WS275"
+# genomeDir=paste0("~/Documents/MeisterLab/GenomeVer/",genomeVer)
+# txdb<-AnnotationDbi::loadDb(paste0(genomeDir, 
+#                                    "/annotations/c_elegans.PRJNA13758.",
+#                                    genomeVer,  ".annotations.sqlite"))
+# seqlevelsStyle(txdb)<-"ucsc"
+# GenomeInfoDb::genome(txdb)<-GenomeInfoDb::genome(regionGR)
+#library("TxDb.Celegans.UCSC.ce11.refGene")
+txdb <- TxDb.Celegans.UCSC.ce11.refGene::TxDb.Celegans.UCSC.ce11.refGene
+bigwigListFile<-"~/Documents/MeisterLab/sequencingData/public/bigwigFileList.txt"
+#bigwigListFile<-"~/Documents/MeisterLab/sequencingData/public/bigwigFileList_kranz.txt"
+strandedBwFile<-"~/Documents/MeisterLab/sequencingData/public/strandedBwFile.txt"
+gr<-allClassMeansToGR(allClassMeans, regionGR)
+
+dTrack<-Gviz::DataTrack(gr,name="dSMF Classes")
+Gviz::plotTracks(dTrack, groups=rep(c(paste0("class",1:numClasses)), times=10),
+                 type=c("a","p","confint"))
+
+print(txdb)
+outPath="./EMres"
+grDevices::pdf(paste0(outPath,"/tracks_",
+                          outFileBase,"_K",
+                          numClasses, ".pdf"),
+                   paper="a4", height=11, width=8)
+
+plotClassMeansWithTracks(allClassMeans, regionGR, "middle", txdb, featureGR, 
+                         bigwigListFile, strandedBwFile)
+dev.off()
+```
+

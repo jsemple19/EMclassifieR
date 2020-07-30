@@ -413,58 +413,6 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
 
 
 
-#' Plot class Means
-#'
-#' Create line plots for class means
-#' @param classes A matrix of methylation or bincount values (classes x position) for each class
-#' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
-#' @param facet Plot mean profiles separately as a facet_wrap plot (default=TRUE)
-#' @param title A title for the plot (default is "Class means")
-#' @param myXlab  A label for the x axis (default is "CpG/GpC position")
-#' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
-#' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
-#' @return Returns a ggplot2 object
-#' @export
-plotClassMeansWithTracks<-function(classes,xRange=c(-250,250), facet=TRUE,
-                         title="Class means",
-                         myXlab="CpG/GpC position",featureLabel="TSS",
-                         baseFontSize=12){
-  # initialise variables
-  position <- methFreq <- NULL
-  numClasses<-nrow(classes)
-  classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
-  classMeans$class<-as.factor(rep(paste0("class",1:numClasses),ncol(classes)))
-  classMeans$position<-as.numeric(classMeans$position)
-
-
-  p<-ggplot2::ggplot(classMeans,ggplot2::aes(x=position,y=1-methFreq,group=class)) +
-    ggplot2::geom_line(ggplot2::aes(color=class))  +
-    ggplot2::geom_point(ggplot2::aes(x=position,y=-0.07), size=0.5,
-                        colour="grey80") +
-    ggplot2::ggtitle(title) +
-    ggplot2::xlab(myXlab) +
-    ggplot2::ylab("dSMF (1 - Methylation frequency)") +
-    ggplot2::xlim(xRange) +
-    ggplot2::theme_light(base_size=baseFontSize) +
-    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
-                   legend.position="right",legend.box = "vertical",
-                   legend.key.height = ggplot2::unit(0.5, "cm"),
-                   legend.key.width=ggplot2::unit(0.3,"cm"))
-  # add line for TSS
-  p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=-0.07, ymax=1),
-                               color="grey80") +
-    ggplot2::annotate(geom="text", x=1,y=0.01,
-                      label=featureLabel,color="grey20")
-  if (facet==TRUE) {
-    p<-p+ggplot2::facet_wrap(~class,nrow=nrow(classes))
-  }
-  return(p)
-}
-
-
-
 #' Plot all class means from multiple repeats
 #'
 #' Create line plots for class means
@@ -564,6 +512,151 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
   return(p)
 }
 
+
+#' Plot smoothed class means from multiple repeats
+#'
+#' Plot loess-smoothed class means from multiple repeats of EM.
+#' @param allClassMeans A long data frame of methylation or bincount values with columns for position, methylation frequency (methFreq), class and replicate.
+#' @param regionGR A genomic range for the region that is being plotted
+#' @param anchorPoint One of "middle" or "start": the position from which numbering starts for the position in allClassMatrix
+#' @param txdb A TxDb object e.g. TxDb.Celegans.UCSC.ce11.refGene from which to get the gene regions
+#' @param featureGR A genoimc range for a feature you wish to highlight (e.g. TSS). Will be overlaid on transcript track.
+#' @param bigwigListFile A chacter string with the name of a file that contains a list of bigwigs to be plotted with the class means. First column of this file must be the file name of the bigwig with the full path. the second column is the dataset name (will be used on the plot so keep it short).
+#' @param strandedBwFile A chacter string with the name of a file that contains a list of stranded bigwigs to be plotted with the class means. First column of this file must be the file name of the bigwig with the full path. The second column is the dataset name (will be used on the plot so keep it short), third column is "+" or "-" indicating the strand of the bigwig.
+#' @return Returns a ggplot2 object
+#' @export
+plotClassMeansWithTracks<-function(allClassMeans, regionGR,
+                                   anchorPoint="middle",
+                                   txdb=NULL,
+                                   featureGR=NULL,
+                                   bigwigListFile=NULL,
+                                   strandedBwFile=NULL){
+  #initialise variables
+  trackList<-grStrand<-grChr<-grGenome<-grStart<-grEnd<-NULL
+  grStrand<-as.character(GenomicRanges::strand(regionGR))
+  grChr<-as.character(GenomicRanges::seqnames(regionGR))
+  grGenome<-GenomeInfoDb::genome(regionGR)[1]
+  grStart<-GenomicRanges::start(regionGR)
+  grEnd<-GenomicRanges::end(regionGR)
+
+  numClasses=max(as.numeric(allClassMeans$class))
+
+  itrack<-Gviz::IdeogramTrack(genome=grGenome, chromosome=grChr)
+
+  genomeAxis <- Gviz::GenomeAxisTrack(name=grChr,labelPos="below")
+
+  txTrack<-Gviz::GeneRegionTrack(txdb,name="Gene", chromosome=grChr,
+                                 start=grStart, end=grEnd, genome=grGenome)
+
+  gr<-allClassMeansToGR(allClassMeans, regionGR, anchorPoint="middle",
+                              dSMFwin=1)
+  GenomeInfoDb::genome(gr)<-grGenome
+  dTrack<-Gviz::DataTrack(gr,name="dSMF Classes",
+                          groups=rep(c(paste0("class",1:numClasses)),
+                                     times=10),
+                          type=c("a","p","confint"))
+
+  trackList=c(itrack,genomeAxis)
+
+  if(!is.null(featureGR)) {
+    aTrack<-Gviz::AnnotationTrack(featureGR,
+                                  shape="arrow",
+                                  group=c(GenomicRanges::mcols(regionGR)$ID),
+                                  groupAnnotation="group",
+                                  just.group=ifelse(grStrand=="+",
+                                                    "left","right"))
+    oTrack<-Gviz::OverlayTrack(trackList=list(txTrack,aTrack))
+    ht<-Gviz::HighlightTrack(trackList=list(oTrack,dTrack),
+                           start=GenomicRanges::start(featureGR),
+                           end=GenomicRanges::end(featureGR),
+                           chromosome=grChr, genome=grGenome)
+
+    trackList<-c(trackList,ht)
+  } else {
+    trackList=c(trackList,txTrack)
+  }
+
+  if(!is.null(strandedBwFile)){
+    bigwigList<-utils::read.delim(strandedBwFile, header=FALSE,
+                           stringsAsFactors=F)
+    for (i in 1:nrow(bigwigList)){
+      if(bigwigList[i,3]==grStrand){
+        bw<-rtracklayer::import.bw(bigwigList[i,1], selection=regionGR)
+        GenomeInfoDb::seqlevelsStyle(bw)<-"ucsc"
+        bwTrack<-Gviz::DataTrack(bw, name=bigwigList[i,2], type="l")
+        trackList<-c(trackList,bwTrack)
+      }
+    }
+  }
+
+  if(!is.null(bigwigListFile)){
+    bigwigList<-utils::read.delim(bigwigListFile, header=FALSE,
+                           stringsAsFactors=F)
+    for (i in 1:nrow(bigwigList)){
+      bw<-rtracklayer::import.bw(bigwigList[i,1], selection=regionGR)
+      bwTrack<-Gviz::DataTrack(bw, name=bigwigList[i,2], type="hist")
+      trackList<-c(trackList,bwTrack)
+    }
+  }
+
+  p<-Gviz::plotTracks(trackList, from=grStart, to=grEnd, chromosome=grChr)
+  return(p)
+}
+
+
+#' Convert allClassMeans table to GenomicRanges
+#'
+#' Convert allClassMeans table to GenomicRanges with absolute genomic
+#' coordinates and with methylation score at each position for each class and
+#' multiple replicates in the metadata columns (required for plotting with
+#' Gviz)
+#' @param allClassMeans A long data frame of methylation or bincount values with columns for position, methylation frequency (methFreq), class and replicate.
+#' @param regionGR A genomic range for the region that is being plotted
+#' @param anchorPoint One of "middle" or "start": the position from which numbering starts
+#' @param dSMFwin Width of dSMF score window (default is 1bp)
+#' @return Returns a GenomicRanges object with absolute genomic coordinates and
+#' methylation score for different classes and replicates in mcols
+#' @export
+allClassMeansToGR<-function(allClassMeans, regionGR,
+                            anchorPoint="middle",
+                            dSMFwin=1){
+  methFreq<-NULL
+  numClasses=max(as.numeric(allClassMeans$class))
+  allClassMeans$position<-as.numeric(allClassMeans$position)
+  allClMeans<-tidyr::pivot_wider(allClassMeans,names_from=c(class,replicate),
+                                 values_from=methFreq,names_prefix="class")
+  grRelCoord<-GenomicRanges::GRanges(seqnames=GenomicRanges::seqnames(regionGR),
+                             IRanges::IRanges(
+                               start=as.numeric(allClMeans$position),
+                               width=dSMFwin),
+                             strand=GenomicRanges::strand(regionGR))
+  # convert to absolute genomic coordinates
+  if (anchorPoint=="middle") {
+    starts<- GenomicRanges::start(regionGR) +
+      GenomicRanges::width(regionGR)/2 + GenomicRanges::start(grRelCoord)
+    ends<- GenomicRanges::start(regionGR) +
+      GenomicRanges::width(regionGR)/2 + GenomicRanges::end(grRelCoord)
+  } else if (anchorPoint=="start") {
+    starts<- GenomicRanges::start(regionGR) - 1 +
+      GenomicRanges::start(grRelCoord)
+    ends<- GenomicRanges::start(regionGR) +
+      GenomicRanges::end(grRelCoord)
+  } else {
+    print("anchorPoint must be one of 'middle' or 'start'")
+  }
+  gr<-GenomicRanges::GRanges(seqnames=GenomicRanges::seqnames(regionGR),
+                                     IRanges::IRanges(start=starts,
+                                       end=ends),
+                                     strand=GenomicRanges::strand(regionGR))
+  if(all(GenomicRanges::strand(gr)=="+")) {
+    GenomicRanges::mcols(gr)<-1-allClMeans[,2:dim(allClMeans)[2]]
+  } else if (all(GenomicRanges::strand(gr)=="-")) {
+    GenomicRanges::mcols(gr)<-1-allClMeans[dim(allClMeans)[1]:1,2:dim(allClMeans)[2]]
+  } else {
+    "regionGR missing strand information"
+  }
+  return(gr)
+}
 
 
 #' Extract class info from dataOrderedByClass
