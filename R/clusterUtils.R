@@ -98,11 +98,12 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
 #'
 #' Test if matrix contains values that are only within the range specified by valueRange
 #' @param dataMatrix Matrix the values of which will be tested
-#' @param valueRange Vector of min and max permissible values in the matrix (default=c(0,1))
+#' @param valueRange Vector of min and max permissible values in the matrix
+#' (default=c(-1,1))
 #' @param NAsValid Boolean TRUE/FALSE indicating if NAs are considered valid (default=FALSE)
 #' @return Boolean TRUE/FALSE indicating if matrix contains only valid values
 #' @export
-isMatrixValid<-function(dataMatrix,valueRange=c(0,1),NAsValid=FALSE){
+isMatrixValid<-function(dataMatrix,valueRange=c(-1,1),NAsValid=FALSE){
   isValid=TRUE
   if(!is.matrix(dataMatrix)) {
     print("Not a proper matrix")
@@ -173,24 +174,24 @@ cosineDist<-function(binMat, val0=0, valNA=0){
 
 
 
-#' Calculate cross correlation distance between all rows of a matrix
-#'
-#'Using the cosine distance function form las package
-#' @param binMat A matrix of numbers for which you want to calculate the
-#' distance between rows
-#' @return A distance object (lower triangle) with the distances between all
-#' rows of the input matrix
-#' @export
-crossCorDist<-function(binMat){
-  ccDist<-matrix(rep(NA,nrow(binMat)),nrow=nrow(binMat),ncol=nrow(binMat))
-  for(i in 2:nrow(binMat)) {
-    for(j in 1:(i-1)) {
-      ccDist[i,j]<-TSdist::CCorDistance(as.vector(binMat[i,]),
-                                        as.vector(binMat[j,]))
-    }
-  }
-  return(ccDist)
-}
+#' #' Calculate cross correlation distance between all rows of a matrix
+#' #'
+#' #'Using the cosine distance function form las package
+#' #' @param binMat A matrix of numbers for which you want to calculate the
+#' #' distance between rows
+#' #' @return A distance object (lower triangle) with the distances between all
+#' #' rows of the input matrix
+#' #' @export
+#' crossCorDist<-function(binMat){
+#'   ccDist<-matrix(rep(NA,nrow(binMat)),nrow=nrow(binMat),ncol=nrow(binMat))
+#'   for(i in 2:nrow(binMat)) {
+#'     for(j in 1:(i-1)) {
+#'       ccDist[i,j]<-TSdist::CCorDistance(as.vector(binMat[i,]),
+#'                                         as.vector(binMat[j,]))
+#'     }
+#'   }
+#'   return(ccDist)
+#' }
 
 
 

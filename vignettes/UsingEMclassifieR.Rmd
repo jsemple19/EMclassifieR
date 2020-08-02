@@ -198,22 +198,125 @@ dev.off()
 
 First you must create a data set combining and equal amount of reads from 
 different matrices
-```{r}
-i=1
-addToReadName=outFileBase
+```{r,eval=F}
+tablePath="csv/MatrixLog_relCoord_ampTSS.csv"
+matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
+                               mustWork=TRUE), stringsAsFactors=F)
+head(matTable)
 multiGeneMat<-NULL
 for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
+  regionName=matTable$region[i]
+  sampleName=matTable$sample[i]
+  outFileBase=paste(sampleName, regionName, sep="_")
   dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
                                   package = "EMclassifieR", mustWork=TRUE))
   
-  tmpMat<-selectReadsFromMatrix(dataMatrix, minReads=50,
-                                addToReadName=outFileBase,
-                                preferBest=T)
-  if(is.null(multiGeneMat) & !is.null(tmpMat)){
-    multiGeneMat<-tmpMat
-  } else if(!is.null(tmpMat)) {
-    multiGeneMat<-c(multiGeneMat,tmpMat)
+  subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=50,
+                                 addToReadName=outFileBase,
+                                 preferBest=T)
+  if(!is.null(subMatrix)){
+    fullMatrix<-getFullMatrix(subMatrix)
+    winMatrix<-prepareWindows(fullMatrix)
+  
+    if(is.null(multiGeneMat)){
+      multiGeneMat<-winMatrix
+    } else {
+      multiGeneMat<-rbind(multiGeneMat,winMatrix)
+    }
   }
 }
+
+multiGeneMat<-recodeMatrix_Minus1To1(multiGeneMat)
+multiGeneMat<-rescaleMatrix_0To1(multiGeneMat)
+#multiGeneMat[is.nan(multiGeneMat)]<-0.5
+
+k_range = 2:3      # Number of classes to be found
+maxIterations = 100 # number of iterations of EM clustering to perform if it does not converge
+convergenceError = 10e-6
+numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
+xRange=c(-250,250)
+maxB=50 # Number of randomised matrices to generate
+outPath="./EMres_multigene_cosine"
+maxTasks=4
+taskId=1
+nThreads=4
+setSeed=FALSE
+distMetric=list(name="cosineDist")
+
+if(!dir.exists(outPath)){
+  dir.create(outPath)
+}
+
+
+set.seed(200413)
+
+regionName="multiGene"
+sampleName="dS02-182"
+outFileBase=paste(sampleName, regionName, sep="_")
+print(paste("Clustering", outFileBase))
+dataMatrix<-multiGeneMat
+dim(dataMatrix)
+dataMatrix<-removeAllNArows(dataMatrix)
+dim(dataMatrix)
+
+allClassMeans<-tryCatch(
+  {
+    print("running EM for a range of class numbers")
+    runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+                       EMrepeats=numRepeats, outPath=outPath, xRange=xRange,
+                       outFileBase=paste(sampleName, regionName, sep="_"),
+                       doIndividualPlots=FALSE, distMetric=distMetric)
+    
+  },
+  error=function(e){"Matrix not valid"}
+)
+
+if(is.list(allClassMeans)){
+  saveRDS(allClassMeans,paste0(outPath,"/allClassMeans_",outFileBase,".rds"))
+} else {
+  print(allClassMeans) # error message
+}
+
+clustMetrics<-tryCatch(
+  {
+    print("plotting clustering metrics for a range of class sizes")
+    plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+                          maxIterations, outPath, outFileBase, EMrep=NULL,
+                          nThreads=nThreads,
+                          setSeed=setSeed, distMetric=distMetric)
+  },
+  error=function(e){"Matrix not valid"}
+)
+if(length(clustMetrics)==1) {
+  print(clustMetrics)
+}
+
+pcaPlots<-tryCatch(
+  {
+    print("plotting PCA of clusters")
+    plotPCAofMatrixClasses(k_range, outPath, outFileBase)
+  },
+  error=function(e){"Matrix not valid"}
+)
+if(length(pcaPlots)==1) {
+  print(pcaPlots)
+}
+
+umapPlots<-tryCatch( 
+  {
+    print("plotting UMAP of clusters")
+    plotUMAPofMatrixClasses(k_range, outPath, outFileBase)
+  },
+  error=function(e){"Matrix not valid"}
+)
+if(length(umapPlots)==1) {
+  print(umapPlots)
+}
+
+
+# to use -1 to 1
+#https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain
+
+
 ```
 

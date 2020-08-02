@@ -32,7 +32,6 @@ Imports:
       doRNG,
       lsa,
       ggbiplot,
-      TSdist,
       umap,
       GenomicRanges,
       IRanges,

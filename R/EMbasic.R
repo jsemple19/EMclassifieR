@@ -14,7 +14,7 @@ em_basic <- function(classes,priorProb,dataMatrix) {
   # methylation status), the methylation status will be applied at random with
   # probability given by the fraction.
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  stopifnot(isMatrixValid(dataMatrix,NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
@@ -22,7 +22,7 @@ em_basic <- function(classes,priorProb,dataMatrix) {
 
   numClasses=dim(classes)[1]         # Number of classes
   numSamples=dim(binaryData)[1]            # Number of samples
-  l=matrix(nrow=numSamples, ncol=numClasses)  # log linumClasseselihood
+  l=matrix(nrow=numSamples, ncol=numClasses)  # log likelihood (theta|data)
   posteriorProb=matrix(nrow=numSamples, ncol=numClasses)  # probability by which each class occurs
 
   # E step
@@ -63,6 +63,7 @@ em_basic <- function(classes,priorProb,dataMatrix) {
 #' @param p_diff_prev The difference in likelihood between the previous round of optimisation and the one before that.
 #' @param error The maximum tolerated error
 #' @return A TRUE or FALSE value indicating if the difference between successive rounds of optimisation is below the error threshold (i.e. converged)
+#' @export
 p_converged <- function(p_diff, p_diff_prev, error) {
   return(abs(p_diff-p_diff_prev) < error)
 }
@@ -73,6 +74,7 @@ p_converged <- function(p_diff, p_diff_prev, error) {
 #' @param p Current probability
 #' @param p_prev Probability from last round of optimisation
 #' @return The absolute value of the change in probability
+#' @export
 p_difference <- function(p, p_prev) {
   return(sum(abs(p-p_prev)))
 }
@@ -102,7 +104,7 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
   # not agree on methylation status), the methylation status will be applied at
   # random with probability given by the fraction.
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx), size=1,
@@ -257,9 +259,9 @@ plotClassesSingleGene<-function(dataOrderedByClass,
                                 myXlab="CpG/GpC position",
                                 featureLabel="TSS", baseFontSize=12){
   position <- methylation <- molecules <- readNumber <- Class <-NULL
-  readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",2)
+  readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
   classOrder <- unique(readClasses)
-  readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__"),"[[",1)
+  readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
   readsTable <- table(readClasses)
   #classMeans = stats::aggregate(dataMatrix, by = list(readClasses), FUN = mean)[-1]
   # the horizontal red lines on the plot
@@ -273,10 +275,17 @@ plotClassesSingleGene<-function(dataOrderedByClass,
   d<-tidyr::gather(df,key=position,value=methylation)
   d$molecules<-seq_along(reads)
   #d$methylation<-as.character(d$methylation)
-  d$position<-as.numeric(d$position)
+  if(grepl("_",d$position[1])){
+    starts<-as.numeric(sapply(strsplit(d$position,"_"),"[[",1))
+    ends<-as.numeric(sapply(strsplit(d$position,"_"),"[[",2))
+    d$position<-floor(rowMeans(cbind(starts,ends)))
+  } else{
+    d$position<-as.numeric(d$position)
+  }
   p<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
-    ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
-    ggplot2::scale_fill_gradient(low="blue", high="red", na.value="transparent",
+    ggplot2::geom_tile(ggplot2::aes(width=3,fill=methylation),alpha=0.8) +
+    ggplot2::scale_fill_gradient2(low="blue", mid="white",high="red",
+                                  midpoint=0.5, na.value="transparent",
                                  breaks=c(0,1), labels=c("protected","accessible"),
                                  limits=c(0,1), name="dSMF\n\n") +
     #ggplot2::scale_fill_manual(values=c("0"="black","1"="grey80"),na.translate=F,na.value="white", labels=c("protected","accessible"),name="dSMF") +
@@ -671,7 +680,7 @@ getReadClass<-function(dataOrderedByClass,readNames){
   readClasses<-as.numeric(sapply(strsplit(rownames(dataOrderedByClass),
                                            split="__class"),"[[",2))
   sortedReadNames<-sapply(strsplit(rownames(dataOrderedByClass),
-                                              split="__"),"[[",1)
+                                              split="__class"),"[[",1)
   idx<-match(readNames,sortedReadNames)
   cl<-readClasses[idx]
   return(cl)
@@ -713,6 +722,7 @@ getClassVote<-function(classVote){
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return Returns a ggplot2 object
+#' @export
 plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses,
                          EMrep, classMeans, xRange, myXlab, featureLabel,
                          baseFontSize){
@@ -749,6 +759,7 @@ plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses,
 #' @param outPath path to directory where plots will be saved
 #' @param numClasses An integer indicating the number of classes to learn
 #' @return classVote data frame with "topClass" and "topClassFreq" columns added
+#' @export
 plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
   #initialise varaibles
   topClassFreq <- topClass <- NULL
@@ -779,6 +790,7 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @param distMetric A list with the name of the distance metric and any
 #' parameters it might require
 #' @return silStats data.frame with statistics about the silhouette plots
+#' @export
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
                              EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL,
                              distMetric=list(name="euclidean")){
@@ -822,7 +834,8 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @return None
 #' @export
-plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans, outFileBase,
+plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
+                           outFileBase,
                            outPath, xRange, myXlab, featureLabel, baseFontSize){
   # plot single molecules with final classes
   p<-plotClassesSingleGene(dataOrderedByClass, xRange=xRange,
@@ -907,7 +920,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  #stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
   for (EMrep in 1:EMrepeats){
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
@@ -942,7 +955,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
     # plot the results for individual repeats if first round and/or if requested
     if(doIndividualPlots==TRUE) { #if want 1 repeat can add:  | EMrep==1
       print("plotting individual EMruns")
-      plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses, EMrep,
+      plotEachRepeat(dataOrderedByClass, outFileBase, outPath, numClasses,
+                     EMrep,
                      classMeans, xRange, myXlab, featureLabel, baseFontSize)
 
     }
@@ -969,7 +983,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
   saveRDS(dataOrderedByClassRep, file=paste0(outPath, "/", outFileBase, "_K",
                                              numClasses, ".rds"))
   print("plotting final classes")
-  plotFinalClasses(dataOrderedByClassRep, numClasses, allClassMeans, outFileBase,
+  plotFinalClasses(dataOrderedByClassRep, numClasses, allClassMeans,
+                   outFileBase,
                    outPath, xRange, myXlab, featureLabel, baseFontSize)
 
   #print("plotting silhouette statistics")
@@ -980,8 +995,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 
   #calculate elbow and gap statistic
   #print("calculating gap statistic")
-  readClasses <- sapply(strsplit(rownames(dataOrderedByClassRep),
-                                 split="__"),"[[",2)
+  readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClassRep),
+                                 split="__class"),"[[",2))
   silStats$elbowWSS<-withinClusterSS(dataOrderedByClassRep, readClasses,
                                      distMetric)
 

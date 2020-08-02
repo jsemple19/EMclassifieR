@@ -1,317 +1,217 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<meta charset="utf-8" />
-<meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+<title>The data</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<meta name="author" content="Jennifer Semple" />
-
-<meta name="date" content="2020-05-18" />
-
-<title>Using EMclassifieR on methylation data</title>
-
-
-
-<style type="text/css">code{white-space: pre;}</style>
-<style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
-}
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(title);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {  }
-@media screen {
-a.sourceLine::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+};
+</script>
 
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
 </style>
-<script>
-// apply pandoc div.sourceCode style to pre.sourceCode instead
-(function() {
-  var sheets = document.styleSheets;
-  for (var i = 0; i < sheets.length; i++) {
-    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
-    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
-      var rule = rules[j];
-      // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
-      var style = rule.style.cssText;
-      // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
-      // replace div.sourceCode by a pre.sourceCode rule
-      sheets[i].deleteRule(j);
-      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
-    }
-  }
-})();
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
 </script>
 
 
 
-<style type="text/css">body {
-background-color: #fff;
-margin: 1em auto;
-max-width: 700px;
-overflow: visible;
-padding-left: 2em;
-padding-right: 2em;
-font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-font-size: 14px;
-line-height: 1.35;
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
 }
-#TOC {
-clear: both;
-margin: 0 0 10px 10px;
-padding: 4px;
-width: 400px;
-border: 1px solid #CCCCCC;
-border-radius: 5px;
-background-color: #f6f6f6;
-font-size: 13px;
-line-height: 1.3;
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
 }
-#TOC .toctitle {
-font-weight: bold;
-font-size: 15px;
-margin-left: 5px;
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
 }
-#TOC ul {
-padding-left: 40px;
-margin-left: -1.5em;
-margin-top: 5px;
-margin-bottom: 5px;
+
+h1 {
+   font-size:2.2em;
 }
-#TOC ul ul {
-margin-left: -2em;
+
+h2 {
+   font-size:1.8em;
 }
-#TOC li {
-line-height: 16px;
+
+h3 {
+   font-size:1.4em;
 }
-table {
-margin: 1em auto;
-border-width: 1px;
-border-color: #DDDDDD;
-border-style: outset;
-border-collapse: collapse;
+
+h4 {
+   font-size:1.0em;
 }
-table th {
-border-width: 2px;
-padding: 5px;
-border-style: inset;
+
+h5 {
+   font-size:0.9em;
 }
-table td {
-border-width: 1px;
-border-style: inset;
-line-height: 18px;
-padding: 5px 5px;
+
+h6 {
+   font-size:0.8em;
 }
-table, table th, table td {
-border-left-style: none;
-border-right-style: none;
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
 }
-table thead, table tr.even {
-background-color: #f7f7f7;
-}
-p {
-margin: 0.5em 0;
-}
-blockquote {
-background-color: #f6f6f6;
-padding: 0.25em 0.75em;
-}
-hr {
-border-style: solid;
-border: none;
-border-top: 1px solid #777;
-margin: 28px 0;
-}
-dl {
-margin-left: 0;
-}
-dl dd {
-margin-bottom: 13px;
-margin-left: 13px;
-}
-dl dt {
-font-weight: bold;
-}
-ul {
-margin-top: 0;
-}
-ul li {
-list-style: circle outside;
-}
-ul ul {
-margin-bottom: 0;
-}
-pre, code {
-background-color: #f7f7f7;
-border-radius: 3px;
-color: #333;
-white-space: pre-wrap; 
+
+pre, img {
+  max-width: 100%;
 }
 pre {
-border-radius: 3px;
-margin: 5px 0px 10px 0px;
-padding: 10px;
+  overflow-x: auto;
 }
-pre:not([class]) {
-background-color: #f7f7f7;
+pre code {
+   display: block; padding: 0.5em;
 }
+
 code {
-font-family: Consolas, Monaco, 'Courier New', monospace;
-font-size: 85%;
+  font-size: 92%;
+  border: 1px solid #ccc;
 }
-p > code, li > code {
-padding: 2px 0px;
-}
-div.figure {
-text-align: center;
-}
-img {
-background-color: #FFFFFF;
-padding: 2px;
-border: 1px solid #DDDDDD;
-border-radius: 3px;
-border: 1px solid #CCCCCC;
-margin: 0 5px;
-}
-h1 {
-margin-top: 0;
-font-size: 35px;
-line-height: 40px;
-}
-h2 {
-border-bottom: 4px solid #f7f7f7;
-padding-top: 10px;
-padding-bottom: 2px;
-font-size: 145%;
-}
-h3 {
-border-bottom: 2px solid #f7f7f7;
-padding-top: 10px;
-font-size: 120%;
-}
-h4 {
-border-bottom: 1px solid #f7f7f7;
-margin-left: 8px;
-font-size: 105%;
-}
-h5, h6 {
-border-bottom: 1px solid #ccc;
-font-size: 105%;
-}
-a {
-color: #0033dd;
-text-decoration: none;
-}
-a:hover {
-color: #6666ff; }
-a:visited {
-color: #800080; }
-a:visited:hover {
-color: #BB00BB; }
-a[href^="http:"] {
-text-decoration: underline; }
-a[href^="https:"] {
-text-decoration: underline; }
 
-code > span.kw { color: #555; font-weight: bold; } 
-code > span.dt { color: #902000; } 
-code > span.dv { color: #40a070; } 
-code > span.bn { color: #d14; } 
-code > span.fl { color: #d14; } 
-code > span.ch { color: #d14; } 
-code > span.st { color: #d14; } 
-code > span.co { color: #888888; font-style: italic; } 
-code > span.ot { color: #007020; } 
-code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; } 
-code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
 </style>
-
 
 
 
 </head>
 
 <body>
-
-
-
-
-<h1 class="title toc-ignore">Using EMclassifieR on methylation data</h1>
-<h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-05-18</h4>
-
-
-
-<div id="the-data" class="section level1">
 <h1>The data</h1>
-<p>DSMF data comes as matrices of reads x positions where each row refers to a single (usually paired-end) read and each column refers to a CpG or GpC position where methylation has been scored. The positions should be in relative coordinates (e.g. -250 to +250 around the TSS), so that matrices from different genes can be compared. Some example data is included with the package. First we read in a table with a list of the matrix filenames (including path). The important columns in this table are “filename” and “reads”.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">tablePath=<span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></a>
-<a class="sourceLine" id="cb1-2" title="2">matTable&lt;-<span class="kw">read.csv</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</a>
-<a class="sourceLine" id="cb1-3" title="3">                               <span class="dt">mustWork=</span><span class="ot">TRUE</span>), <span class="dt">stringsAsFactors=</span>F)</a>
-<a class="sourceLine" id="cb1-4" title="4"><span class="kw">head</span>(matTable)</a></code></pre></div>
+
+<p>DSMF data comes as matrices of reads x positions where each row refers to a single (usually paired-end) read and each column refers to a CpG or GpC position where methylation has been scored. The positions should be in relative coordinates (e.g. -250 to +250 around the TSS), so that matrices from different genes can be compared. 
+Some example data is included with the package. First we read in a table with a list of the matrix filenames (including path). The important columns in this table are &ldquo;filename&rdquo; and &ldquo;reads&rdquo;.</p>
+
+<pre><code class="r">tablePath=&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;
+matTable&lt;-read.csv(system.file(&quot;extdata&quot;, tablePath, package = &quot;EMclassifieR&quot;,
+                               mustWork=TRUE), stringsAsFactors=F)
+head(matTable)
+</code></pre>
+
 <pre><code>##                                          filename   sample         region reads
 ## 1 rds/relCoord_ampTSS/dS02-182_WBGene00015947.rds dS02-182 WBGene00015947  1690
 ## 2 rds/relCoord_ampTSS/dS02-182_WBGene00015955.rds dS02-182 WBGene00015955 10677
@@ -323,335 +223,305 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## 2     36
 ## 3     26
 ## 4     25
-## 5     21</code></pre>
+## 5     21
+</code></pre>
+
 <p>The matrices are in RDS format. For learning it is probably best to process them to remove any reads containing NAs.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">i=<span class="dv">1</span></a>
-<a class="sourceLine" id="cb3-2" title="2">dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</a>
-<a class="sourceLine" id="cb3-3" title="3"><span class="kw">dim</span>(dataMatrix)</a></code></pre></div>
-<pre><code>## [1] 1690   25</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">dataMatrix&lt;-<span class="kw">removeAllNArows</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb5-2" title="2"><span class="kw">dim</span>(dataMatrix)</a></code></pre></div>
-<pre><code>## [1] 1068   25</code></pre>
-<div id="learning-classes-for-single-genes" class="section level2">
+
+<pre><code class="r">i=1
+dataMatrix&lt;-readRDS(system.file(&quot;extdata&quot;, matTable$filename[i], package = &quot;EMclassifieR&quot;, mustWork=TRUE))
+dim(dataMatrix)
+</code></pre>
+
+<pre><code>## [1] 1690   25
+</code></pre>
+
+<pre><code class="r">dataMatrix&lt;-removeAllNArows(dataMatrix)
+dim(dataMatrix)
+</code></pre>
+
+<pre><code>## [1] 1068   25
+</code></pre>
+
 <h2>Learning classes for single genes</h2>
+
 <p>To look at one gene at a time one can use the minimal matrix which includes only positions with a CpG or GpC motif in them.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">k_range =<span class="st"> </span><span class="dv">2</span><span class="op">:</span><span class="dv">8</span>      <span class="co"># Number of classes to be found</span></a>
-<a class="sourceLine" id="cb7-2" title="2">maxIterations =<span class="st"> </span><span class="dv">100</span> <span class="co"># number of iterations of EM clustering to perform if it does not converge</span></a>
-<a class="sourceLine" id="cb7-3" title="3">convergenceError =<span class="st"> </span><span class="fl">10e-6</span></a>
-<a class="sourceLine" id="cb7-4" title="4">numRepeats=<span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></a>
-<a class="sourceLine" id="cb7-5" title="5">xRange=<span class="kw">c</span>(<span class="op">-</span><span class="dv">250</span>,<span class="dv">250</span>)</a>
-<a class="sourceLine" id="cb7-6" title="6">maxB=<span class="dv">50</span> <span class="co"># Number of randomised matrices to generate</span></a>
-<a class="sourceLine" id="cb7-7" title="7">outPath=<span class="st">&quot;./EMres&quot;</span></a>
-<a class="sourceLine" id="cb7-8" title="8">maxTasks=<span class="dv">4</span></a>
-<a class="sourceLine" id="cb7-9" title="9">taskId=<span class="dv">1</span></a>
-<a class="sourceLine" id="cb7-10" title="10">nThreads=<span class="dv">4</span></a>
-<a class="sourceLine" id="cb7-11" title="11">setSeed=<span class="ot">FALSE</span></a>
-<a class="sourceLine" id="cb7-12" title="12">distMetric=<span class="kw">list</span>(<span class="dt">name=</span><span class="st">&quot;cosineDist&quot;</span>)</a>
-<a class="sourceLine" id="cb7-13" title="13"></a>
-<a class="sourceLine" id="cb7-14" title="14"><span class="cf">if</span>(<span class="op">!</span><span class="kw">dir.exists</span>(outPath)){</a>
-<a class="sourceLine" id="cb7-15" title="15">  <span class="kw">dir.create</span>(outPath)</a>
-<a class="sourceLine" id="cb7-16" title="16">}</a>
-<a class="sourceLine" id="cb7-17" title="17"></a>
-<a class="sourceLine" id="cb7-18" title="18"><span class="co">#split table indicies into nTasks number of groups</span></a>
-<a class="sourceLine" id="cb7-19" title="19">taskSubList&lt;-<span class="kw">split</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable),<span class="kw">sort</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable)<span class="op">%%</span>maxTasks))</a>
-<a class="sourceLine" id="cb7-20" title="20"></a>
-<a class="sourceLine" id="cb7-21" title="21"><span class="kw">set.seed</span>(<span class="dv">200413</span>)</a>
-<a class="sourceLine" id="cb7-22" title="22"><span class="cf">for</span> (i <span class="cf">in</span> taskSubList[[taskId]]){</a>
-<a class="sourceLine" id="cb7-23" title="23"><span class="co">#for (i in 1:nrow(matTable)) {</span></a>
-<a class="sourceLine" id="cb7-24" title="24">  regionName=matTable<span class="op">$</span>region[i]</a>
-<a class="sourceLine" id="cb7-25" title="25">  sampleName=matTable<span class="op">$</span>sample[i]</a>
-<a class="sourceLine" id="cb7-26" title="26">  outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</a>
-<a class="sourceLine" id="cb7-27" title="27">  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</a>
-<a class="sourceLine" id="cb7-28" title="28">  dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], </a>
-<a class="sourceLine" id="cb7-29" title="29">                              <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</a>
-<a class="sourceLine" id="cb7-30" title="30">  <span class="kw">dim</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb7-31" title="31">  dataMatrix&lt;-<span class="kw">removeAllNArows</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb7-32" title="32">  <span class="kw">dim</span>(dataMatrix)</a>
-<a class="sourceLine" id="cb7-33" title="33">  </a>
-<a class="sourceLine" id="cb7-34" title="34">  allClassMeans&lt;-<span class="kw">tryCatch</span>(</a>
-<a class="sourceLine" id="cb7-35" title="35">    {</a>
-<a class="sourceLine" id="cb7-36" title="36">      <span class="kw">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</a>
-<a class="sourceLine" id="cb7-37" title="37">      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</a>
-<a class="sourceLine" id="cb7-38" title="38">                     <span class="dt">EMrepeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange,</a>
-<a class="sourceLine" id="cb7-39" title="39">                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</a>
-<a class="sourceLine" id="cb7-40" title="40">                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">distMetric=</span>distMetric)</a>
-<a class="sourceLine" id="cb7-41" title="41"></a>
-<a class="sourceLine" id="cb7-42" title="42">    },</a>
-<a class="sourceLine" id="cb7-43" title="43">      <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-44" title="44">  )</a>
-<a class="sourceLine" id="cb7-45" title="45"></a>
-<a class="sourceLine" id="cb7-46" title="46">  <span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</a>
-<a class="sourceLine" id="cb7-47" title="47">        <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</a>
-<a class="sourceLine" id="cb7-48" title="48">  } <span class="cf">else</span> {</a>
-<a class="sourceLine" id="cb7-49" title="49">        <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></a>
-<a class="sourceLine" id="cb7-50" title="50">  }</a>
-<a class="sourceLine" id="cb7-51" title="51"></a>
-<a class="sourceLine" id="cb7-52" title="52">  clustMetrics&lt;-<span class="kw">tryCatch</span>(</a>
-<a class="sourceLine" id="cb7-53" title="53">    {</a>
-<a class="sourceLine" id="cb7-54" title="54">        <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</a>
-<a class="sourceLine" id="cb7-55" title="55">        <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</a>
-<a class="sourceLine" id="cb7-56" title="56">            maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>, <span class="dt">nThreads=</span>nThreads,</a>
-<a class="sourceLine" id="cb7-57" title="57">            <span class="dt">setSeed=</span>setSeed, <span class="dt">distMetric=</span>distMetric)</a>
-<a class="sourceLine" id="cb7-58" title="58">    },</a>
-<a class="sourceLine" id="cb7-59" title="59">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-60" title="60">  )</a>
-<a class="sourceLine" id="cb7-61" title="61">  <span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</a>
-<a class="sourceLine" id="cb7-62" title="62">    <span class="kw">print</span>(clustMetrics)</a>
-<a class="sourceLine" id="cb7-63" title="63">  }</a>
-<a class="sourceLine" id="cb7-64" title="64">  </a>
-<a class="sourceLine" id="cb7-65" title="65">  pcaPlots&lt;-<span class="kw">tryCatch</span>( </a>
-<a class="sourceLine" id="cb7-66" title="66">    {</a>
-<a class="sourceLine" id="cb7-67" title="67">      <span class="kw">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</a>
-<a class="sourceLine" id="cb7-68" title="68">      <span class="kw">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</a>
-<a class="sourceLine" id="cb7-69" title="69">    },</a>
-<a class="sourceLine" id="cb7-70" title="70">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-71" title="71">   )</a>
-<a class="sourceLine" id="cb7-72" title="72">  <span class="cf">if</span>(<span class="kw">length</span>(pcaPlots)<span class="op">==</span><span class="dv">1</span>) {</a>
-<a class="sourceLine" id="cb7-73" title="73">    <span class="kw">print</span>(pcaPlots)</a>
-<a class="sourceLine" id="cb7-74" title="74">  }</a>
-<a class="sourceLine" id="cb7-75" title="75">  </a>
-<a class="sourceLine" id="cb7-76" title="76">  umapPlots&lt;-<span class="kw">tryCatch</span>( </a>
-<a class="sourceLine" id="cb7-77" title="77">    {</a>
-<a class="sourceLine" id="cb7-78" title="78">      <span class="kw">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</a>
-<a class="sourceLine" id="cb7-79" title="79">      <span class="kw">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</a>
-<a class="sourceLine" id="cb7-80" title="80">    },</a>
-<a class="sourceLine" id="cb7-81" title="81">    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</a>
-<a class="sourceLine" id="cb7-82" title="82">   )</a>
-<a class="sourceLine" id="cb7-83" title="83">  <span class="cf">if</span>(<span class="kw">length</span>(umapPlots)<span class="op">==</span><span class="dv">1</span>) {</a>
-<a class="sourceLine" id="cb7-84" title="84">    <span class="kw">print</span>(umapPlots)</a>
-<a class="sourceLine" id="cb7-85" title="85">  }</a>
-<a class="sourceLine" id="cb7-86" title="86">  </a>
-<a class="sourceLine" id="cb7-87" title="87">}</a></code></pre></div>
-<pre><code>## [1] &quot;Clustering dS02-182_WBGene00015947&quot;
-## [1] &quot;running EM for a range of class numbers&quot;
-## [1] &quot;numClasses: 2&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  30&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  19&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  20&quot;
-## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 3&quot;
-## [1] &quot;converged: TRUE iterations:  23&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  25&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  39&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;
-## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 4&quot;
-## [1] &quot;converged: TRUE iterations:  48&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  13&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  18&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  54&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  38&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  41&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 5&quot;
-## [1] &quot;converged: TRUE iterations:  43&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  44&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  55&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  47&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  73&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 6&quot;
-## [1] &quot;converged: TRUE iterations:  24&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  50&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  42&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 5</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  40&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  35&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6, 3</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  15&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 7&quot;
-## [1] &quot;converged: TRUE iterations:  36&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  34&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 3</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  37&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 5</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 2</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  86&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  40&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  31&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 4</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;numClasses: 8&quot;
-## [1] &quot;converged: TRUE iterations:  28&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  26&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  16&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  52&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 8</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  14&quot;
-## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  17&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  33&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 7</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  22&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 1</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  32&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 5, 6</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;
-## [1] &quot;converged: TRUE iterations:  27&quot;</code></pre>
-<pre><code>## The following `from` values were not present in `x`: 6, 3</code></pre>
-<pre><code>## [1] &quot;getting silhouette statistics&quot;</code></pre>
-<pre><code>## [1] &quot;plotting final classes&quot;</code></pre>
-<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<pre><code>## [1] &quot;plotting clustering metrics for a range of class sizes&quot;
-## [1] &quot;generating randomised matrices as null distribution&quot;
-## [1] &quot;calculating summary statistics for clustering&quot;
-## [1] 2
-## [1] 3
-## [1] 4
-## [1] 5
-## [1] 6
-## [1] 7
-## [1] 8
-## [1] &quot;plotting clustering statistics&quot;</code></pre>
-<pre><code>## Warning: Removed 21 rows containing missing values (geom_point).</code></pre>
-<pre><code>## [1] &quot;Clustering metrics plotted successfully&quot;
-## [1] &quot;plotting PCA of clusters&quot;</code></pre>
-<pre><code>## Warning: package &#39;scales&#39; was built under R version 3.6.2</code></pre>
-<pre><code>## [1] &quot;PCA plotted correctly&quot;
-## [1] &quot;plotting UMAP of clusters&quot;
-## [1] &quot;Matrix not valid&quot;</code></pre>
-</div>
-</div>
+
+<pre><code class="r">k_range = 2:8      # Number of classes to be found
+maxIterations = 100 # number of iterations of EM clustering to perform if it does not converge
+convergenceError = 10e-6
+numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
+xRange=c(-250,250)
+maxB=50 # Number of randomised matrices to generate
+outPath=&quot;./EMres&quot;
+maxTasks=4
+taskId=1
+nThreads=4
+setSeed=FALSE
+distMetric=list(name=&quot;cosineDist&quot;)
+
+if(!dir.exists(outPath)){
+  dir.create(outPath)
+}
+
+#split table indicies into nTasks number of groups
+taskSubList&lt;-split(1:nrow(matTable),sort(1:nrow(matTable)%%maxTasks))
+
+set.seed(200413)
+for (i in taskSubList[[taskId]]){
+#for (i in 1:nrow(matTable)) {
+  regionName=matTable$region[i]
+  sampleName=matTable$sample[i]
+  outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;)
+  print(paste(&quot;Clustering&quot;, outFileBase))
+  dataMatrix&lt;-readRDS(system.file(&quot;extdata&quot;, matTable$filename[i], 
+                              package = &quot;EMclassifieR&quot;, mustWork=TRUE))
+  dim(dataMatrix)
+  dataMatrix&lt;-removeAllNArows(dataMatrix)
+  dim(dataMatrix)
+
+  allClassMeans&lt;-tryCatch(
+    {
+      print(&quot;running EM for a range of class numbers&quot;)
+      runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+                     EMrepeats=numRepeats, outPath=outPath, xRange=xRange,
+                     outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;),
+                     doIndividualPlots=FALSE, distMetric=distMetric)
+
+    },
+      error=function(e){&quot;Matrix not valid&quot;}
+  )
+
+  if(is.list(allClassMeans)){
+        saveRDS(allClassMeans,paste0(outPath,&quot;/allClassMeans_&quot;,outFileBase,&quot;.rds&quot;))
+  } else {
+        print(allClassMeans) # error message
+  }
+
+  clustMetrics&lt;-tryCatch(
+    {
+        print(&quot;plotting clustering metrics for a range of class sizes&quot;)
+        plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+            maxIterations, outPath, outFileBase, EMrep=NULL, nThreads=nThreads,
+            setSeed=setSeed, distMetric=distMetric)
+    },
+    error=function(e){&quot;Matrix not valid&quot;}
+  )
+  if(length(clustMetrics)==1) {
+    print(clustMetrics)
+  }
+
+  pcaPlots&lt;-tryCatch(
+    {
+      print(&quot;plotting PCA of clusters&quot;)
+      plotPCAofMatrixClasses(k_range, outPath, outFileBase)
+    },
+    error=function(e){&quot;Matrix not valid&quot;}
+   )
+  if(length(pcaPlots)==1) {
+    print(pcaPlots)
+  }
+
+  umapPlots&lt;-tryCatch( 
+    {
+      print(&quot;plotting UMAP of clusters&quot;)
+      plotUMAPofMatrixClasses(k_range, outPath, outFileBase)
+    },
+    error=function(e){&quot;Matrix not valid&quot;}
+   )
+  if(length(umapPlots)==1) {
+    print(umapPlots)
+  }
+
+}
+</code></pre>
+
+<h2>Plotting classes with track data</h2>
+
+<pre><code class="r">i=1
+dataMatrix&lt;-readRDS(system.file(&quot;extdata&quot;, matTable$filename[i], package = &quot;EMclassifieR&quot;, mustWork=TRUE))
+regionName=matTable$region[i]
+sampleName=matTable$sample[i]
+outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;)
+
+allClassMeansList&lt;-readRDS(&quot;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/allClassMeans_dS02-182_WBGene00015947.rds&quot;)
+numClasses=5
+allClassMeans&lt;-allClassMeansList[[numClasses]]
+allClassMeans
+
+ampTSS&lt;-readRDS(&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;)
 
 
+winSize=500
+tssWin&lt;-ampTSS
+GenomicRanges::mcols(tssWin)$TSS&lt;-GenomicRanges::start(tssWin)
+tssWin&lt;-GenomicRanges::resize(tssWin,width=winSize,fix=&quot;center&quot;)
 
-<!-- code folding -->
+
+names(GenomicRanges::mcols(tssWin))[1]&lt;-&quot;ID&quot;
+regionGR&lt;-tssWin[i]
+featureGR&lt;-ampTSS[i]
+regionName=matTable$region[i]
+sampleName=matTable$sample[i]
+outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;)
+#seqlevels(ampTSS)&lt;-seqlevels(Celegans)
+#seqinfo(ampTSS)&lt;-seqinfo(Celegans)
+#saveRDS(ampTSS,&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;)
+
+# genomeVer=&quot;WS275&quot;
+# genomeDir=paste0(&quot;~/Documents/MeisterLab/GenomeVer/&quot;,genomeVer)
+# txdb&lt;-AnnotationDbi::loadDb(paste0(genomeDir, 
+#                                    &quot;/annotations/c_elegans.PRJNA13758.&quot;,
+#                                    genomeVer,  &quot;.annotations.sqlite&quot;))
+# seqlevelsStyle(txdb)&lt;-&quot;ucsc&quot;
+# GenomeInfoDb::genome(txdb)&lt;-GenomeInfoDb::genome(regionGR)
+#library(&quot;TxDb.Celegans.UCSC.ce11.refGene&quot;)
+txdb &lt;- TxDb.Celegans.UCSC.ce11.refGene::TxDb.Celegans.UCSC.ce11.refGene
+bigwigListFile&lt;-&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList.txt&quot;
+#bigwigListFile&lt;-&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList_kranz.txt&quot;
+strandedBwFile&lt;-&quot;~/Documents/MeisterLab/sequencingData/public/strandedBwFile.txt&quot;
+gr&lt;-allClassMeansToGR(allClassMeans, regionGR)
+
+dTrack&lt;-Gviz::DataTrack(gr,name=&quot;dSMF Classes&quot;)
+Gviz::plotTracks(dTrack, groups=rep(c(paste0(&quot;class&quot;,1:numClasses)), times=10),
+                 type=c(&quot;a&quot;,&quot;p&quot;,&quot;confint&quot;))
+
+print(txdb)
+outPath=&quot;./EMres&quot;
+grDevices::pdf(paste0(outPath,&quot;/tracks_&quot;,
+                          outFileBase,&quot;_K&quot;,
+                          numClasses, &quot;.pdf&quot;),
+                   paper=&quot;a4&quot;, height=11, width=8)
+
+plotClassMeansWithTracks(allClassMeans, regionGR, &quot;middle&quot;, txdb, featureGR, 
+                         bigwigListFile, strandedBwFile)
+dev.off()
+</code></pre>
+
+<h2>Multigene classification</h2>
+
+<p>First you must create a data set combining and equal amount of reads from 
+different matrices</p>
+
+<pre><code class="r">tablePath=&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;
+matTable&lt;-read.csv(system.file(&quot;extdata&quot;, tablePath, package = &quot;EMclassifieR&quot;,
+                               mustWork=TRUE), stringsAsFactors=F)
+head(matTable)
+multiGeneMat&lt;-NULL
+for(i in 1:nrow(matTable[matTable$sample==&quot;dS02-182&quot;])){
+  regionName=matTable$region[i]
+  sampleName=matTable$sample[i]
+  outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;)
+  dataMatrix&lt;-readRDS(system.file(&quot;extdata&quot;, matTable$filename[i], 
+                                  package = &quot;EMclassifieR&quot;, mustWork=TRUE))
+
+  subMatrix&lt;-selectReadsFromMatrix(dataMatrix,minReads=50,
+                                 addToReadName=outFileBase,
+                                 preferBest=T)
+  if(!is.null(subMatrix)){
+    fullMatrix&lt;-getFullMatrix(subMatrix)
+    winMatrix&lt;-prepareWindows(fullMatrix)
+
+    if(is.null(multiGeneMat)){
+      multiGeneMat&lt;-winMatrix
+    } else {
+      multiGeneMat&lt;-rbind(multiGeneMat,winMatrix)
+    }
+  }
+}
+
+multiGeneMat&lt;-recodeMatrix_Minus1To1(multiGeneMat)
+multiGeneMat&lt;-rescaleMatrix_0To1(multiGeneMat)
+#multiGeneMat[is.nan(multiGeneMat)]&lt;-0.5
+
+k_range = 2:3      # Number of classes to be found
+maxIterations = 100 # number of iterations of EM clustering to perform if it does not converge
+convergenceError = 10e-6
+numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
+xRange=c(-250,250)
+maxB=50 # Number of randomised matrices to generate
+outPath=&quot;./EMres_multigene_cosine&quot;
+maxTasks=4
+taskId=1
+nThreads=4
+setSeed=FALSE
+distMetric=list(name=&quot;cosineDist&quot;)
+
+if(!dir.exists(outPath)){
+  dir.create(outPath)
+}
 
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
+set.seed(200413)
+
+regionName=&quot;multiGene&quot;
+sampleName=&quot;dS02-182&quot;
+outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;)
+print(paste(&quot;Clustering&quot;, outFileBase))
+dataMatrix&lt;-multiGeneMat
+dim(dataMatrix)
+dataMatrix&lt;-removeAllNArows(dataMatrix)
+dim(dataMatrix)
+
+allClassMeans&lt;-tryCatch(
+  {
+    print(&quot;running EM for a range of class numbers&quot;)
+    runEMrangeClassNum(dataMatrix, k_range, convergenceError, maxIterations,
+                       EMrepeats=numRepeats, outPath=outPath, xRange=xRange,
+                       outFileBase=paste(sampleName, regionName, sep=&quot;_&quot;),
+                       doIndividualPlots=FALSE, distMetric=distMetric)
+
+  },
+  error=function(e){&quot;Matrix not valid&quot;}
+)
+
+if(is.list(allClassMeans)){
+  saveRDS(allClassMeans,paste0(outPath,&quot;/allClassMeans_&quot;,outFileBase,&quot;.rds&quot;))
+} else {
+  print(allClassMeans) # error message
+}
+
+clustMetrics&lt;-tryCatch(
+  {
+    print(&quot;plotting clustering metrics for a range of class sizes&quot;)
+    plotClusteringMetrics(dataMatrix, k_range, maxB, convergenceError,
+                          maxIterations, outPath, outFileBase, EMrep=NULL,
+                          nThreads=nThreads,
+                          setSeed=setSeed, distMetric=distMetric)
+  },
+  error=function(e){&quot;Matrix not valid&quot;}
+)
+if(length(clustMetrics)==1) {
+  print(clustMetrics)
+}
+
+pcaPlots&lt;-tryCatch(
+  {
+    print(&quot;plotting PCA of clusters&quot;)
+    plotPCAofMatrixClasses(k_range, outPath, outFileBase)
+  },
+  error=function(e){&quot;Matrix not valid&quot;}
+)
+if(length(pcaPlots)==1) {
+  print(pcaPlots)
+}
+
+umapPlots&lt;-tryCatch( 
+  {
+    print(&quot;plotting UMAP of clusters&quot;)
+    plotUMAPofMatrixClasses(k_range, outPath, outFileBase)
+  },
+  error=function(e){&quot;Matrix not valid&quot;}
+)
+if(length(umapPlots)==1) {
+  print(umapPlots)
+}
+
+
+# to use -1 to 1
+#https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain
+</code></pre>
 
 </body>
+
 </html>
