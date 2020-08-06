@@ -4,7 +4,7 @@
 \alias{cosineDist}
 \title{Calculate cosine distance between all rows of a matrix}
 \usage{
-cosineDist(binMat, val0 = 0, valNA = 0)
+cosineDist(binMat, val0 = 0, valNA = 0, rescale = F)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
@@ -14,6 +14,8 @@ distance between rows}
 matrices have NAs)}
 
 \item{valNA}{Value to give NAs in matrix}
+
+\item{rescale}{Should matrix be rescaled from 0..1 range to -1..1 range?}
 }
 \value{
 A distance object (lower triangle) with the distances between all

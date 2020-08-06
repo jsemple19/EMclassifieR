@@ -28,7 +28,7 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
   dataMatrix<-matrix(rep(c(1,0,1,1,0,0.5),8),nrow=4)
   rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
   colnames(dataMatrix)<-paste0("c",1:dim(dataMatrix)[2])
-  distMetric=list(name="euclidWinDist", winSize=3, stepSize=1)
+  distMetric=list(name="euclidWinDist", winSize=3, stepSize=1,rescale=F)
   WSS<-clusterRandomMatrices(dataMatrix, k_range=2:3, maxB=10,
                              convergenceError=1e-6, maxIterations=100,
                              nThreads=1,setSeed=T, distMetric=distMetric)

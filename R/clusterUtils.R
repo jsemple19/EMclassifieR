@@ -1,4 +1,4 @@
-# functions to test clustering quality
+ # functions to test clustering quality
 
 #' Calculate the sum of square distances between rows of a matrix
 #'
@@ -77,7 +77,7 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
     allwss<-foreach::foreach(1:maxB, .combine=c,.export=c("randomiseMatrixRows",
                                        "runEMrepeats_withinSS")) %dopar%{
     #  for (b in 1:maxB){
-
+      browser()
       randMat<-randomiseMatrixRows(dataMatrix)
       wss<-runEMrepeats_withinSS(randMat, numClasses, convergenceError,
                                 maxIterations, EMrepeats=1, distMetric)
@@ -140,13 +140,17 @@ isMatrixValid<-function(dataMatrix,valueRange=c(-1,1),NAsValid=FALSE){
 #' distance between rows
 #' @param winSize Sliding window size (number of values to combine)
 #' @param stepSize How far to move the sliding window
+#' @param rescale Should matrix be scaled from 0..1 range to -1..1 range.
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-euclidWinDist<-function(binMat,winSize=3,stepSize=1){
+euclidWinDist<-function(binMat,winSize=3,stepSize=1,rescale=F){
   i <- NULL
   stopifnot(stepSize<=winSize)
   distSum<-0
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
   for(i in seq(1,ncol(binMat)-winSize+1,by=stepSize)){
     distSum<-distSum+stats::dist(binMat[,i:(i+winSize-1)])
   }
@@ -162,12 +166,16 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1){
 #' @param val0 Value to give 0s in matrix (might wish to use this when
 #' matrices have NAs)
 #' @param valNA Value to give NAs in matrix
+#' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-cosineDist<-function(binMat, val0=0, valNA=0){
+cosineDist<-function(binMat, val0=0, valNA=0,rescale=F){
   binMat[binMat==0]<-val0
   binMat[is.na(binMat)]<-valNA
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
   cosDist<-stats::as.dist(1-lsa::cosine(t(binMat)))
   return(cosDist)
 }
@@ -212,9 +220,11 @@ cosineDist<-function(binMat, val0=0, valNA=0){
 getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
   switch(distMetric$name,
          euclidean=stats::dist(binMat),
-         euclidWinDist=euclidWinDist(binMat, winSize=distMetric$winSize,
-                                     stepSize=distMetric$stepSize),
-         cosineDist=cosineDist(binMat))
+         euclidWinDist=euclidWinDist(binMat,
+                                     winSize=distMetric$winSize,
+                                     stepSize=distMetric$stepSize,
+                                     rescale=distMetric$rescale),
+         cosineDist=cosineDist(binMat, rescale=distMetric$rescale))
 }
 
 

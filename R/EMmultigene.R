@@ -57,10 +57,11 @@ getFullMatrix<-function(dataMatrix,winSize=500,anchorPoint="middle") {
   Cpos<-colnames(dataMatrix)
   if(anchorPoint=="middle") {
     withinRange<- -winSize/2<=as.numeric(Cpos) & winSize/2>=as.numeric(Cpos)
-    colnames(fullMat)<-c(seq(-winSize/2,-1),seq(1,winSize/2))
+    colnames(fullMat)<-c(as.character(seq(-winSize/2,-1)),
+                         as.character(seq(1,winSize/2)))
   } else if(anchorPoint=="start") {
     withinRange<- 0<=as.numeric(Cpos) & winSize>=as.numeric(Cpos)
-    colnames(fullMat)<-c(seq(1,winSize))
+    colnames(fullMat)<-as.character(seq(1,winSize))
   } else {
     print("anchor point should be one of 'start' or 'middle'")
   }
@@ -90,8 +91,10 @@ prepareWindows <- function(fullMatrix, binSize=20, stepSize=1) {
   binEnds<-seq(binSize, ncol(fullMatrix), by=stepSize)
   winMatrix<-matrix(data=NaN, nrow=nrow(fullMatrix),
                     ncol=ncol(fullMatrix)-binSize+1)
-  colnames(winMatrix)<-paste(colnames(fullMatrix)[binStarts],
-                             colnames(fullMatrix)[binEnds], sep="_")
+  startVals<-as.numeric(colnames(fullMatrix)[binStarts])
+  endVals<-as.numeric(colnames(fullMatrix)[binEnds])
+  midPoints<-floor(rowMeans(cbind(startVals,endVals)))
+  colnames(winMatrix)<-as.character(midPoints)
   rownames(winMatrix)<-rownames(fullMatrix)
   #Calculate values for each bin
   for(i in 1:length(binStarts)){
@@ -100,6 +103,7 @@ prepareWindows <- function(fullMatrix, binSize=20, stepSize=1) {
     methylated<-rowSums(fullMatrix[,i:(i+binSize-1)],na.rm=T)
     winMatrix[,i]<-ifelse(noSites,NaN,
                           ifelse(!informative, NA, methylated / informative))
+    #winMatrix[,i]<-ifelse(!informative, NA, round(methylated/informative,2))
   }
   return(winMatrix)
 }
@@ -123,7 +127,7 @@ prepareWindows <- function(fullMatrix, binSize=20, stepSize=1) {
 #' If FALSE, NAs are encoded as 0
 #' @return Matrix with methylation values coded on a -1 to 1 scale
 #' @export
-recodeMatrix_Minus1To1<-function(dataMatrix,randomiseNAs=F){
+rescale_minus1To1<-function(dataMatrix,randomiseNAs=F){
   dataMatrix[!is.na(dataMatrix)]<-dataMatrix[!is.na(dataMatrix)]*2-1
   dataMatrix[is.nan(dataMatrix)]<-0
   if(randomiseNAs) {
@@ -136,6 +140,24 @@ recodeMatrix_Minus1To1<-function(dataMatrix,randomiseNAs=F){
   return(dataMatrix)
 }
 
+
+
+#' #' Recode matrix
+#' #'
+#' #' Recode values in methylation matrix from a scale of 0 (no meth) to 1 (meth)
+#' #' to a scale of -1 (no meth) to 1 (meth). NaN are set to 0 and NAs can
+#' #' be either 0 or randomly assigned to -0.5 or 0.5
+#' #' @param dataMatrix  A matrix containing methylation values for a
+#' #' region of the genome using coordinates relative to an anchor point.
+#' #' dataMatrix[i,j] is the methylation value of sample i at position j.
+#' #' 0=not methylated, 1=methylated, NA=no methylation information at this
+#' #' position.
+#' #' @return Matrix with methylation values coded on a -1 to 1 scale
+#' #' @export
+#' recodeMatrixAsNumeric<-function(dataMatrix){
+#'   dataMatrix[is.na(dataMatrix)]<-0.5
+#'   return(dataMatrix)
+#' }
 
 ### to convert scale to -1 to 1, do 2x-1, then code NA and NaN as 0, or NaN as 0,
 ### and NA as randomly assigned.
@@ -151,7 +173,7 @@ recodeMatrix_Minus1To1<-function(dataMatrix,randomiseNAs=F){
 #' -1=not methylated, 1=methylated. NAs and NaNs have been assigned the value 0
 #' @return Matrix with methylation values coded on a -1 to 1 scale
 #' @export
-rescaleMatrix_0To1<-function(dataMatrix){
+rescale_0To1<-function(dataMatrix){
   dataMatrix<-(dataMatrix+1)/2
   return(dataMatrix)
 }

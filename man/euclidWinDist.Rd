@@ -4,7 +4,7 @@
 \alias{euclidWinDist}
 \title{Calculate Euclidean distance between all rows of a matrix with sliding window}
 \usage{
-euclidWinDist(binMat, winSize = 3, stepSize = 1)
+euclidWinDist(binMat, winSize = 3, stepSize = 1, rescale = F)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
@@ -13,6 +13,8 @@ distance between rows}
 \item{winSize}{Sliding window size (number of values to combine)}
 
 \item{stepSize}{How far to move the sliding window}
+
+\item{rescale}{Should matrix be scaled from 0..1 range to -1..1 range.}
 }
 \value{
 A distance object (lower triangle) with the distances between all

@@ -208,7 +208,7 @@ classifyAndSortReads<-function(dataMatrix,posteriorProb,previousClassMeans=NULL)
   numClasses=ncol(posteriorProb)
   readClasses = apply(posteriorProb, 1, which.max)
   #readsTable = table(readClasses)
-  classMeans = stats::aggregate(dataMatrix, by = list(readClasses), FUN = mean)[-1]
+  classMeans = stats::aggregate(dataMatrix, by=list(readClasses), FUN=mean)[-1]
 
   if (!is.null(previousClassMeans)) {
     #print("orderByPreviousClusters")

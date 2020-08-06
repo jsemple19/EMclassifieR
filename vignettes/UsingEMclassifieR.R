@@ -195,11 +195,11 @@ dim(dataMatrix)
 #    }
 #  }
 #  
-#  multiGeneMat<-recodeMatrix_Minus1To1(multiGeneMat)
-#  multiGeneMat<-rescaleMatrix_0To1(multiGeneMat)
-#  #multiGeneMat[is.nan(multiGeneMat)]<-0.5
+#  multiGeneMat<-rescale_minus1To1(multiGeneMat)
+#  multiGeneMat<-rescale_0To1(multiGeneMat)
+#  #multiGeneMat1<-recodeMatrixAsNumeric(multiGeneMat)
 #  
-#  k_range = 2:3      # Number of classes to be found
+#  k_range = 2:8      # Number of classes to be found
 #  maxIterations = 100 # number of iterations of EM clustering to perform if it does not converge
 #  convergenceError = 10e-6
 #  numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
@@ -210,7 +210,7 @@ dim(dataMatrix)
 #  taskId=1
 #  nThreads=4
 #  setSeed=FALSE
-#  distMetric=list(name="cosineDist")
+#  distMetric=list(name="cosineDist",rescale=F)
 #  
 #  if(!dir.exists(outPath)){
 #    dir.create(outPath)
