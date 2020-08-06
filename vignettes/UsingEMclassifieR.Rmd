@@ -134,7 +134,7 @@ for (i in taskSubList[[taskId]]){
 ## Plotting classes with track data
 ```{r,eval=F}
 
-i=1
+
 dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
 regionName=matTable$region[i]
 sampleName=matTable$sample[i]
