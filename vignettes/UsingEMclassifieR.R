@@ -15,6 +15,21 @@ dim(dataMatrix)
 dataMatrix<-removeAllNArows(dataMatrix)
 dim(dataMatrix)
 
+dataMatrix<-readRDS("~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds")
+dataMatrix<-removeAllNArows(dataMatrix)
+
+colourChoice=list(low="blue", mid="white", high="red", bg="white", lines="grey80")
+colourChoice=list(low="yellow", mid="grey20", high="red", bg="black", lines="grey80")
+
+
+p<-plotClassesSingleMolecule(dataMatrix,
+                                xRange=c(-250,250), title="Reads by classes",
+                                myXlab="CpG/GpC position",
+                                featureLabel="TSS", baseFontSize=12,
+                                segmentSize=5,
+                                colourChoice=colourChoice)
+print(p)
+
 ## ----eval=F-------------------------------------------------------------------
 #  
 #  k_range = 2:8      # Number of classes to be found
@@ -108,7 +123,7 @@ dim(dataMatrix)
 
 ## ----eval=F-------------------------------------------------------------------
 #  
-#  i=1
+#  
 #  dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
 #  regionName=matTable$region[i]
 #  sampleName=matTable$sample[i]
@@ -205,12 +220,12 @@ dim(dataMatrix)
 #  numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
 #  xRange=c(-250,250)
 #  maxB=50 # Number of randomised matrices to generate
-#  outPath="./EMres_multigene_cosine"
+#  outPath="./EMres_multigene_cosine_m1to1"
 #  maxTasks=4
 #  taskId=1
 #  nThreads=4
 #  setSeed=FALSE
-#  distMetric=list(name="cosineDist",rescale=F)
+#  distMetric=list(name="cosineDist",rescale=T)
 #  
 #  if(!dir.exists(outPath)){
 #    dir.create(outPath)

@@ -252,12 +252,19 @@ classifyAndSortReads<-function(dataMatrix,posteriorProb,previousClassMeans=NULL)
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @param segmentSize Length of colour segment denoting methylation site
+#' @param colourChoice A list of colours for colour pallette. Must include
+#' values for "low", "mid", "high" and "bg" (background) and "lines".
 #' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
-plotClassesSingleGene<-function(dataOrderedByClass,
+plotClassesSingleMolecule<-function(dataOrderedByClass,
                                 xRange=c(-250,250), title="Reads by classes",
                                 myXlab="CpG/GpC position",
-                                featureLabel="TSS", baseFontSize=12){
+                                featureLabel="TSS", baseFontSize=12,
+                                segmentSize=5,
+                                colourChoice=list(low="blue", mid="white",
+                                                  high="red", bg="white",
+                                                  lines="grey80")){
   position <- methylation <- molecules <- readNumber <- Class <-NULL
   readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
   classOrder <- unique(readClasses)
@@ -283,8 +290,9 @@ plotClassesSingleGene<-function(dataOrderedByClass,
     d$position<-as.numeric(d$position)
   }
   p<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
-    ggplot2::geom_tile(ggplot2::aes(width=3,fill=methylation),alpha=0.8) +
-    ggplot2::scale_fill_gradient2(low="blue", mid="white",high="red",
+    ggplot2::geom_tile(ggplot2::aes(width=segmentSize,fill=methylation),alpha=0.8) +
+    ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                  high=colourChoice$high,
                                   midpoint=0.5, na.value="transparent",
                                  breaks=c(0,1), labels=c("protected","accessible"),
                                  limits=c(0,1), name="dSMF\n\n") +
@@ -292,8 +300,9 @@ plotClassesSingleGene<-function(dataOrderedByClass,
     ggplot2::theme_light(base_size=baseFontSize) +
     ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                    panel.grid.minor = ggplot2::element_blank(),
+                   panel.background=ggplot2::element_rect(fill=colourChoice$bg),
                    plot.title = ggplot2::element_text(face = "bold"),
-                   legend.position="right",legend.box = "vertical",
+                   legend.position="right", legend.box = "vertical",
                    legend.key.height = ggplot2::unit(0.5, "cm"),
                    legend.key.width=ggplot2::unit(0.3,"cm")) +
     ggplot2::ggtitle(title) +
@@ -309,13 +318,14 @@ plotClassesSingleGene<-function(dataOrderedByClass,
                         y=-max(2,0.03*length(reads)),
                         label=featureLabel,color="grey20")
   # add lines separating classes
-  p<-p+ggplot2::geom_hline(yintercept=classBorders,colour="grey80")
+  p<-p+ggplot2::geom_hline(yintercept=classBorders,colour=colourChoice$lines)
   # add color bar for classes
   p<-p+ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=(xRange[2]+10),
                                                              y=readNumber-0.5,
                                                              xend=(xRange[2]+10),
                                                              yend=readNumber+0.5,
-                                                             colour=Class), size=5) +
+                                                             colour=Class),
+                             size=5) +
       ggplot2::geom_vline(xintercept=xRange[2],colour="grey80")
   return(p)
 }
@@ -729,14 +739,14 @@ plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses,
   #makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
   #                                         "classMeanPlots"),"/",outFileBase))
   # do single molecule plots of classes
-  p<-plotClassesSingleGene(dataOrderedByClass, xRange,
+  p<-plotClassesSingleMolecule(dataOrderedByClass, xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=baseFontSize)
   outPath<-gsub("\\/$","",outPath)
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/classReads_", outFileBase,"_K",
-                                numClasses,"_r", EMrep, ".pdf"),
-                plot=p, device="pdf", width=19, height=29, units="cm")
+                                numClasses,"_r", EMrep, ".png"),
+                plot=p, device="png", width=19, height=29, units="cm")
 
   #plot individual unsmoothed class means
   p<-plotClassMeans(classMeans,xRange=xRange, facet=TRUE,
@@ -838,14 +848,14 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
                            outFileBase,
                            outPath, xRange, myXlab, featureLabel, baseFontSize){
   # plot single molecules with final classes
-  p<-plotClassesSingleGene(dataOrderedByClass, xRange=xRange,
+  p<-plotClassesSingleMolecule(dataOrderedByClass, xRange=xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=12)
   outPath<-gsub("\\/$","",outPath)
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/finalClassReads_", outFileBase,"_K",
-                                numClasses, ".pdf"),
-                plot=p, device="pdf", width=19, height=29, units="cm")
+                                numClasses, ".png"),
+                plot=p, device="png", width=19, height=29, units="cm")
 
 
   # plot all class means (faceted)

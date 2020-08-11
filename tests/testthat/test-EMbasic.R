@@ -167,8 +167,7 @@ testthat::test_that("plotting from single gene returns a plot" , {
                     "r1__class3","r4__class3","r5__class3")
   colnames(dataMatrix)<-c(-200,-100, 200)
 
-  #testthat::expect_null(plotClassesSingleGene(matrix(c(0)),performSilhouette=F),)
-  p<-plotClassesSingleGene(dataMatrix, xRange=c(-250,250),
+  p<-plotClassesSingleMolecule(dataMatrix, xRange=c(-250,250),
                         title="Reads by classes",
                         myXlab="CpG/GpC position",
                         featureLabel="TSS",
