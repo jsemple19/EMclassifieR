@@ -185,10 +185,23 @@ rescale_0To1<-function(dataMatrix){
 #' Count number of total genes in multigene clustering and then count
 #' how many unique genes are present for each class (ideally they
 #' should be evenly distributed between the classes)
-#' @param dataOrdredByClass A methylation matrix whose row names contain the
-#' @return Matrix with methylation values coded on a -1 to 1 scale
+#' @param dataOrderedByClass A methylation matrix whose row names contain
+#' fields separted by "__" where the first field is the gene name and the
+#' third field is the class number
+#' @param sampleName String to be used in plot title
+#' @return A data frame of counts of reads in each class for each gene
 #' @export
-countGenesPerClass<-function(dataOrderedByClass){
-  TRUE
-  return(dataOrderedByClass)
+countGenesPerClass<-function(dataOrderedByClass,sampleName=""){
+  genes<-sapply(strsplit(rownames(dataOrderedByClass),"__"),"[[",1)
+  classes<-sapply(strsplit(rownames(dataOrderedByClass),"__"),"[[",3)
+  numClasses<-length(unique(classes))
+  df<-data.frame(genes=genes,classes=classes)
+  counts<-df %>% dplyr::group_by(genes,classes) %>% dplyr::count()
+  p<-ggplot2::ggplot(data=df,ggplot2::aes(x=genes,fill=classes)) +
+    ggplot2::geom_bar(stat="count") +
+    ggplot2::theme(axis.text.x=ggplot2::element_blank(),
+                   axis.ticks.x=ggplot2::element_blank()) +
+    ggplot2::ggtitle(label=sampleName)
+  countsWide<-counts %>% tidyr::pivot_wider(names_from=classes,values_from=n)
+  return(list(countsWide,p))
 }

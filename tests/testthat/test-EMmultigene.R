@@ -121,8 +121,11 @@ testthat::test_that("rescale_0To1 values correctly", {
 
 
 
-testthat::test_that("countGenesByClass works", {
+testthat::test_that("countGenesPerClass works", {
   filename<-system.file("extdata", "EMres/dS02-182_multiGene_K5.rds",
-              package="EMclassfieR", mustWork=TRUE)
-  testthat::expect_equal(1,1)
+              package="EMclassifieR", mustWork=TRUE)
+  dataOrderedByClass<-readRDS(filename)
+  counts<-countGenesPerClass(dataOrderedByClass)
+  testthat::expect_equal(as.numeric(counts[[1]][1,3]),11)
+  testthat::expect_true(ggplot2::is.ggplot(counts[[2]]))
 })
