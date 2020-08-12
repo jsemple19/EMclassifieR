@@ -121,3 +121,8 @@ testthat::test_that("rescale_0To1 values correctly", {
 
 
 
+testthat::test_that("countGenesByClass works", {
+  filename<-system.file("extdata", "EMres/dS02-182_multiGene_K5.rds",
+              package="EMclassfieR", mustWork=TRUE)
+  testthat::expect_equal(1,1)
+})

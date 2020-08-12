@@ -15,20 +15,20 @@ dim(dataMatrix)
 dataMatrix<-removeAllNArows(dataMatrix)
 dim(dataMatrix)
 
-dataMatrix<-readRDS("~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds")
-dataMatrix<-removeAllNArows(dataMatrix)
-
-colourChoice=list(low="blue", mid="white", high="red", bg="white", lines="grey80")
-colourChoice=list(low="yellow", mid="grey20", high="red", bg="black", lines="grey80")
-
-
-p<-plotClassesSingleMolecule(dataMatrix,
-                                xRange=c(-250,250), title="Reads by classes",
-                                myXlab="CpG/GpC position",
-                                featureLabel="TSS", baseFontSize=12,
-                                segmentSize=5,
-                                colourChoice=colourChoice)
-print(p)
+# dataMatrix<-readRDS("~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds")
+# dataMatrix<-removeAllNArows(dataMatrix)
+# 
+# colourChoice=list(low="blue", mid="white", high="red", bg="white", lines="grey80")
+# colourChoice=list(low="yellow", mid="grey20", high="red", bg="black", lines="grey80")
+# 
+# 
+# p<-plotClassesSingleMolecule(dataMatrix,
+#                                 xRange=c(-250,250), title="Reads by classes",
+#                                 myXlab="CpG/GpC position",
+#                                 featureLabel="TSS", baseFontSize=12,
+#                                 segmentSize=5,
+#                                 colourChoice=colourChoice)
+# print(p)
 
 ## ----eval=F-------------------------------------------------------------------
 #  

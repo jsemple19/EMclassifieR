@@ -177,3 +177,18 @@ rescale_0To1<-function(dataMatrix){
   dataMatrix<-(dataMatrix+1)/2
   return(dataMatrix)
 }
+
+
+
+#' Count genes per class
+#'
+#' Count number of total genes in multigene clustering and then count
+#' how many unique genes are present for each class (ideally they
+#' should be evenly distributed between the classes)
+#' @param dataOrdredByClass A methylation matrix whose row names contain the
+#' @return Matrix with methylation values coded on a -1 to 1 scale
+#' @export
+countGenesPerClass<-function(dataOrderedByClass){
+  TRUE
+  return(dataOrderedByClass)
+}
