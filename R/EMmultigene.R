@@ -22,7 +22,7 @@
 #' @export
 selectReadsFromMatrix<-function(dataMatrix, minReads=50, addToReadName="",
                                 preferBest=T){
-  if(nrow(dataMatrix)>minReads){
+  if(!is.null(dim(dataMatrix)) & nrow(dataMatrix)>minReads){
     # append addtoReadName to row names:
     row.names(dataMatrix)<-paste(addToReadName,row.names(dataMatrix),sep="__")
     # sample in inverse proportion to number of NAs (preferably get the good

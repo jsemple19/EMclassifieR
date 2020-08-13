@@ -55,6 +55,52 @@ em_basic <- function(classes,priorProb,dataMatrix) {
 
 
 
+#' Expectation Maximisation algorithm
+#'
+#' @param classes A matrix containing the classes to be optimised. c[i,j] is the expected methylation value or bincount value of class i at position j.
+#' @param priorProb A vector defining the prior probabilities of each class.
+#' @param dataMatrix  A matrix containing the sample. dataMatrix [i,j] is the methylation value or bincount value of sample i at position j.
+#' @return A list of three items:
+#'             1) classes: a matrix with classes being optimised (class x position)
+#'             2) priorProb: a vector with the prior probabilities of each class
+#'             3) posteriorProb: a matrix of probabilites of each sample belonging
+#'             to a particular class (samples x class)
+#' @export
+em_classify <- function(classes,priorProb,dataMatrix) {
+  # To deal with fractions in methlyation dataMatrix (when opposite strand do not agree on
+  # methylation status), the methylation status will be applied at random with
+  # probability given by the fraction.
+  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
+  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
+  stopifnot(isMatrixValid(dataMatrix,NAsValid=FALSE))
+  binaryData<-dataMatrix
+  if (sum(fractionIdx)>0){
+    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
+  }
+
+  numClasses=dim(classes)[1]         # Number of classes
+  numSamples=dim(binaryData)[1]            # Number of samples
+  l=matrix(nrow=numSamples, ncol=numClasses)  # log likelihood (theta|data)
+  posteriorProb=matrix(nrow=numSamples, ncol=numClasses)  # probability by which each class occurs
+
+  # E step
+  for(i in 1:numSamples) {
+    for (j in 1:numClasses) {
+      # Bernoulli (size = 1): simply multiplying by class probability
+      l[i,j] = sum(stats::dbinom(x = binaryData[i,], size = 1, prob = classes[j,], log = T))
+      # not sure about implementing the beta distribution
+      #l[i,j] = sum(dbeta(x = dataMatrix[i,], shape1 = classes[j,], shape2 = classes[j,], log = T))
+    }
+  }
+}
+
+
+
+
+
+
+
+
 ############################### EM HELPERS #########################################
 
 
