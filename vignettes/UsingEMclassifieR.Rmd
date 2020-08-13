@@ -225,6 +225,7 @@ for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
   regionName=matTable$region[i]
   sampleName=matTable$sample[i]
   outFileBase=paste(sampleName, regionName, sep="_")
+  print(paste0("reading matrix number ",i))
   dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
                                   package = "EMclassifieR", mustWork=TRUE))
   #Make sure matrix rows do not have too many NAs
