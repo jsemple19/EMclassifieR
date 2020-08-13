@@ -3,7 +3,7 @@ context("preProcessMethMats")
 testthat::test_that("NA rows are removed", {
   mat<-matrix(c(1,2,3,NA,4,5),nrow=3,byrow=T)
 
-  testthat::expect_equal(removeAllNArows(mat),matrix(c(1,2,4,5),nrow=2,byrow=T))
+  testthat::expect_equal(removeNArows(mat),matrix(c(1,2,4,5),nrow=2,byrow=T))
 })
 
 

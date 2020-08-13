@@ -201,7 +201,32 @@ countGenesPerClass<-function(dataOrderedByClass,sampleName=""){
     ggplot2::geom_bar(stat="count") +
     ggplot2::theme(axis.text.x=ggplot2::element_blank(),
                    axis.ticks.x=ggplot2::element_blank()) +
-    ggplot2::ggtitle(label=sampleName)
+    ggplot2::ggtitle(label=paste(sampleName,numClasses,"classes"))
   countsWide<-counts %>% tidyr::pivot_wider(names_from=classes,values_from=n)
   return(list(countsWide,p))
+}
+
+
+#' Plot number of genes per class
+#'
+#' @param k_range range of number of classes
+#' @param outPath Path for out put file
+#' @param outFileBase the basename of the file of the matrices with classes
+#' appended to the read name
+#' @return successful completion message
+#' @export
+plotGenesPerClass<-function(k_range,outPath,outFileBase){
+  for(numClasses in k_range){
+    dataMatrix<-readRDS(paste0(outPath, "/", outFileBase, "_K",
+                               numClasses, ".rds"))
+    counts<-countGenesPerClass(dataMatrix, sampleName=outFileBase)
+    utils::write.csv(counts[[1]],file=paste0(outPath,"/genesPerClass_",
+                                      outFileBase,"_K", numClasses,".csv"),
+               row.names=F)
+    ggplot2::ggsave(filename=paste0(outPath,"/genesPerClass_",
+                                    outFileBase,"_K", numClasses,".pdf"),
+                    plot=counts[[2]], device="pdf", width=29, height=19,
+                    units="cm")
+  }
+  return("Classes per gene plotted correctly")
 }

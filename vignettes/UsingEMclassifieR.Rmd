@@ -1,5 +1,5 @@
 ---
-title: "Using EMclassifieR on methylation data"
+title: "EMclassifieR for methylation data"
 author: "Jennifer Semple"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -31,11 +31,11 @@ The matrices are in RDS format. For learning it is probably best to process them
 i=1
 dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], package = "EMclassifieR", mustWork=TRUE))
 dim(dataMatrix)
-dataMatrix<-removeAllNArows(dataMatrix)
+dataMatrix<-removeNArows(dataMatrix)
 dim(dataMatrix)
 
 # dataMatrix<-readRDS("~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds")
-# dataMatrix<-removeAllNArows(dataMatrix)
+# dataMatrix<-removeNArows(dataMatrix)
 # 
 # colourChoice=list(low="blue", mid="white", high="red", bg="white", lines="grey80")
 # colourChoice=list(low="yellow", mid="grey20", high="red", bg="black", lines="grey80")
@@ -86,7 +86,7 @@ for (i in taskSubList[[taskId]]){
   dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
                               package = "EMclassifieR", mustWork=TRUE))
   dim(dataMatrix)
-  dataMatrix<-removeAllNArows(dataMatrix)
+  dataMatrix<-removeNArows(dataMatrix)
   dim(dataMatrix)
   
   allClassMeans<-tryCatch(
@@ -219,26 +219,29 @@ matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
                                mustWork=TRUE), stringsAsFactors=F)
 head(matTable)
 multiGeneMat<-NULL
+genesIncluded<-0
 for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
   regionName=matTable$region[i]
   sampleName=matTable$sample[i]
   outFileBase=paste(sampleName, regionName, sep="_")
   dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
                                   package = "EMclassifieR", mustWork=TRUE))
-  
+  #Make sure matrix rows do not have too many NAs
+  dataMatrix<-removeNArows(dataMatrix,maxNAfraction=0.2)
   subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=50,
                                  addToReadName=outFileBase,
                                  preferBest=T)
   if(!is.null(subMatrix)){
     fullMatrix<-getFullMatrix(subMatrix)
     winMatrix<-prepareWindows(fullMatrix)
-  
+    genesIncluded<-genesIncluded+1
     if(is.null(multiGeneMat)){
       multiGeneMat<-winMatrix
     } else {
       multiGeneMat<-rbind(multiGeneMat,winMatrix)
     }
   }
+  print(paste(genesIncluded,"genes included in the multi gene matrix"))
 }
 
 multiGeneMat<-rescale_minus1To1(multiGeneMat)
@@ -271,7 +274,7 @@ outFileBase=paste(sampleName, regionName, sep="_")
 print(paste("Clustering", outFileBase))
 dataMatrix<-multiGeneMat
 dim(dataMatrix)
-dataMatrix<-removeAllNArows(dataMatrix)
+dataMatrix<-removeNArows(dataMatrix,maxNAfraction=0)
 dim(dataMatrix)
 
 allClassMeans<-tryCatch(
@@ -328,6 +331,8 @@ if(length(umapPlots)==1) {
   print(umapPlots)
 }
 
+print("plotting classes per gene")
+plotGenesPerClass(k_range, outPath, outFileBase)
 
 # to use -1 to 1
 #https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain

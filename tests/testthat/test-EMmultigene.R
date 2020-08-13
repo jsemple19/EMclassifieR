@@ -122,7 +122,7 @@ testthat::test_that("rescale_0To1 values correctly", {
 
 
 testthat::test_that("countGenesPerClass works", {
-  filename<-system.file("extdata", "EMres/dS02-182_multiGene_K5.rds",
+  filename<-system.file("extdata", "EMres/dS02-182_multiGene_K6.rds",
               package="EMclassifieR", mustWork=TRUE)
   dataOrderedByClass<-readRDS(filename)
   counts<-countGenesPerClass(dataOrderedByClass)

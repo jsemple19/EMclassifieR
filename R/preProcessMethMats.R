@@ -3,13 +3,18 @@
 
 #' Remove rows containing NAs
 #'
-#' @param mat A matrix of numbers and NAs.
-#' @return A matrix without the rows containing NAs
+#' Function to remove all rows from a matrix where more than a certain
+#' fraction of the positions in that row are NAs. To remove rows with any
+#' NAs at all, set maxNAfraction=0
+#' @param dataMatrix A matrix of numbers and NAs.
+#' @param maxNAfraction Maximual fraction of CpG/GpC positions that can be undefined (default=0.2)
+#' @return A matrix without the rows where the fraction of NA positions is above
+#' the threshold
 #' @examples
-#' removeAllNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
+#' removeNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
 #' @export
-removeAllNArows<-function(mat) {
-  NAidx<-rowSums(is.na(mat))>0
+removeNArows<-function(dataMatrix,maxNAfraction=0.2) {
+  NAidx<-rowSums(is.na(mat))/dim(mat)[2] > maxNAfraction
   newMat<-mat[!NAidx,]
   return(newMat)
 }
