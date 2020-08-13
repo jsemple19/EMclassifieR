@@ -218,6 +218,8 @@ different matrices
 tablePath="csv/MatrixLog_relCoord_ampTSS.csv"
 matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
                                mustWork=TRUE), stringsAsFactors=F)
+matTable<-matTable[!is.na(matTable$filename),]
+
 head(matTable)
 multiGeneMat<-NULL
 genesIncluded<-0
