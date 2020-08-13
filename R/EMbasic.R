@@ -13,6 +13,7 @@ em_basic <- function(classes,priorProb,dataMatrix) {
   # To deal with fractions in methlyation dataMatrix (when opposite strand do not agree on
   # methylation status), the methylation status will be applied at random with
   # probability given by the fraction.
+  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   stopifnot(isMatrixValid(dataMatrix,NAsValid=FALSE))
   binaryData<-dataMatrix
@@ -102,8 +103,10 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
 
   # To deal with fractions in methlyation dataMatrix (when opposite strands do
   # not agree on methylation status), the methylation status will be applied at
-  # random with probability given by the fraction.
+  # random with probability given by the fraction. NAs will be recoded to 0.5
+  # (equal probability of 0 or 1 at that position)
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
+  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
   stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
@@ -930,7 +933,9 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  #stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
+  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
+  stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
+
   for (EMrep in 1:EMrepeats){
     # do classifiction
     emClass<-runEM(dataMatrix=dataMatrix, numClasses=numClasses,
@@ -1045,7 +1050,7 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              myXlab="CpG/GpC position", featureLabel="TSS",
                              baseFontSize=12, doIndividualPlots=TRUE,
                              distMetric=list(name="euclidean")) {
-  stopifnot(isMatrixValid(dataMatrix))
+  #stopifnot(isMatrixValid(dataMatrix))
   allClassMeans<-list()
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))

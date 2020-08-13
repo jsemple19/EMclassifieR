@@ -99,11 +99,11 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
 #' Test if matrix contains values that are only within the range specified by valueRange
 #' @param dataMatrix Matrix the values of which will be tested
 #' @param valueRange Vector of min and max permissible values in the matrix
-#' (default=c(-1,1))
+#' (default=c(0,1))
 #' @param NAsValid Boolean TRUE/FALSE indicating if NAs are considered valid (default=FALSE)
 #' @return Boolean TRUE/FALSE indicating if matrix contains only valid values
 #' @export
-isMatrixValid<-function(dataMatrix,valueRange=c(-1,1),NAsValid=FALSE){
+isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE){
   isValid=TRUE
   if(!is.matrix(dataMatrix)) {
     print("Not a proper matrix")
@@ -170,7 +170,7 @@ euclidWinDist<-function(binMat,winSize=3,stepSize=1,rescale=F){
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-cosineDist<-function(binMat, val0=0, valNA=0,rescale=F){
+cosineDist<-function(binMat, val0=0, valNA=0, rescale=F){
   binMat[binMat==0]<-val0
   binMat[is.na(binMat)]<-valNA
   if(rescale){
@@ -236,9 +236,15 @@ getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
 #' @param dataMatrix Matrix for PCA with row names containing __classNumber at
 #' the end
 #' @param classes Vactor of classifications for all the rows
+#' @param rescale Rescale matrix with 0-1 values to -1 to 1 values where -1 is
+#' no methylation, NAs are 0 and 1 is methylation at that position.
 #' @return pca plots
 #' @export
-plotMatPCA<-function(dataMatrix,classes){
+plotMatPCA<-function(dataMatrix,classes,rescale=T){
+  if(rescale==T){
+    dataMatrix<-rescale_minus1To1(dataMatrix)
+  }
+  stopifnot(isMatrixValid(dataMatrix, valueRange=c(-1,1), NAsValid=FALSE))
   matpca<-stats::prcomp(dataMatrix,center=T)
   p1<-ggbiplot::ggbiplot(matpca,choices=c(1,2),labels=classes,groups=classes,
                     var.axes=F) + ggplot2::theme(legend.position = "none")
@@ -281,10 +287,13 @@ plotPCAofMatrixClasses<-function(k_range, outPath, outFileBase){
 #'
 #' @param dataMatrix Matrix for UMAP dimentionality reduction
 #' @param classes Factorised vector of classifications for all the rows
+#' @param rescale Rescale matrix with 0-1 values to -1 to 1 values where -1 is
+#' no methylation, NAs are 0 and 1 is methylation at that position.
 #' @param custom.settings Settings for UMAP plotting. Based on umap.defaults.
 #' @return single UMAP plot
 #' @export
-doSingleUMAPplot<-function(dataMatrix,classes,custom.settings=umap::umap.defaults){
+doSingleUMAPplot<-function(dataMatrix, classes, rescale=T,
+                           custom.settings=umap::umap.defaults){
   X1 <- X2 <- NULL
   mumap<-umap::umap(dataMatrix,config=custom.settings)
   colnames(mumap$layout)<-c("X1","X2")
@@ -308,6 +317,10 @@ doSingleUMAPplot<-function(dataMatrix,classes,custom.settings=umap::umap.default
 #' @return umap plots with different distance metrics
 #' @export
 plotMatUMAP<-function(dataMatrix,classes){
+  if(rescale==T){
+    dataMatrix<-rescale_minus1To1(dataMatrix)
+  }
+  stopifnot(isMatrixValid(dataMatrix, valueRange=c(-1,1), NAsValid=FALSE))
   dups<-duplicated(dataMatrix)
   dataMatrix<-dataMatrix[!dups,]
   readClasses<-factor(classes[!dups])

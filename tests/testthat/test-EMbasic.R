@@ -27,18 +27,18 @@ testthat::test_that("EM_basic and runEM fail if data not in 0-1 range", {
 
 
 
-testthat::test_that("EM_basic and runEM fail if data contains NAs", {
-  numSamples=4
-  numClasses=2
-  dataMatrix<-matrix(c(NA,0,0,1,1,1,NA,1,0,0,0,1),nrow=numSamples,byrow=T)
-  classes = matrix(rep(0.5,6),nrow=2)
-  priorProb=rep(1/numClasses,numClasses)
-  result1<-try(em_basic(classes,priorProb,dataMatrix),silent=TRUE)
-  result2<-try(runEM(dataMatrix,numClasses,1e-6,100),silent=TRUE)
-
-  testthat::expect_equal(class(result1), "try-error")
-  testthat::expect_equal(class(result2), "try-error")
-})
+# testthat::test_that("EM_basic and runEM fail if data contains NAs", {
+#   numSamples=4
+#   numClasses=2
+#   dataMatrix<-matrix(c(NA,0,0,1,1,1,NA,1,0,0,0,1),nrow=numSamples,byrow=T)
+#   classes = matrix(rep(0.5,6),nrow=2)
+#   priorProb=rep(1/numClasses,numClasses)
+#   result1<-try(em_basic(classes,priorProb,dataMatrix),silent=TRUE)
+#   result2<-try(runEM(dataMatrix,numClasses,1e-6,100),silent=TRUE)
+#
+#   testthat::expect_equal(class(result1), "try-error")
+#   testthat::expect_equal(class(result2), "try-error")
+# })
 
 
 

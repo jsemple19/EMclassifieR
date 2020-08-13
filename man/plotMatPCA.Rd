@@ -4,13 +4,16 @@
 \alias{plotMatPCA}
 \title{Plot pca of data matrix}
 \usage{
-plotMatPCA(dataMatrix, classes)
+plotMatPCA(dataMatrix, classes, rescale = T)
 }
 \arguments{
 \item{dataMatrix}{Matrix for PCA with row names containing __classNumber at
 the end}
 
 \item{classes}{Vactor of classifications for all the rows}
+
+\item{rescale}{Rescale matrix with 0-1 values to -1 to 1 values where -1 is
+no methylation, NAs are 0 and 1 is methylation at that position.}
 }
 \value{
 pca plots

@@ -4,13 +4,13 @@
 \alias{isMatrixValid}
 \title{Test if matrix is valid}
 \usage{
-isMatrixValid(dataMatrix, valueRange = c(-1, 1), NAsValid = FALSE)
+isMatrixValid(dataMatrix, valueRange = c(0, 1), NAsValid = FALSE)
 }
 \arguments{
 \item{dataMatrix}{Matrix the values of which will be tested}
 
 \item{valueRange}{Vector of min and max permissible values in the matrix
-(default=c(-1,1))}
+(default=c(0,1))}
 
 \item{NAsValid}{Boolean TRUE/FALSE indicating if NAs are considered valid (default=FALSE)}
 }

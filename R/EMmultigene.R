@@ -142,23 +142,6 @@ rescale_minus1To1<-function(dataMatrix,randomiseNAs=F){
 
 
 
-#' #' Recode matrix
-#' #'
-#' #' Recode values in methylation matrix from a scale of 0 (no meth) to 1 (meth)
-#' #' to a scale of -1 (no meth) to 1 (meth). NaN are set to 0 and NAs can
-#' #' be either 0 or randomly assigned to -0.5 or 0.5
-#' #' @param dataMatrix  A matrix containing methylation values for a
-#' #' region of the genome using coordinates relative to an anchor point.
-#' #' dataMatrix[i,j] is the methylation value of sample i at position j.
-#' #' 0=not methylated, 1=methylated, NA=no methylation information at this
-#' #' position.
-#' #' @return Matrix with methylation values coded on a -1 to 1 scale
-#' #' @export
-#' recodeMatrixAsNumeric<-function(dataMatrix){
-#'   dataMatrix[is.na(dataMatrix)]<-0.5
-#'   return(dataMatrix)
-#' }
-
 ### to convert scale to -1 to 1, do 2x-1, then code NA and NaN as 0, or NaN as 0,
 ### and NA as randomly assigned.
 
