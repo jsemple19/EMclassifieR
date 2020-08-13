@@ -126,6 +126,6 @@ testthat::test_that("countGenesPerClass works", {
               package="EMclassifieR", mustWork=TRUE)
   dataOrderedByClass<-readRDS(filename)
   counts<-countGenesPerClass(dataOrderedByClass)
-  testthat::expect_equal(as.numeric(counts[[1]][1,3]),11)
+  testthat::expect_equal(as.numeric(counts[[1]][1,3]),7)
   testthat::expect_true(ggplot2::is.ggplot(counts[[2]]))
 })

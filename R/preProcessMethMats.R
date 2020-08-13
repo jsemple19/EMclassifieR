@@ -14,8 +14,8 @@
 #' removeNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
 #' @export
 removeNArows<-function(dataMatrix,maxNAfraction=0.2) {
-  NAidx<-rowSums(is.na(mat))/dim(mat)[2] > maxNAfraction
-  newMat<-mat[!NAidx,]
+  NAidx<-rowSums(is.na(dataMatrix))/dim(dataMatrix)[2] > maxNAfraction
+  newMat<-dataMatrix[!NAidx,]
   return(newMat)
 }
 
