@@ -287,12 +287,10 @@ plotPCAofMatrixClasses<-function(k_range, outPath, outFileBase){
 #'
 #' @param dataMatrix Matrix for UMAP dimentionality reduction
 #' @param classes Factorised vector of classifications for all the rows
-#' @param rescale Rescale matrix with 0-1 values to -1 to 1 values where -1 is
-#' no methylation, NAs are 0 and 1 is methylation at that position.
 #' @param custom.settings Settings for UMAP plotting. Based on umap.defaults.
 #' @return single UMAP plot
 #' @export
-doSingleUMAPplot<-function(dataMatrix, classes, rescale=T,
+doSingleUMAPplot<-function(dataMatrix, classes,
                            custom.settings=umap::umap.defaults){
   X1 <- X2 <- NULL
   mumap<-umap::umap(dataMatrix,config=custom.settings)
