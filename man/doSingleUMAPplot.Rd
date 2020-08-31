@@ -4,20 +4,12 @@
 \alias{doSingleUMAPplot}
 \title{Plot UMAP of data matrix}
 \usage{
-doSingleUMAPplot(
-  dataMatrix,
-  classes,
-  rescale = T,
-  custom.settings = umap::umap.defaults
-)
+doSingleUMAPplot(dataMatrix, classes, custom.settings = umap::umap.defaults)
 }
 \arguments{
 \item{dataMatrix}{Matrix for UMAP dimentionality reduction}
 
 \item{classes}{Factorised vector of classifications for all the rows}
-
-\item{rescale}{Rescale matrix with 0-1 values to -1 to 1 values where -1 is
-no methylation, NAs are 0 and 1 is methylation at that position.}
 
 \item{custom.settings}{Settings for UMAP plotting. Based on umap.defaults.}
 }
