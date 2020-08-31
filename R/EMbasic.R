@@ -573,7 +573,7 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
                    legend.position="right",legend.box = "vertical")
   # add individual points if there are less than 100 positions (to distinguish
   # single molecule matrices from multigene matrices)
-  if(length(unqiue(allClassMeans$position))<100){
+  if(length(unique(allClassMeans$position))<100){
     p<-p+ggplot2::geom_point(ggplot2::aes(colour=class),alpha=0.1)
   }
   # add line for TSS

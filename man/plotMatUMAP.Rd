@@ -4,12 +4,15 @@
 \alias{plotMatUMAP}
 \title{Plot UMAP of data matrix}
 \usage{
-plotMatUMAP(dataMatrix, classes)
+plotMatUMAP(dataMatrix, classes, rescale = T)
 }
 \arguments{
 \item{dataMatrix}{Matrix for UMAP dimentionality reduction}
 
 \item{classes}{Vector of classifications for all the rows}
+
+\item{rescale}{Rescale matrix with 0-1 values to -1 to 1 values where -1 is
+no methylation, NAs are 0 and 1 is methylation at that position.}
 }
 \value{
 umap plots with different distance metrics
