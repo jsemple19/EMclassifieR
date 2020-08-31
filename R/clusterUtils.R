@@ -314,9 +314,11 @@ doSingleUMAPplot<-function(dataMatrix, classes, rescale=T,
 #'
 #' @param dataMatrix Matrix for UMAP dimentionality reduction
 #' @param classes Vector of classifications for all the rows
+#' @param rescale Rescale matrix with 0-1 values to -1 to 1 values where -1 is
+#' no methylation, NAs are 0 and 1 is methylation at that position.
 #' @return umap plots with different distance metrics
 #' @export
-plotMatUMAP<-function(dataMatrix,classes){
+plotMatUMAP<-function(dataMatrix,classes,rescale=T){
   if(rescale==T){
     dataMatrix<-rescale_minus1To1(dataMatrix)
   }

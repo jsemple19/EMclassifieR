@@ -20,8 +20,8 @@
 #' @return Returns a dataMatrix with minReads number of rows, subsampled from
 #' the original dataMatrix.
 #' @export
-selectReadsFromMatrix<-function(dataMatrix, minReads=50, addToReadName="",
-                                preferBest=T){
+selectReadsFromMatrix<-function(dataMatrix, minReads=50,
+                                addToReadName="",  preferBest=T){
   if(all(all(!is.null(dim(dataMatrix))), all(dim(dataMatrix)!=0),
          nrow(dataMatrix)>minReads)){
     # append addtoReadName to row names:

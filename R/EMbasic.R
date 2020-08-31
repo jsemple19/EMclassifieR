@@ -560,7 +560,6 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
   p<-ggplot2::ggplot(allClassMeans,ggplot2::aes(x=position,
                                                 y=1-methFreq,
                                                 group=class)) +
-    ggplot2::geom_point(ggplot2::aes(colour=class),alpha=0.1) +
     ggplot2::geom_smooth(method="loess",span=0.5,
                          ggplot2::aes(color=class, fill=class)) +
     ggplot2::ggtitle(title) +
@@ -572,6 +571,11 @@ plotSmoothedClassMeans<-function(allClassMeans, xRange=c(-250,250), facet=FALSE,
                    panel.grid.minor = ggplot2::element_blank(),
                    plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
                    legend.position="right",legend.box = "vertical")
+  # add individual points if there are less than 100 positions (to distinguish
+  # single molecule matrices from multigene matrices)
+  if(length(unqiue(allClassMeans$position))<100){
+    p<-p+ggplot2::geom_point(ggplot2::aes(colour=class),alpha=0.1)
+  }
   # add line for TSS
   p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0, ymax=1),
                                color="grey80") +
