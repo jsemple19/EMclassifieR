@@ -8,14 +8,19 @@
 #' NAs at all, set maxNAfraction=0
 #' @param dataMatrix A matrix of numbers and NAs.
 #' @param maxNAfraction Maximual fraction of CpG/GpC positions that can be undefined (default=0.2)
+#' @param removeAll0 Remove reads that only have 0 or NA values, i.e. were not methylated at all (default=F)
 #' @return A matrix without the rows where the fraction of NA positions is above
 #' the threshold
 #' @examples
 #' removeNArows(matrix(c(1,2,3,NA,4,5),nrow=3,byrow=TRUE))
 #' @export
-removeNArows<-function(dataMatrix,maxNAfraction=0.2) {
+removeNArows<-function(dataMatrix, maxNAfraction=0.2, removeAll0=F) {
   NAidx<-rowSums(is.na(dataMatrix))/dim(dataMatrix)[2] > maxNAfraction
   newMat<-dataMatrix[!NAidx,]
+  if(removeAll0){
+    idx0orNA<-rowSums(dataMatrix==0 | is.na(dataMatrix))==dim(dataMatrix)[2]
+    newMat<-dataMatrix[!idx0orNA,]
+  }
   return(newMat)
 }
 

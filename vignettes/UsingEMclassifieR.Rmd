@@ -223,6 +223,7 @@ matTable<-matTable[!is.na(matTable$filename),]
 head(matTable)
 multiGeneMat<-NULL
 genesIncluded<-0
+minReads=50
 for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
   regionName=matTable$region[i]
   sampleName=matTable$sample[i]
@@ -231,8 +232,8 @@ for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
   dataMatrix<-readRDS(system.file("extdata", matTable$filename[i], 
                                   package = "EMclassifieR", mustWork=TRUE))
   #Make sure matrix rows do not have too many NAs
-  dataMatrix<-removeNArows(dataMatrix,maxNAfraction=0.2)
-  subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=50,
+  dataMatrix<-removeNArows(dataMatrix, maxNAfraction=0.2, removeAll0=T)
+  subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=minReads,
                                  addToReadName=outFileBase,
                                  preferBest=T)
   if(!is.null(subMatrix)){
