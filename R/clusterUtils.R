@@ -298,7 +298,8 @@ doSingleUMAPplot<-function(dataMatrix, classes,
   p<-ggplot2::ggplot(data=as.data.frame(mumap$layout),ggplot2::aes(x=X1,y=X2)) +
     ggplot2::geom_point(ggplot2::aes(colour=classes)) +
     ggplot2::ggtitle(paste0("UMAP with ",custom.settings$metric,
-                            " distance, min_dist=",custom.settings$min_dist))+
+                            " distance, min_dist=", custom.settings$min_dist,
+                            " spread=", custom.settings$spread))+
     ggplot2::theme(plot.title = ggplot2::element_text(size=10),
                    axis.title.x = ggplot2::element_text(size=8),
                    axis.title.y = ggplot2::element_text(size=8))
@@ -322,29 +323,37 @@ plotMatUMAP<-function(dataMatrix,classes,rescale=T){
   }
   stopifnot(isMatrixValid(dataMatrix, valueRange=c(-1,1), NAsValid=FALSE))
   dups<-duplicated(dataMatrix)
+  print(paste(length(dups)," duplicate rows found"))
   dataMatrix<-dataMatrix[!dups,]
   readClasses<-factor(classes[!dups])
   numClasses<-length(levels(readClasses))
 
   custom.settings = umap::umap.defaults
   custom.settings$n_neighbors = floor(length(readClasses)/numClasses)
-  custom.settings$min_dist = 0.1
-  custom.settings$spread=1
+  custom.settings$min_dist = 0.1 #0.1
+  custom.settings$spread=1#1
 
-  custom.settings$metric = "euclidean"
-  p1<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+  #custom.settings$metric = "euclidean"
+  #p1<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  custom.settings$metric = "manhattan"
-  p2<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+  #custom.settings$metric = "manhattan"
+  #p2<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
   custom.settings$metric = "cosine"
   p3<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  custom.settings$metric = "cosine"
-  custom.settings$min_dist = 0.05
-  p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+  #custom.settings$metric = "cosine"
+  #custom.settings$min_dist = 0.05
+  #p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
+  # custom.settings$metric = "cosine"
+  # custom.settings$min_dist = 0.01
+  # custom.settings$spread=3
+  # p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
+
+  #p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
+  p<-ggpubr::ggarrange(p3,nrow=1,ncol=1)
+
   return(p)
 }
 
@@ -366,7 +375,7 @@ plotUMAPofMatrixClasses<-function(k_range, outPath, outFileBase){
     p<-ggpubr::annotate_figure(p,top=ggpubr::text_grob(outFileBase,size=14))
     ggplot2::ggsave(filename=paste0(outPath,"/classUMAP_",
                                     outFileBase,"_K", numClasses,".pdf"),
-                    plot=p, device="pdf", width=29, height=19, units="cm")
+                    plot=p, device="pdf", width=19, height=19, units="cm")
   }
   return("UMAP plotted correctly")
 }
