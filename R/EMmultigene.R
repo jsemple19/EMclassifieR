@@ -175,7 +175,8 @@ rescale_0To1<-function(dataMatrix){
 #' @param sampleName String to be used in plot title
 #' @return A data frame of counts of reads in each class for each gene
 #' @export
-countGenesPerClass<-function(dataOrderedByClass,sampleName=""){
+countGenesPerClass<-function(dataOrderedByClass, sampleName=""){
+  n<-NULL
   genes<-sapply(strsplit(rownames(dataOrderedByClass),"__"),"[[",1)
   classes<-sapply(strsplit(rownames(dataOrderedByClass),"__"),"[[",3)
   numClasses<-length(unique(classes))

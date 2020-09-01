@@ -320,7 +320,7 @@ doSingleUMAPplot<-function(dataMatrix, classes,
 #' no methylation, NAs are 0 and 1 is methylation at that position.
 #' @return umap plots with different distance metrics
 #' @export
-plotMatUMAP<-function(dataMatrix,classes,rescale=T){
+plotMatUMAP<-function(dataMatrix, classes, rescale=T){
   if(rescale==T){
     dataMatrix<-rescale_minus1To1(dataMatrix)
   }
@@ -331,8 +331,8 @@ plotMatUMAP<-function(dataMatrix,classes,rescale=T){
   readClasses<-factor(classes[!dups])
 
   # subsample reads if more than 2000
-  if(dim(dataMatrix)[2]>2000) {
-    idx<-sample(1:dim(dd)[1],2000,replace=F)
+  if(dim(dataMatrix)[2]>2000){
+    idx<-sample(1:dim(dataMatrix)[1],2000,replace=F)
     dataMatrix<-dataMatrix[idx,]
     readClasses<-readClasses[idx]
   }
