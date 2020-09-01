@@ -311,6 +311,9 @@ doSingleUMAPplot<-function(dataMatrix, classes,
 
 #' Plot UMAP of data matrix
 #'
+#' Plot Uniform Manifold Approximation and Projection (UMAP) of the reads and
+#' colour by class. If matrix contains more than 2000 reads, the reads will
+#' be randomly subsampled to a maximum of 2000 in order to speed up projection.
 #' @param dataMatrix Matrix for UMAP dimentionality reduction
 #' @param classes Vector of classifications for all the rows
 #' @param rescale Rescale matrix with 0-1 values to -1 to 1 values where -1 is
@@ -323,38 +326,31 @@ plotMatUMAP<-function(dataMatrix,classes,rescale=T){
   }
   stopifnot(isMatrixValid(dataMatrix, valueRange=c(-1,1), NAsValid=FALSE))
   dups<-duplicated(dataMatrix)
-  print(paste(length(dups)," duplicate rows found"))
+  print(paste(sum(dups)," duplicate rows removed"))
   dataMatrix<-dataMatrix[!dups,]
   readClasses<-factor(classes[!dups])
+
+  # subsample reads if more than 2000
+  if(dim(dataMatrix)[2]>2000) {
+    idx<-sample(1:dim(dd)[1],2000,replace=F)
+    dataMatrix<-dataMatrix[idx,]
+    readClasses<-readClasses[idx]
+  }
   numClasses<-length(levels(readClasses))
 
   custom.settings = umap::umap.defaults
-  custom.settings$n_neighbors = floor(length(readClasses)/numClasses)
-  custom.settings$min_dist = 0.1 #0.1
-  custom.settings$spread=1#1
+  #custom.settings$n_neighbors = floor(length(readClasses)/numClasses)
+  #custom.settings$min_dist = 0.1 #0.1
+  #custom.settings$spread=1#1
 
   #custom.settings$metric = "euclidean"
   #p1<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  #custom.settings$metric = "manhattan"
-  #p2<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
-
   custom.settings$metric = "cosine"
   p3<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  #custom.settings$metric = "cosine"
-  #custom.settings$min_dist = 0.05
-  #p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
-
-  # custom.settings$metric = "cosine"
-  # custom.settings$min_dist = 0.01
-  # custom.settings$spread=3
-  # p4<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
-
-  #p<-ggpubr::ggarrange(p1,p2,p3,p4,nrow=2,ncol=2)
-  p<-ggpubr::ggarrange(p3,nrow=1,ncol=1)
-
-  return(p)
+  #p<-ggpubr::ggarrange(p3,nrow=1,ncol=1)
+  return(p3)
 }
 
 
