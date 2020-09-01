@@ -354,8 +354,10 @@ allClassMeans<-readRDS(system.file("extdata",
 repMeans<-allClassMeans[[6]] 
 dd<-repMeans %>% dplyr::group_by(position,class) %>% dplyr::summarize(classMeans=mean(methFreq))
 dd<-dd %>% tidyr::pivot_wider(names_from=position,values_from=classMeans) 
-dd<-dd[,order(as.numeric(colnames(dd)))]
+ddMat<-as.matrix(dd[,-1])
+row.names(ddMat)<-dd$class
+ddMat<-ddMat[,order(as.numeric(colnames(ddMat)))]
 
-plot(as.vector(dd[1,])~1:481)
+
 ```
 

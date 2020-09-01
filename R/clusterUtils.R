@@ -101,9 +101,11 @@ clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
 #' @param valueRange Vector of min and max permissible values in the matrix
 #' (default=c(0,1))
 #' @param NAsValid Boolean TRUE/FALSE indicating if NAs are considered valid (default=FALSE)
+#' @param checkColOrder Boolean TRUE/FALSE indicating if the order of column names should be checked. this assumes that these are numerical positions in ascending order (default=TRUE)
 #' @return Boolean TRUE/FALSE indicating if matrix contains only valid values
 #' @export
-isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE){
+isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE,
+                        checkColOrder=TRUE){
   isValid=TRUE
   if(!is.matrix(dataMatrix)) {
     print("Not a proper matrix")
@@ -125,6 +127,13 @@ isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE){
   if(sum(dataMatrix[!NAidx]>valueRange[2])>0) {
     print(paste("Matrix contains values greater than",valueRange[2]))
     isValid=FALSE
+  }
+  if(checkColOrder){
+    myColNames<-colnames(dataMatrix)
+    if(any(myColNames!=as.character(sort(as.numeric(myColNames))))){
+      print(paste("Matrix columns in wrong order"))
+      isValid=FALSE
+    }
   }
   return(isValid)
 }
