@@ -1,7 +1,7 @@
 # EMclassifieR
 Package for classifying methylation matrices from reads into probabilistic classes using the expectation maximisation algorithm. Based on work by Kyriakos Schwartz, which was based on the following publication, and code in the supplementary material thereof:
 
-Nair, N. U., Kumar, S., Moret, B. M. E., & Bucher, P. (2014). Probabilistic partitioning methods to find significant patterns in ChIP-Seq data. Bioinformatics, 30(17), 2406–2413. https://doi.org/10.1093/bioinformatics/btu318
+__Nair, N. U., Kumar, S., Moret, B. M. E., & Bucher, P. (2014). Probabilistic partitioning methods to find significant patterns in ChIP-Seq data. Bioinformatics, 30(17), 2406–2413. https://doi.org/10.1093/bioinformatics/btu318__
 
 Kyriakos Schwartz did an initial implementation of the code for binary methylation data. Here I turn this code in to an R package and expand its functionality.
 
