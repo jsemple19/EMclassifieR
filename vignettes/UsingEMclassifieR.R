@@ -192,6 +192,7 @@ dim(dataMatrix)
 #  head(matTable)
 #  multiGeneMat<-NULL
 #  genesIncluded<-0
+#  minReads=50
 #  for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
 #    regionName=matTable$region[i]
 #    sampleName=matTable$sample[i]
@@ -200,8 +201,8 @@ dim(dataMatrix)
 #    dataMatrix<-readRDS(system.file("extdata", matTable$filename[i],
 #                                    package = "EMclassifieR", mustWork=TRUE))
 #    #Make sure matrix rows do not have too many NAs
-#    dataMatrix<-removeNArows(dataMatrix,maxNAfraction=0.2)
-#    subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=50,
+#    dataMatrix<-removeNArows(dataMatrix, maxNAfraction=0.2, removeAll0=T)
+#    subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=minReads,
 #                                   addToReadName=outFileBase,
 #                                   preferBest=T)
 #    if(!is.null(subMatrix)){
@@ -310,6 +311,11 @@ dim(dataMatrix)
 #  # to use -1 to 1
 #  #https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain
 #  
+#  
+#  dataMatrix<-readRDS("/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/dS02-182_multiGene_K6.rds")
+#  outPath="/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/"
+#  outFileBase="dS02-182_multiGene"
+#  numClasses=6
 
 ## ----classifyWithKnownClasses,eval=F------------------------------------------
 #  allClassMeans<-readRDS(system.file("extdata",

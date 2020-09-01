@@ -18,5 +18,7 @@ no methylation, NAs are 0 and 1 is methylation at that position.}
 umap plots with different distance metrics
 }
 \description{
-Plot UMAP of data matrix
+Plot Uniform Manifold Approximation and Projection (UMAP) of the reads and
+colour by class. If matrix contains more than 2000 reads, the reads will
+be randomly subsampled to a maximum of 2000 in order to speed up projection.
 }

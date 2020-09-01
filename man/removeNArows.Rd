@@ -4,12 +4,14 @@
 \alias{removeNArows}
 \title{Remove rows containing NAs}
 \usage{
-removeNArows(dataMatrix, maxNAfraction = 0.2)
+removeNArows(dataMatrix, maxNAfraction = 0.2, removeAll0 = F)
 }
 \arguments{
 \item{dataMatrix}{A matrix of numbers and NAs.}
 
 \item{maxNAfraction}{Maximual fraction of CpG/GpC positions that can be undefined (default=0.2)}
+
+\item{removeAll0}{Remove reads that only have 0 or NA values, i.e. were not methylated at all (default=F)}
 }
 \value{
 A matrix without the rows where the fraction of NA positions is above
