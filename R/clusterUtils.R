@@ -284,8 +284,8 @@ plotPCAofMatrixClasses<-function(k_range, outPath, outFileBase){
    p<-plotMatPCA(dataMatrix,classes)
    p<-ggpubr::annotate_figure(p,top=ggpubr::text_grob(outFileBase,size=14))
    ggplot2::ggsave(filename=paste0(outPath,"/classPCA_",
-                                   outFileBase,"_K", numClasses,".pdf"),
-                   plot=p, device="pdf", width=29, height=19, units="cm")
+                                   outFileBase,"_K", numClasses,".png"),
+                   plot=p, device="png", width=29, height=19, units="cm")
   }
   return("PCA plotted correctly")
 }
@@ -379,8 +379,8 @@ plotUMAPofMatrixClasses<-function(k_range, outPath, outFileBase){
     p<-plotMatUMAP(dataMatrix,classes)
     p<-ggpubr::annotate_figure(p,top=ggpubr::text_grob(outFileBase,size=14))
     ggplot2::ggsave(filename=paste0(outPath,"/classUMAP_",
-                                    outFileBase,"_K", numClasses,".pdf"),
-                    plot=p, device="pdf", width=19, height=19, units="cm")
+                                    outFileBase,"_K", numClasses,".png"),
+                    plot=p, device="png", width=19, height=19, units="cm")
   }
   return("UMAP plotted correctly")
 }
