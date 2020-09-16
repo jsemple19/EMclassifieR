@@ -361,7 +361,11 @@ classes<-ddMat
 
 dataMatrix<-readRDS(system.file("extdata",
                                 "EMres/dS02-182_multiGene_K6.rds",
-                                package="EMclassifieR",mustWork=T))
+                                package="EMclassifieR", mustWork=T))
+dataMatrix<-readRDS(system.file("extdata",
+                                "rds/relCoord_ampTSS/dS02-182_WBGene00009620.rds",
+                                package="EMclassifieR", mustWork=T))
+
 orderedMat<-dataMatrix
 dataMatrix<-dataMatrix[sample(1:dim(dataMatrix)[1],replace=F),]
 

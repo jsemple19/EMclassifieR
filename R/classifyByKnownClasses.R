@@ -58,6 +58,13 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
                                  xRange=c(-250,250), outFileBase="",
                                  myXlab="CpG/GpC position", featureLabel="TSS",
                                  baseFontSize=12, distMetric=list(name="euclidean")){
+  dataMatrix_original<-dataMatrix
+  if(ncol(dataMatrix)!=ncol(classes)){
+    chooseCols<-match(colnames(dataMatrix),colnames(classes))
+    dataMatrix<-dataMatrix[,!is.na(chooseCols)]
+    classes<-classes[,na.omit(chooseCols)]
+  }
+
   numClasses<-max(as.numeric(rownames(classes)))
   classVote<-matrix(nrow=nrow(dataMatrix),ncol=numRepeats)
   colnames(classVote)<-paste0("rep",1:numRepeats)
@@ -89,10 +96,10 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
 
   # save data with most frequent class call.
   #print("saving data with most frequent class call")
-  idx<-match(row.names(dataMatrix),classVote$read)
-  row.names(dataMatrix)<-paste0(rownames(dataMatrix),"__class",
+  idx<-match(row.names(dataMatrix_original),classVote$read)
+  row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),"__class",
                                 classVote$topClass[idx])
-  dataOrderedByClass<-dataMatrix[order(classVote$topClass[idx]),]
+  dataOrderedByClass<-dataMatrix_original[order(classVote$topClass[idx]),]
 
 
   saveRDS(dataOrderedByClass, file=paste0(outPath, "/", outFileBase, "_K",
