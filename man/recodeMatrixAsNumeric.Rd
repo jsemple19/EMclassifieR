@@ -10,14 +10,15 @@ recodeMatrixAsNumeric(dataMatrix)
 \item{dataMatrix}{A matrix containing methylation values for a
 region of the genome using coordinates relative to an anchor point.
 dataMatrix[i,j] is the methylation value of sample i at position j.
-0=not methylated, 1=methylated, NA=no methylation information at this
+0, or -1=not methylated, 1=methylated, NA=no methylation information at this
 position.}
 }
 \value{
-Matrix with methylation values coded on a -1 to 1 scale
+Matrix with methylation values coded on a -1 to 1 or 0 to 1 scale, with
+NAs and NaNs converted to an intermediate value
 }
 \description{
-Recode values in methylation matrix from a scale of 0 (no meth) to 1 (meth)
-to a scale of -1 (no meth) to 1 (meth). NaN are set to 0 and NAs can
-be either 0 or randomly assigned to -0.5 or 0.5
+Recode NA values in methylation matrix to numbers. If the matrix contains
+numbers from a scale of 0 (no meth) to 1 (meth), NAs and NaNs are set to 0.5.
+If the matrix contains numbers from -1 to 1, NAs and NaNs are set to 0.
 }

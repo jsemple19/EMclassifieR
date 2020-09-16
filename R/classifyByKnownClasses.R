@@ -62,7 +62,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   if(ncol(dataMatrix)!=ncol(classes)){
     chooseCols<-match(colnames(dataMatrix),colnames(classes))
     dataMatrix<-dataMatrix[,!is.na(chooseCols)]
-    classes<-classes[,na.omit(chooseCols)]
+    classes<-classes[,stats::na.omit(chooseCols)]
   }
 
   numClasses<-max(as.numeric(rownames(classes)))

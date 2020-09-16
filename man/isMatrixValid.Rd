@@ -4,7 +4,12 @@
 \alias{isMatrixValid}
 \title{Test if matrix is valid}
 \usage{
-isMatrixValid(dataMatrix, valueRange = c(0, 1), NAsValid = FALSE)
+isMatrixValid(
+  dataMatrix,
+  valueRange = c(0, 1),
+  NAsValid = FALSE,
+  checkColOrder = TRUE
+)
 }
 \arguments{
 \item{dataMatrix}{Matrix the values of which will be tested}
@@ -13,6 +18,8 @@ isMatrixValid(dataMatrix, valueRange = c(0, 1), NAsValid = FALSE)
 (default=c(0,1))}
 
 \item{NAsValid}{Boolean TRUE/FALSE indicating if NAs are considered valid (default=FALSE)}
+
+\item{checkColOrder}{Boolean TRUE/FALSE indicating if the order of column names should be checked. this assumes that these are numerical positions in ascending order (default=TRUE)}
 }
 \value{
 Boolean TRUE/FALSE indicating if matrix contains only valid values
