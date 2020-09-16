@@ -756,7 +756,7 @@ getReadClass<-function(dataOrderedByClass,readNames){
 #' @return A data.frame including the most frequently called class for each read
 #' @export
 getClassVote<-function(classVote){
-  repCols<-names(classVote)[grep("rep",colnames(classVote))]
+  repCols<-colnames(classVote)[grep("rep",colnames(classVote))]
   if (length(repCols)>1) { # is there more than one repeat?
     classVote$topClass<-as.numeric(apply(classVote[,repCols],1,getMode))
     classVote$topClassFreq<-sapply(1:nrow(classVote),function(rowNum){

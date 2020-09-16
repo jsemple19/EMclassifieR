@@ -27,18 +27,25 @@ removeNArows<-function(dataMatrix, maxNAfraction=0.2, removeAll0=F) {
 
 #' Recode matrix
 #'
-#' Recode values in methylation matrix from a scale of 0 (no meth) to 1 (meth)
-#' to a scale of -1 (no meth) to 1 (meth). NaN are set to 0 and NAs can
-#' be either 0 or randomly assigned to -0.5 or 0.5
+#' Recode NA values in methylation matrix to numbers. If the matrix contains
+#' numbers from a scale of 0 (no meth) to 1 (meth), NAs and NaNs are set to 0.5.
+#' If the matrix contains numbers from -1 to 1, NAs and NaNs are set to 0.
 #' @param dataMatrix  A matrix containing methylation values for a
 #' region of the genome using coordinates relative to an anchor point.
 #' dataMatrix[i,j] is the methylation value of sample i at position j.
-#' 0=not methylated, 1=methylated, NA=no methylation information at this
+#' 0, or -1=not methylated, 1=methylated, NA=no methylation information at this
 #' position.
-#' @return Matrix with methylation values coded on a -1 to 1 scale
+#' @return Matrix with methylation values coded on a -1 to 1 or 0 to 1 scale, with
+#' NAs and NaNs converted to an intermediate value
 #' @export
 recodeMatrixAsNumeric<-function(dataMatrix){
-  dataMatrix[is.na(dataMatrix)]<-0.5
+  if(min(dataMatrix, na.rm=T)==0 & max(dataMatrix, na.rm=T)==1){
+    dataMatrix[is.na(dataMatrix)]<-0.5
+  } else if(min(dataMatrix==-1, na.rm=T) & max(dataMatrix==1, na.rm=T)) {
+    dataMatrix[is.na(dataMatrix)]<-0
+  } else {
+    print("matrix should have values on a scale from 0 to 1 or -1 to 1")
+  }
   return(dataMatrix)
 }
 
