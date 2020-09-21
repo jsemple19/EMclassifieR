@@ -38,6 +38,10 @@ classLikelihoodPerRead<-function(dataMatrix,classes){
   return(l)
 }
 
+
+
+
+
 #' Run several repeats classifying reads into classes
 #'
 #' Reads are classified into different classes based on likelihood estimation using the class means. Due to the need for randomisation when binarisation of the methylation matrix, the classification is carried out repeatedly and then the most frequently assigned class is chosen.

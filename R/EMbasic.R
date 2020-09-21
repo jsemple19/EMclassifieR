@@ -313,7 +313,8 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
                                 segmentSize=5,
                                 colourChoice=list(low="blue", mid="white",
                                                   high="red", bg="white",
-                                                  lines="grey80")){
+                                                  lines="black"),
+                                colourScaleMidpoint=0.5){
   position <- methylation <- molecules <- readNumber <- Class <-NULL
   readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
   classOrder <- unique(readClasses)
@@ -338,11 +339,15 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
   } else{
     d$position<-as.numeric(d$position)
   }
+
+  scaleFactor<-((xRange[2]-xRange[1])/500)
+
   p<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
-    ggplot2::geom_tile(ggplot2::aes(width=segmentSize,fill=methylation),alpha=0.8) +
+    ggplot2::geom_tile(ggplot2::aes(width=segmentSize*scaleFactor,fill=methylation),alpha=0.8) +
     ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
                                   high=colourChoice$high,
-                                  midpoint=0.5, na.value="transparent",
+                                  midpoint=colourScaleMidpoint,
+                                  na.value=colourChoice$bg,
                                  breaks=c(0,1), labels=c("protected","accessible"),
                                  limits=c(0,1), name="dSMF\n\n") +
     #ggplot2::scale_fill_manual(values=c("0"="black","1"="grey80"),na.translate=F,na.value="white", labels=c("protected","accessible"),name="dSMF") +
@@ -362,10 +367,10 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
   p<-p+ggplot2::geom_linerange(ggplot2::aes(x=1, y=NULL, ymin=0,
                                               ymax=length(reads) +
                                                 max(3, 0.04*length(reads))),
-                                              color="grey80")+
+                                              color=colourChoice$lines)+
       ggplot2::annotate(geom="text", x=1,
                         y=-max(2,0.03*length(reads)),
-                        label=featureLabel,color="grey20")
+                        label=featureLabel, color=colourChoice$lines)
   # add lines separating classes
   p<-p+ggplot2::geom_hline(yintercept=classBorders,colour=colourChoice$lines)
   # add color bar for classes
@@ -375,7 +380,7 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
                                                              yend=readNumber+0.5,
                                                              colour=Class),
                              size=5) +
-      ggplot2::geom_vline(xintercept=xRange[2],colour="grey80")
+      ggplot2::geom_vline(xintercept=xRange[2],colour=colourChoice$lines)
   return(p)
 }
 
