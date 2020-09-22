@@ -15,7 +15,7 @@ plotAllClassMeans(
 )
 }
 \arguments{
-\item{allClassMeans}{A table of positions, fraction methylation, classes for replicate EM runs}
+\item{allClassMeans}{A table of positions, fraction methylation, and classes for replicate EM runs}
 
 \item{xRange}{A vector of the first and last coordinates of the region to plot (default is c(-250,250))}
 

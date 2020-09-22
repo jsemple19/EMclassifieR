@@ -351,19 +351,15 @@ plotGenesPerClass(k_range, outPath, outFileBase)
 allClassMeans<-readRDS(system.file("extdata", 
                                    "EMres/allClassMeans_dS02-182_multiGene.rds",
                                    package = "EMclassifieR", mustWork=T))
-repMeans<-allClassMeans[[6]] 
-dd<-repMeans %>% dplyr::group_by(position,class) %>% dplyr::summarize(classMeans=mean(methFreq))
-dd<-dd %>% tidyr::pivot_wider(names_from=position,values_from=classMeans) 
-ddMat<-as.matrix(dd[,-1])
-row.names(ddMat)<-dd$class
-ddMat<-ddMat[,order(as.numeric(colnames(ddMat)))]
-classes<-ddMat
+classes<-getClassMeansMatrix(allClassMeans,numClasses=6)
+
+classes<-padEndToRange(classes,xRange=c(-250,250))
 
 dataMatrix<-readRDS(system.file("extdata",
                                 "EMres/dS02-182_multiGene_K6.rds",
                                 package="EMclassifieR", mustWork=T))
 dataMatrix<-readRDS(system.file("extdata",
-                                "rds/relCoord_ampTSS/dS02-182_WBGene00009620.rds",
+                            "rds/relCoord_ampTSS/dS02-182_WBGene00009620.rds",
                                 package="EMclassifieR", mustWork=T))
 
 orderedMat<-dataMatrix

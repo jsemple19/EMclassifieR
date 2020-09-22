@@ -250,15 +250,18 @@ order_by_prev_cluster <- function(numClasses, classMeans, prev_classMeans) {
 #' @param previousClassMeans A matrix of the class means from a previous round of clustering
 #' @return Returns a matrix with the reads classified (__classX is appended to the read name), and the classes are sorted.
 #' @export
-classifyAndSortReads<-function(dataMatrix,posteriorProb,previousClassMeans=NULL) {
+classifyAndSortReads<-function(dataMatrix, posteriorProb, previousClassMeans=NULL) {
   ###################### POST-EM DATA SORTING ###########################################
   #
   # assign classes to reads according to the highest class probability
   numClasses=ncol(posteriorProb)
   readClasses = apply(posteriorProb, 1, which.max)
   #readsTable = table(readClasses)
-  classMeans = stats::aggregate(dataMatrix, by=list(readClasses), FUN=mean)[-1]
-
+  # classMeans = stats::aggregate(dataMatrix, by=list(readClasses), FUN=mean)[-1]
+  classMeans<-data.frame(data.frame(dataMatrix) %>%
+                    dplyr::group_split(as.vector(readClasses), .keep=F) %>%
+                    purrr::map_dfr(.f=colMeans,na.rm=T))
+  colnames(classMeans)<-colnames(dataMatrix)
   if (!is.null(previousClassMeans)) {
     #print("orderByPreviousClusters")
     # order the classes by comparing the class means to the previous clustering
@@ -304,6 +307,7 @@ classifyAndSortReads<-function(dataMatrix,posteriorProb,previousClassMeans=NULL)
 #' @param segmentSize Length of colour segment denoting methylation site
 #' @param colourChoice A list of colours for colour pallette. Must include
 #' values for "low", "mid", "high" and "bg" (background) and "lines".
+#' @param colourScaleMidpoint Numerical value for middle of colour scale. Useful for Nanopore data where a particular threshold other than 0.5 is used to distinguish methylated from non-methylated sites. (default=0.5).
 #' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
 plotClassesSingleMolecule<-function(dataOrderedByClass,
@@ -320,7 +324,6 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
   classOrder <- unique(readClasses)
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
   readsTable <- table(readClasses)
-  #classMeans = stats::aggregate(dataMatrix, by = list(readClasses), FUN = mean)[-1]
   # the horizontal red lines on the plot
   classBorders <- utils::head(cumsum(readsTable[classOrder]), -1)+0.5
   df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
@@ -420,13 +423,15 @@ silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase,
   df[,paste0(names(classTable),"_reads")]<-classTable
   # Add average silhouette width per class
   df[,paste0("class",1:numClasses,"_silMean")]<-NA
-  silWidthMean<-stats::aggregate(sil[,"sil_width"],by=list(sil[,"cluster"]),FUN=mean)
+  silWidthMean<-stats::aggregate(sil[,"sil_width"],
+                                 by=list(sil[,"cluster"]),
+                                 FUN=mean)
   colnames(silWidthMean)<-c("class","mean")
   df[,paste0("class",silWidthMean$class,"_silMean")]<-silWidthMean$mean
-  #classMeans = stats::aggregate(dataMatrix, by = list(readClasses), FUN = mean)[-1]
   # Add silhouette width SD per class
   df[,paste0("class",1:numClasses,"_silSD")]<-NA
-  silWidthSD<-stats::aggregate(sil[,3],by=list(sil[,1]),FUN=stats::sd)
+  silWidthSD<-stats::aggregate(sil[,3], by=list(sil[,1]),
+                               FUN=stats::sd)
   colnames(silWidthSD)<-c("class","sd")
   df[,paste0("class",silWidthSD$class,"_silSD")]<-silWidthSD$sd
   return(list(stats=df,plotObject=sil))
@@ -489,7 +494,7 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
 #' Plot all class means from multiple repeats
 #'
 #' Create line plots for class means
-#' @param allClassMeans A table of positions, fraction methylation, classes for replicate EM runs
+#' @param allClassMeans A table of positions, fraction methylation, and classes for replicate EM runs
 #' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param facet Plot mean profiles separately as a facet_wrap plot (default=TRUE)
 #' @param title A title for the plot (default is "Class means of replicate EM runs")

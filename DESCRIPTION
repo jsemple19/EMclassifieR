@@ -25,6 +25,7 @@ Imports:
       tidyr,
       plyr,
       dplyr,
+      purrr,
       ggpubr,
       parallel,
       foreach,

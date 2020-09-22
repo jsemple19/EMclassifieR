@@ -78,7 +78,10 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   for (i in 1:numRepeats){
     lik<-classLikelihoodPerRead(dataMatrix,classes)
     classVote[,i]<-apply(lik,1,which.max)
-    classMeans = stats::aggregate(dataMatrix, by=list(classVote[,i]), FUN=mean)[-1]
+    classMeans<-data.frame(data.frame(dataMatrix) %>%
+                    dplyr::group_split(classVote[,i], .keep=F) %>%
+                    purrr::map_dfr(.f=colMeans,na.rm=T))
+    colnames(classMeans)<-colnames(dataMatrix)
     tmpMeans<-tidyr::gather(classMeans,key="position",value="methFreq")
     tmpMeans$class<-rep(rownames(classMeans),ncol(classMeans))
     tmpMeans$replicate<-i
@@ -101,8 +104,8 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   # save data with most frequent class call.
   #print("saving data with most frequent class call")
   idx<-match(row.names(dataMatrix_original),classVote$read)
-  row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),"__class",
-                                classVote$topClass[idx])
+  row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),
+                                        "__class", classVote$topClass[idx])
   dataOrderedByClass<-dataMatrix_original[order(classVote$topClass[idx]),]
 
 
@@ -124,3 +127,75 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
 
   return(dataOrderedByClass)
 }
+
+
+
+
+#' Get a matrix of class mean profiles from allCalssMeans table
+#'
+#' allClassMeans is a list of tables (one table for each number of classes). The function extracts one such table and converts it to a matrix with each row being a particular class and each column being a genomic position (in coordinates relative to an anchor point, like a TSS).
+#' @param allClassMeans A list by number of classes of tables containing positions, fraction methylation, and class ID for replicate EM runs.
+#' @param numClasses An integer indicating the total number of classes being used
+#' @return A matrix with classID x position containing fraction methylation values for each class at each position
+#' @export
+getClassMeansMatrix<-function(allClassMeans,numClasses){
+  position<-methFreq<-classMeans<-NULL
+  dd<-allClassMeans[[numClasses]] %>%
+    dplyr::group_by(position,class) %>%
+    dplyr::summarize(classMeans=mean(methFreq))
+  dd<-dd %>% tidyr::pivot_wider(names_from=position,
+                                values_from=classMeans)
+  ddMat<-as.matrix(dd[,-1])
+  row.names(ddMat)<-dd$class
+  ddMat<-ddMat[,order(as.numeric(colnames(ddMat)))]
+  ddMat
+  return(ddMat)
+}
+
+
+
+
+#' Pad end of matrix with missing columns
+#'
+#' This function compensates for shrinking of a matrix due to the application of
+#' a sliding window to data. It will add the columns that are missing from
+#' the edges of the matrix to the full xRange. they will take the values from
+#' the first or last columns of the matrix. This might be useful for classMeans
+#' derived from multi-gene windowed matrices when they have to be applied to
+#' single gene matrices.
+#' @param dataMat A matrix of methylation or bincount values (reads x position)
+#' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @return A matrix with additional columns corresponding to any positions that
+#' missing from the matrix relative to the xRange. These columns will take the
+#' value of the firts and last columns of the original matrix
+padEndToRange<-function(dataMat, xRange=c(-250,250)){
+  matStart<-min(as.numeric(colnames(dataMat)))
+  matEnd<-max(as.numeric(colnames(dataMat)))
+  #extra start columns
+  if(matStart>xRange[1]){
+    startColNames<-seq(xRange[1],matStart-1)
+    startCols<-matrix(data=dataMat[,as.character(matStart)],
+                      nrow=nrow(dataMat), ncol=length(startColNames))
+    colnames(startCols)<-startColNames
+    dataMat<-cbind(startCols,dataMat)
+  }
+  #extra end columns
+  if(matEnd<xRange[2]){
+    endColNames<-seq(matEnd+1,xRange[2])
+    endCols<-matrix(data=dataMat[,as.character(matEnd)],
+                    nrow=nrow(dataMat), ncol=length(endColNames))
+    colnames(endCols)<-endColNames
+    dataMat<-cbind(dataMat,endCols)
+  }
+  return(dataMat)
+}
+
+
+
+
+
+
+
+
+
+

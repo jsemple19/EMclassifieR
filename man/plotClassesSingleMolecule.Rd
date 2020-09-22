@@ -13,7 +13,8 @@ plotClassesSingleMolecule(
   baseFontSize = 12,
   segmentSize = 5,
   colourChoice = list(low = "blue", mid = "white", high = "red", bg = "white", lines =
-    "grey80")
+    "black"),
+  colourScaleMidpoint = 0.5
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ plotClassesSingleMolecule(
 
 \item{colourChoice}{A list of colours for colour pallette. Must include
 values for "low", "mid", "high" and "bg" (background) and "lines".}
+
+\item{colourScaleMidpoint}{Numerical value for middle of colour scale. Useful for Nanopore data where a particular threshold other than 0.5 is used to distinguish methylated from non-methylated sites. (default=0.5).}
 }
 \value{
 Returns a ggplot2 object of a single molecule plot sorted by classes
