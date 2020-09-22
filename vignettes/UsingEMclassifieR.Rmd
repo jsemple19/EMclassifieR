@@ -369,9 +369,10 @@ rownames(dataMatrix)<-gsub("__class.*$","",rownames(dataMatrix))
 
 distMetric=list(name="cosineDist",rescale=T) #list(name="euclidean")
 
-dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix,classes,numRepeats=20, outPath=".",
+dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix, classes, 
+                                numRepeats=20, outPath=".",
                                 xRange=c(-250,250), outFileBase="test",
-                          distMetric=distMetric)
+                                distMetric=distMetric)
 
 ```
 
