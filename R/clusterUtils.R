@@ -140,47 +140,17 @@ isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE,
 
 
 
-#' Calculate Euclidean distance between all rows of a matrix with sliding window
-#'
-#' To increase dynamic range and spatial information in comparing a matrix of
-#' vectors, a sliding window is used. The euclidean distance is computed within
-#' each window, and then moved by a step of 1.
-#' @param binMat A matrix of numbers for which you want to calculate the
-#' distance between rows
-#' @param winSize Sliding window size (number of values to combine)
-#' @param stepSize How far to move the sliding window
-#' @param rescale Should matrix be scaled from 0..1 range to -1..1 range.
-#' @return A distance object (lower triangle) with the distances between all
-#' rows of the input matrix
-#' @export
-euclidWinDist<-function(binMat,winSize=3,stepSize=1,rescale=F){
-  i <- NULL
-  stopifnot(stepSize<=winSize)
-  distSum<-0
-  if(rescale){
-    binMat<-rescale_minus1To1(binMat)
-  }
-  for(i in seq(1,ncol(binMat)-winSize+1,by=stepSize)){
-    distSum<-distSum+stats::dist(binMat[,i:(i+winSize-1)])
-  }
-  return(distSum)
-}
-
-
 #' Calculate cosine distance between all rows of a matrix
 #'
 #'Using the cosine distance function form las package
 #' @param binMat A matrix of numbers for which you want to calculate the
 #' distance between rows
-#' @param val0 Value to give 0s in matrix (might wish to use this when
-#' matrices have NAs)
 #' @param valNA Value to give NAs in matrix
 #' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-cosineDist<-function(binMat, val0=0, valNA=0, rescale=F){
-  binMat[binMat==0]<-val0
+cosineDist<-function(binMat, valNA=0.5, rescale=F){
   binMat[is.na(binMat)]<-valNA
   if(rescale){
     binMat<-rescale_minus1To1(binMat)
@@ -191,24 +161,24 @@ cosineDist<-function(binMat, val0=0, valNA=0, rescale=F){
 
 
 
-#' #' Calculate cross correlation distance between all rows of a matrix
-#' #'
-#' #'Using the cosine distance function form las package
-#' #' @param binMat A matrix of numbers for which you want to calculate the
-#' #' distance between rows
-#' #' @return A distance object (lower triangle) with the distances between all
-#' #' rows of the input matrix
-#' #' @export
-#' crossCorDist<-function(binMat){
-#'   ccDist<-matrix(rep(NA,nrow(binMat)),nrow=nrow(binMat),ncol=nrow(binMat))
-#'   for(i in 2:nrow(binMat)) {
-#'     for(j in 1:(i-1)) {
-#'       ccDist[i,j]<-TSdist::CCorDistance(as.vector(binMat[i,]),
-#'                                         as.vector(binMat[j,]))
-#'     }
-#'   }
-#'   return(ccDist)
-#' }
+#' Calculate canberra distance between all rows of a matrix
+#'
+#'Using the canberra distance function from stats package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @param valNA Value to give NAs in matrix
+#' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+canberraDist<-function(binMat, valNA=0.5, rescale=F){
+  binMat[is.na(binMat)]<-valNA
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
+  canDist<-stats::dist(binMat, method="canberra")
+  return(canDist)
+}
 
 
 
@@ -229,11 +199,9 @@ cosineDist<-function(binMat, val0=0, valNA=0, rescale=F){
 getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
   switch(distMetric$name,
          euclidean=stats::dist(binMat),
-         euclidWinDist=euclidWinDist(binMat,
-                                     winSize=distMetric$winSize,
-                                     stepSize=distMetric$stepSize,
-                                     rescale=distMetric$rescale),
-         cosineDist=cosineDist(binMat, rescale=distMetric$rescale))
+         cosineDist=cosineDist(binMat, rescale=distMetric$rescale),
+         canberraDist=canberraDist(binMat,
+                            rescale=distMetric$rescale))
 }
 
 

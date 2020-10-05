@@ -168,6 +168,7 @@ getClassMeansMatrix<-function(allClassMeans,numClasses){
 #' @return A matrix with additional columns corresponding to any positions that
 #' missing from the matrix relative to the xRange. These columns will take the
 #' value of the firts and last columns of the original matrix
+#' @export
 padEndToRange<-function(dataMat, xRange=c(-250,250)){
   matStart<-min(as.numeric(colnames(dataMat)))
   matEnd<-max(as.numeric(colnames(dataMat)))
@@ -190,9 +191,29 @@ padEndToRange<-function(dataMat, xRange=c(-250,250)){
   return(dataMat)
 }
 
-
-
-
+#' Collect all the class means from allClassMeans object
+#'
+#' AllClassMeans is a list of tables with the position in the list corresponding to the total number of classes used in clustering and the table giving the methylation frequency at different positions for each class and each replicate. This function collects all the class mean profiles for clustering into any k clusters in k_range, and returns a matrix with cluster-name-number x position
+#' @param allClassMeans A list by number of classes of tables containing positions, fraction methylation, and class ID for replicate EM runs.
+#' @param k_range An vector of the range of total number of classes used in each clustering
+#' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
+#' @param name Name of data set that will be added to the start of the row names.
+#' @return A matrix of all the class mean profiles from the clustering into all the k clusters in k_range
+#' @export
+getAllClassMeansMatrix<-function(allClassMeans, k_range=4:8, xRange=c(-250,250), name="") {
+  allMeansMat<-NULL
+  for(k in k_range){
+     classes<-getClassMeansMatrix(allClassMeans,k)
+     classes<-padEndToRange(classes,xRange=c(-250,250))
+     row.names(classes)<-paste0(name,"k",k,"_class",row.names(classes))
+     if(is.null(allMeansMat)){
+        allMeansMat<-classes
+     } else {
+       allMeansMat<-rbind(allMeansMat,classes)
+     }
+  }
+  return(allMeansMat)
+}
 
 
 

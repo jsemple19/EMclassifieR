@@ -2,25 +2,7 @@
 % Please edit documentation in R/clusterUtils.R
 \name{getDistMatrix}
 \alias{getDistMatrix}
-\title{#' Calculate cross correlation distance between all rows of a matrix
-#'
-#'Using the cosine distance function form las package
-#' @param binMat A matrix of numbers for which you want to calculate the
-#' distance between rows
-#' @return A distance object (lower triangle) with the distances between all
-#' rows of the input matrix
-#' @export
-crossCorDist<-function(binMat){
-  ccDist<-matrix(rep(NA,nrow(binMat)),nrow=nrow(binMat),ncol=nrow(binMat))
-  for(i in 2:nrow(binMat)) {
-    for(j in 1:(i-1)) {
-      ccDist[i,j]<-TSdist::CCorDistance(as.vector(binMat[i,]),
-                                        as.vector(binMat[j,]))
-    }
-  }
-  return(ccDist)
-}
-A generic function for implementing various distance metrics}
+\title{A generic function for implementing various distance metrics}
 \usage{
 getDistMatrix(binMat, distMetric = list(name = "euclidean"))
 }
