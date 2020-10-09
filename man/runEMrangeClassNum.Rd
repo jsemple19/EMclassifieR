@@ -17,7 +17,7 @@ runEMrangeClassNum(
   featureLabel = "TSS",
   baseFontSize = 12,
   doIndividualPlots = TRUE,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

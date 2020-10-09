@@ -401,7 +401,7 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
 #' @return A list of two items: a dataframe with silhouette stats and a silhouette plot object. The dataframe contains mean and SD of silhouette width overall, and per class, as well as number of reads per class
 #' @export
 silhouettePlot<-function(dataOrderedByClass, numClasses, outFileBase,
-                         EMrep=NULL, distMetric=list(name="euclidean")){
+                         EMrep=NULL, distMetric=list(name="euclidean", rescale=F)){
   # deal with EMrep==NULL
   EMrep<-ifelse(is.null(EMrep),0,EMrep)
   # split off class number from row name
@@ -866,7 +866,8 @@ plotClassStability<-function(classVote,outFileBase,outPath,numClasses){
 #' @export
 getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPath,
                              EMrep=NULL, doIndividualPlots=FALSE, silStats=NULL,
-                             distMetric=list(name="euclidean")){
+                             distMetric=list(name="euclidean",
+                                             rescale=F)){
   silList<-silhouettePlot(dataOrderedByClass, numClasses, outFileBase,
                           EMrep, distMetric)
 
@@ -978,7 +979,7 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                        xRange=c(-250,250), outFileBase="",
                        myXlab="CpG/GpC position", featureLabel="TSS",
                        baseFontSize=12, doIndividualPlots=FALSE,
-                       distMetric=list(name="euclidean")){
+                       distMetric=list(name="euclidean",rescale=F)){
   #initialise variables
   methFreq <- position <- NULL
   #remove trailing / from outPath
@@ -1109,7 +1110,7 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              xRange=c(-250,250), outFileBase="",
                              myXlab="CpG/GpC position", featureLabel="TSS",
                              baseFontSize=12, doIndividualPlots=TRUE,
-                             distMetric=list(name="euclidean")) {
+                             distMetric=list(name="euclidean", rescale=F)) {
   #stopifnot(isMatrixValid(dataMatrix))
   allClassMeans<-list()
   for (numClasses in k_range) {
@@ -1141,7 +1142,7 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
 #' @export
 runEMrepeats_withinSS<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                                 maxIterations=100, EMrepeats=10,
-                                distMetric=list(name="euclidean")){
+                                distMetric=list(name="euclidean", rescale=F)){
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
   for (EMrep in 1:EMrepeats) {
@@ -1203,7 +1204,7 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100,
                                 outPath=".", outFileBase="", EMrep=NULL,
                                 nThreads=1, setSeed=FALSE,
-                                distMetric=list(name="euclidean")){
+                                distMetric=list(name="euclidean", rescale=F)){
   # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
   classMean <- classNumber <- NULL

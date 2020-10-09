@@ -4,7 +4,7 @@
 \alias{cosineDist}
 \title{Calculate cosine distance between all rows of a matrix}
 \usage{
-cosineDist(binMat, valNA = 0.5, rescale = F)
+cosineDist(binMat, valNA = NULL, rescale = F)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the

@@ -17,7 +17,7 @@ runEMrepeats(
   featureLabel = "TSS",
   baseFontSize = 12,
   doIndividualPlots = FALSE,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

@@ -28,7 +28,7 @@ testthat::test_that("clusterRandomMatrices returns correct WSS", {
   dataMatrix<-matrix(rep(c(1,0,1,1,0,0.5),8),nrow=4)
   rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
   colnames(dataMatrix)<-paste0("c",1:dim(dataMatrix)[2])
-  distMetric=list(name="euclidean", winSize=3, stepSize=1,rescale=F)
+  distMetric=list(name="euclidean", rescale=F)
   WSS<-clusterRandomMatrices(dataMatrix, k_range=2:3, maxB=10,
                              convergenceError=1e-6, maxIterations=100,
                              nThreads=1,setSeed=T, distMetric=distMetric)
@@ -105,9 +105,11 @@ testthat::test_that("discrimination between distance metrics", {
                  c(0,0,1,1,1,0,0,0,0), c(1,1,1,1,1,0,0,0,0),
                  c(0,1,1,1,1,0,0,0,0), c(0,1,1,1,1,0,0,0,1),
                  c(0,0,1,0,1,0,0,0,0), c(0,0,1,0,1,0,NA,0,0)), nrow=8)
-  result1<-dist(binMat)
-  result2<-cosineDist(binMat)
+  result1<-euclideanDist(binMat,rescale=F)
+  result2<-cosineDist(binMat,valNA=0.5, rescale=F)
+  result3<-cosineDist(binMat, rescale=F)
   #result3<-cosineDist(binMat,val0=0.1,valNA=0)
   testthat::expect_equal(floor(sum(result1)),39)
   testthat::expect_equal(floor(sum(result2)),7)
+  testthat::expect_true(is.na(sum(result3)))
 })

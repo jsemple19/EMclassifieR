@@ -12,7 +12,7 @@ getSilhouetteStats(
   EMrep = NULL,
   doIndividualPlots = FALSE,
   silStats = NULL,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

@@ -4,7 +4,7 @@
 \alias{SumSqMatrixRows}
 \title{Calculate the sum of square distances between rows of a matrix}
 \usage{
-SumSqMatrixRows(dataMatrix, distMetric = list(name = "euclidean"))
+SumSqMatrixRows(dataMatrix, distMetric = list(name = "euclidean", rescale = F))
 }
 \arguments{
 \item{dataMatrix}{A matrix for which to calcluate the sum of the sum of square distances between its rows.}

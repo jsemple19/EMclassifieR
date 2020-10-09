@@ -4,11 +4,15 @@
 \alias{getDistMatrix}
 \title{A generic function for implementing various distance metrics}
 \usage{
-getDistMatrix(binMat, distMetric = list(name = "euclidean"))
+getDistMatrix(
+  binMat,
+  distMetric = list(name = "euclidean", valNA = NULL, rescale = F)
+)
 }
 \arguments{
 \item{binMat}{A matrix of numbers for which you want to calculate the
-distance between rows}
+distance between rows
+#' @param valNA Value to give NAs in matrix}
 
 \item{distMetric}{List continaing the name of the metric and the values of
 any parameters the metric nromally takes.}

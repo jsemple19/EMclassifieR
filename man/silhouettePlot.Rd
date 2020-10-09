@@ -9,7 +9,7 @@ silhouettePlot(
   numClasses,
   outFileBase,
   EMrep = NULL,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

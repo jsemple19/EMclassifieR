@@ -4,7 +4,11 @@
 \alias{withinClusterSS}
 \title{Calculate within-cluster sum of squares}
 \usage{
-withinClusterSS(dataMatrix, classes, distMetric = list(name = "euclidean"))
+withinClusterSS(
+  dataMatrix,
+  classes,
+  distMetric = list(name = "euclidean", rescale = F)
+)
 }
 \arguments{
 \item{dataMatrix}{A matrix for which you wish to calculate the within cluster sum of squares distance between rows}

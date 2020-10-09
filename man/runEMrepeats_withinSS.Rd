@@ -10,7 +10,7 @@ runEMrepeats_withinSS(
   convergenceError = 1e-06,
   maxIterations = 100,
   EMrepeats = 10,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

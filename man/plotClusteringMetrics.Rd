@@ -15,7 +15,7 @@ plotClusteringMetrics(
   EMrep = NULL,
   nThreads = 1,
   setSeed = FALSE,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

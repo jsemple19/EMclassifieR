@@ -12,7 +12,7 @@ clusterRandomMatrices(
   maxIterations = 100,
   nThreads = 1,
   setSeed = F,
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean", rescale = F)
 )
 }
 \arguments{

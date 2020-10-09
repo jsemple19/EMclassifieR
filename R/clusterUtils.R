@@ -7,7 +7,7 @@
 #' parameters it might require
 #' @return Numeric. The sum of the square distances between the rows of the matrix.
 #' @export
-SumSqMatrixRows<-function(dataMatrix,distMetric=list(name="euclidean")) {
+SumSqMatrixRows<-function(dataMatrix,distMetric=list(name="euclidean", rescale=F)) {
   #sum(stats::dist(dataMatrix)^2)
   sum(getDistMatrix(dataMatrix,distMetric)^2)
 }
@@ -21,7 +21,7 @@ SumSqMatrixRows<-function(dataMatrix,distMetric=list(name="euclidean")) {
 #' parameters it might require
 #' @return A number indicating the sum of all within-cluster variation
 #' @export
-withinClusterSS<-function(dataMatrix,classes,distMetric=list(name="euclidean")){
+withinClusterSS<-function(dataMatrix,classes,distMetric=list(name="euclidean", rescale=F)){
   SS<-0
   for (class in unique(classes)) {
     tmpMat<-dataMatrix[classes==class,]
@@ -63,7 +63,7 @@ randomiseMatrixRows<-function(dataMatrix){
 clusterRandomMatrices<-function(dataMatrix, k_range=2:8, maxB=100,
                                 convergenceError=1e-6, maxIterations=100,
                                 nThreads=1, setSeed=F,
-                                distMetric=list(name="euclidean")){
+                                distMetric=list(name="euclidean", rescale=F)){
   totalWSS<-data.frame(numClasses=k_range, meanWSS=0, sumSq=0, sdWSS=NA)
   clst<-parallel::makeCluster(nThreads)
   doParallel::registerDoParallel(clst)
@@ -150,11 +150,15 @@ isMatrixValid<-function(dataMatrix, valueRange=c(0,1), NAsValid=FALSE,
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-cosineDist<-function(binMat, valNA=0.5, rescale=F){
-  binMat[is.na(binMat)]<-valNA
+cosineDist<-function(binMat, valNA=NULL, rescale=F){
+  if(!is.null(valNA)){
+    binMat[is.na(binMat)]<-valNA
+  }
   if(rescale){
     binMat<-rescale_minus1To1(binMat)
   }
+  print(paste0("Cosine clustering. NAs:", sum(is.na(binMat)),
+               ". Matrix range:", min(binMat),"-", max(binMat)))
   cosDist<-stats::as.dist(1-lsa::cosine(t(binMat)))
   return(cosDist)
 }
@@ -171,13 +175,41 @@ cosineDist<-function(binMat, valNA=0.5, rescale=F){
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-canberraDist<-function(binMat, valNA=0.5, rescale=F){
-  binMat[is.na(binMat)]<-valNA
+canberraDist<-function(binMat, valNA=NULL, rescale=F){
+  if(!is.null(valNA)){
+    binMat[is.na(binMat)]<-valNA
+  }
   if(rescale){
     binMat<-rescale_minus1To1(binMat)
   }
+  print(paste0("Canberra clustering. NAs:", sum(is.na(binMat)),
+                ". Matrix range:", min(binMat),"-", max(binMat)))
   canDist<-stats::dist(binMat, method="canberra")
   return(canDist)
+}
+
+
+#' Calculate euclidean distance between all rows of a matrix
+#'
+#'Using the euclidean distance function from stats package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @param valNA Value to give NAs in matrix
+#' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+euclideanDist<-function(binMat, valNA=NULL, rescale=F){
+  if(!is.null(valNA)){
+    binMat[is.na(binMat)]<-valNA
+  }
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
+  print(paste0("Euclidean clustering. NAs:", sum(is.na(binMat)),
+               ". Matrix range:", min(binMat),"-", max(binMat)))
+  eucDist<-stats::dist(binMat, method="euclidean")
+  return(eucDist)
 }
 
 
@@ -191,16 +223,29 @@ canberraDist<-function(binMat, valNA=0.5, rescale=F){
 #' with the right parameters (not specified before)
 #' @param binMat A matrix of numbers for which you want to calculate the
 #' distance between rows
+#' #' @param valNA Value to give NAs in matrix
 #' @param distMetric List continaing the name of the metric and the values of
 #' any parameters the metric nromally takes.
 #' @return A distance object (lower triangle) with the distances between all
 #' rows of the input matrix
 #' @export
-getDistMatrix<-function(binMat,distMetric=list(name="euclidean")){
+getDistMatrix<-function(binMat, distMetric=list(name="euclidean",
+                                                valNA=NULL, rescale=F)){
+  tryCatch(
+  {
+    exists("distMetric$valNA", mode="numeric")
+    valNA<-distMetric$valNA
+  }, error=function(e){
+    valNA<-NULL
+    return(valNA)
+  })
+
   switch(distMetric$name,
-         euclidean=stats::dist(binMat),
-         cosineDist=cosineDist(binMat, rescale=distMetric$rescale),
-         canberraDist=canberraDist(binMat,
+         euclidean=euclideanDist(binMat, valNA=valNA,
+                                 rescale=distMetric$rescale),
+         cosineDist=cosineDist(binMat, valNA=valNA,
+                               rescale=distMetric$rescale),
+         canberraDist=canberraDist(binMat, valNA=valNA,
                             rescale=distMetric$rescale))
 }
 
