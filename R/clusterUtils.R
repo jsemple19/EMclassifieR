@@ -213,7 +213,28 @@ euclideanDist<-function(binMat, valNA=NULL, rescale=F){
 }
 
 
-
+#' Calculate correlation distance between all rows of a matrix
+#'
+#' Using the correlation function from stats package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @param valNA Value to give NAs in matrix
+#' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+correlationDist<-function(binMat, valNA=NULL, rescale=F){
+  if(!is.null(valNA)){
+    binMat[is.na(binMat)]<-valNA
+  }
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
+  print(paste0("Correlation clustering. NAs:", sum(is.na(binMat)),
+               ". Matrix range:", min(binMat),"-", max(binMat)))
+  corDist<-as.dist(1-stats::cor(t(binMat), method="pearson"))
+  return(corDist)
+}
 
 
 #' A generic function for implementing various distance metrics
@@ -246,7 +267,9 @@ getDistMatrix<-function(binMat, distMetric=list(name="euclidean",
          cosineDist=cosineDist(binMat, valNA=valNA,
                                rescale=distMetric$rescale),
          canberraDist=canberraDist(binMat, valNA=valNA,
-                            rescale=distMetric$rescale))
+                            rescale=distMetric$rescale),
+         correlationDist=correlationDist(binMat, valNA=valNA,
+                              rescale=distMetric$rescale))
 }
 
 
