@@ -267,8 +267,9 @@ maxTasks=4
 taskId=1
 nThreads=4
 setSeed=FALSE
-distMetric=list(name="cosineDist",val0=0.5,rescale=T)
+#distMetric=list(name="cosineDist",val0=0,rescale=F)
 #distMetric=list(name="canberraDist",rescale=T)
+distMetric=list(name="correlationDist",val0=0.5,rescale=T)
 
 if(!dir.exists(outPath)){
   dir.create(outPath)
