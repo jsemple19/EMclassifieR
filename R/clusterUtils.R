@@ -233,7 +233,7 @@ correlationDist<-function(binMat, valNA=NULL, rescale=F){
   print(paste0("Correlation clustering. NAs:", sum(is.na(binMat)),
                ". Matrix range:", min(binMat),"-", max(binMat)))
   #corDist<-as.dist(1-stats::cor(t(binMat), method="pearson"))
-  corDist<-as.dist(1-HiClimR::fastCor(t(bm), nSplit=ceiling(nrow(bm)/1000), upperTri=T, optBLAS=T, verbose=F))
+  corDist<-stats::as.dist(1-HiClimR::fastCor(t(binMat), nSplit=ceiling(nrow(binMat)/1000), upperTri=T, optBLAS=T, verbose=F))
   return(corDist)
 }
 
