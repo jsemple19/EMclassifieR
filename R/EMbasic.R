@@ -13,13 +13,13 @@ em_basic <- function(classes,priorProb,dataMatrix) {
   # To deal with fractions in methlyation dataMatrix (when opposite strand do not agree on
   # methylation status), the methylation status will be applied at random with
   # probability given by the fraction.
-  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
-  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  stopifnot(isMatrixValid(dataMatrix,NAsValid=FALSE))
+  #dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
+  #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
+  #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
   binaryData<-dataMatrix
-  if (sum(fractionIdx)>0){
-    binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
-  }
+  # if (sum(fractionIdx)>0){
+  #   binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
+  # }
 
   numClasses=dim(classes)[1]         # Number of classes
   numSamples=dim(binaryData)[1]            # Number of samples
@@ -72,7 +72,7 @@ em_classify <- function(classes,priorProb,dataMatrix) {
   # probability given by the fraction.
   dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  stopifnot(isMatrixValid(dataMatrix,NAsValid=FALSE))
+  stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
@@ -152,8 +152,8 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
   # random with probability given by the fraction. NAs will be recoded to 0.5
   # (equal probability of 0 or 1 at that position)
   fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
-  stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
+  dataMatrix<-recodeMatrixAsNumeric(dataMatrix) # convert NAs to numeric value
+  stopifnot(isMatrixValid(dataMatrix, valueRange=c(0,1), NAsValid=FALSE))
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx), size=1,
@@ -979,14 +979,11 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
                        xRange=c(-250,250), outFileBase="",
                        myXlab="CpG/GpC position", featureLabel="TSS",
                        baseFontSize=12, doIndividualPlots=FALSE,
-                       distMetric=list(name="euclidean",rescale=F)){
+                       distMetric=list(name="euclidean", rescale=F)){
   #initialise variables
   methFreq <- position <- NULL
   #remove trailing / from outPath
   outPath<-gsub("\\/$","",outPath)
-  # make output directories
-  #makeDirs(path=outPath,dirNameList=c("silPlts","dataOrdByClass","classPlots",
-  #                                    "classMeanPlots"))
 
   previousClassMeans<-NULL # in the first round, use hclust to sort clusters
   classVote<-data.frame(read=row.names(dataMatrix),stringsAsFactors=F)
@@ -994,8 +991,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
 
   # check if repeats necessary for this matrix
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
-  dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
-  stopifnot(isMatrixValid(dataMatrix, NAsValid=FALSE))
+  #dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
+  stopifnot(isMatrixValid(dataMatrix, valueRange=c(0,1), NAsValid=TRUE))
 
   for (EMrep in 1:EMrepeats){
     # do classifiction
@@ -1039,8 +1036,8 @@ runEMrepeats<-function(dataMatrix, numClasses=3, convergenceError=1e-6,
     print("getting silhouette statistics")
     # do silhouette plot and save silhouette stats
     silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
-                                 outPath, EMrep, doIndividualPlots, silStats,
-                                 distMetric)
+                                 outPath, EMrep, doIndividualPlots, silStats=silStats,
+                                 distMetric=distMetric)
   }
 
   #print("plotting class stability")
@@ -1111,7 +1108,6 @@ runEMrangeClassNum<-function(dataMatrix, k_range=2:8, convergenceError=1e-6,
                              myXlab="CpG/GpC position", featureLabel="TSS",
                              baseFontSize=12, doIndividualPlots=TRUE,
                              distMetric=list(name="euclidean", rescale=F)) {
-  #stopifnot(isMatrixValid(dataMatrix))
   allClassMeans<-list()
   for (numClasses in k_range) {
     print(paste("numClasses:",numClasses))
