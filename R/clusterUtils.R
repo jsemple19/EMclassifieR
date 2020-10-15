@@ -257,7 +257,8 @@ miDist<-function(binMat, valNA=NULL, rescale=F){
   }
   print(paste0("Mutual information clustering. NAs:", sum(is.na(binMat)),
                ". Matrix range:", min(binMat),"-", max(binMat)))
-  miDist<-stats::as.dist(1-maigesPack::MI(binMat))
+  mi<-maigesPack::MI(binMat,k=5)
+  miDist<-stats::as.dist(1-mi/sum(mi))
   return(miDist)
 }
 
