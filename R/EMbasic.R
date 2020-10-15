@@ -17,9 +17,9 @@ em_basic <- function(classes,priorProb,dataMatrix) {
   #fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   #stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
   binaryData<-dataMatrix
-  # if (sum(fractionIdx)>0){
-  #   binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
-  # }
+  #if (sum(fractionIdx)>0){
+  #  binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
+  #}
 
   numClasses=dim(classes)[1]         # Number of classes
   numSamples=dim(binaryData)[1]            # Number of samples
@@ -71,8 +71,8 @@ em_classify <- function(classes,priorProb,dataMatrix) {
   # methylation status), the methylation status will be applied at random with
   # probability given by the fraction.
   dataMatrix<-recodeMatrixAsNumeric(dataMatrix)
-  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   stopifnot(isMatrixValid(dataMatrix,valueRange=c(0,1),NAsValid=FALSE))
+  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx),size=1,prob=dataMatrix[fractionIdx])
@@ -151,9 +151,9 @@ runEM<-function(dataMatrix, numClasses, convergenceError=1e-6, maxIterations=100
   # not agree on methylation status), the methylation status will be applied at
   # random with probability given by the fraction. NAs will be recoded to 0.5
   # (equal probability of 0 or 1 at that position)
-  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   dataMatrix<-recodeMatrixAsNumeric(dataMatrix) # convert NAs to numeric value
   stopifnot(isMatrixValid(dataMatrix, valueRange=c(0,1), NAsValid=FALSE))
+  fractionIdx<-dataMatrix > 0 & dataMatrix < 1
   binaryData<-dataMatrix
   if (sum(fractionIdx)>0){
     binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx), size=1,
@@ -261,6 +261,7 @@ classifyAndSortReads<-function(dataMatrix, posteriorProb, previousClassMeans=NUL
   classMeans<-data.frame(data.frame(dataMatrix) %>%
                     dplyr::group_split(as.vector(readClasses), .keep=F) %>%
                     purrr::map_dfr(.f=colMeans,na.rm=T))
+  classMeans<-recodeMatrixAsNumeric(classMeans) # deal with any fully NA/NaN cols
   colnames(classMeans)<-colnames(dataMatrix)
   if (!is.null(previousClassMeans)) {
     #print("orderByPreviousClusters")

@@ -39,9 +39,9 @@ removeNArows<-function(dataMatrix, maxNAfraction=0.2, removeAll0=F) {
 #' NAs and NaNs converted to an intermediate value
 #' @export
 recodeMatrixAsNumeric<-function(dataMatrix){
-  if(min(dataMatrix, na.rm=T)==0 & max(dataMatrix, na.rm=T)==1){
+  if(min(dataMatrix, na.rm=T)>=0 & max(dataMatrix, na.rm=T)<=1){
     dataMatrix[is.na(dataMatrix)]<-0.5
-  } else if(min(dataMatrix==-1, na.rm=T) & max(dataMatrix==1, na.rm=T)) {
+  } else if(min(dataMatrix>=-1, na.rm=T) & max(dataMatrix<=1, na.rm=T)) {
     dataMatrix[is.na(dataMatrix)]<-0
   } else {
     print("matrix should have values on a scale from 0 to 1 or -1 to 1")
