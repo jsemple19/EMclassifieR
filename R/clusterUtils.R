@@ -238,6 +238,31 @@ correlationDist<-function(binMat, valNA=NULL, rescale=F){
 }
 
 
+#' Calculate mutual information distance between all rows of a matrix
+#'
+#' Using the correlation function from stats package
+#' @param binMat A matrix of numbers for which you want to calculate the
+#' distance between rows
+#' @param valNA Value to give NAs in matrix
+#' @param rescale Should matrix be rescaled from 0..1 range to -1..1 range?
+#' @return A distance object (lower triangle) with the distances between all
+#' rows of the input matrix
+#' @export
+miDist<-function(binMat, valNA=NULL, rescale=F){
+  if(!is.null(valNA)){
+    binMat[is.na(binMat)]<-valNA
+  }
+  if(rescale){
+    binMat<-rescale_minus1To1(binMat)
+  }
+  print(paste0("Mutual information clustering. NAs:", sum(is.na(binMat)),
+               ". Matrix range:", min(binMat),"-", max(binMat)))
+  miDist<-stats::as.dist(1-maigesPack::MI(binMat))
+  return(miDist)
+}
+
+
+
 #' A generic function for implementing various distance metrics
 #'
 #' To avoid writing too much code when i want to try a different distance
@@ -270,7 +295,9 @@ getDistMatrix<-function(binMat, distMetric=list(name="euclidean",
          canberraDist=canberraDist(binMat, valNA=valNA,
                             rescale=distMetric$rescale),
          correlationDist=correlationDist(binMat, valNA=valNA,
-                              rescale=distMetric$rescale))
+                              rescale=distMetric$rescale),
+         mutualInformation=miDist(binMat,valNA=valNA,
+                                  rescale=distMetric$rescale))
 }
 
 
