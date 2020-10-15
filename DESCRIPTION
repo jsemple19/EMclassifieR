@@ -41,7 +41,8 @@ Imports:
       rtracklayer,
       Gviz,
       TxDb.Celegans.UCSC.ce11.refGene,
-      HiClimR
+      HiClimR,
+      maigesPack
 Suggests: 
     knitr,
     rmarkdown,
