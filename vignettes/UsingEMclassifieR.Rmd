@@ -262,15 +262,16 @@ convergenceError = 10e-6
 numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
 xRange=c(-250,250)
 maxB=50 # Number of randomised matrices to generate
-outPath="./EMres_multigene_test1"
+outPath="./EMres_multigene_test_mi"
 maxTasks=4
 taskId=1
 nThreads=4
 setSeed=FALSE
-#distMetric=list(name="cosineDist",val0=0,rescale=F)
+#distMetric=list(name="cosineDist",valNA=0,rescale=F)
 #distMetric=list(name="canberraDist",rescale=T)
-distMetric=list(name="correlationDist",val0=0.5,rescale=T)
-##distMetric=list(name="euclidean",val0=0.5,rescale=T)
+#distMetric=list(name="correlationDist",valNA=0.5,rescale=T)
+#distMetric=list(name="euclidean",valNA=0.5,rescale=T)
+distMetric=list(name="mutualInformation",valNA=0.5,rescale=F)
 
 if(!dir.exists(outPath)){
   dir.create(outPath)

@@ -420,7 +420,7 @@ plotMatUMAP<-function(dataMatrix, classes, rescale=T){
   #custom.settings$metric = "euclidean"
   #p1<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
-  custom.settings$metric = "cosine"
+  custom.settings$metric = "manhattan"
   p3<-doSingleUMAPplot(dataMatrix,readClasses,custom.settings)
 
   #p<-ggpubr::ggarrange(p3,nrow=1,ncol=1)
