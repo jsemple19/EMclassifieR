@@ -69,6 +69,12 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
     classes<-classes[,stats::na.omit(chooseCols)]
   }
 
+  if(is.null(rownames(classes))){
+    rownames(classes)<-1:nrow(classes)
+  }
+
+  rownames(classes)<-gsub("[^0-9*]","",rownames(classes))
+
   numClasses<-max(as.numeric(rownames(classes)))
   classVote<-matrix(nrow=nrow(dataMatrix),ncol=numRepeats)
   colnames(classVote)<-paste0("rep",1:numRepeats)

@@ -363,7 +363,10 @@ plotGenesPerClass(k_range, outPath, outFileBase)
 allClassMeans<-readRDS(system.file("extdata", 
           "EMres/allClassMeans_dS02-182_multiGene.rds",
             package = "EMclassifieR", mustWork=T))
+
 classes<-getClassMeansMatrix(allClassMeans,numClasses=6)
+
+classes<-as.matrix(readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc.rds")))
 
 classes<-padEndToRange(classes,xRange=c(-250,250))
 
@@ -379,7 +382,7 @@ dataMatrix<-dataMatrix[sample(1:dim(dataMatrix)[1],replace=F),]
 
 rownames(dataMatrix)<-gsub("__class.*$","",rownames(dataMatrix))
 
-distMetric=list(name="cosineDist",rescale=T) #list(name="euclidean")
+distMetric=list(name="euclidean",rescale=T) #list(name="euclidean")
 
 dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix, classes, 
                                 numRepeats=20, outPath=".",
