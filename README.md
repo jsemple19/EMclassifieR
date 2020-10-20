@@ -10,7 +10,7 @@ Install some necessary packages:
 ```
 install.packages(c("zoo", "cluster", "ggplot2", "tidyr", "plyr", "purrr", "ggpubr", "parallel", "foreach", "doParallel", "magrittr", "doRNG", "lsa", "ggbiplot", "umap", "HiClimR"))
 
-BiocManager::install(c("GenomicRanges","IRanges","GenomeInfoDb","rtracklayer","Gviz","TxDb.Celegans.UCSC.ce11.refGene","maigesPack","HiClimR"))
+BiocManager::install(c("GenomicRanges","IRanges","GenomeInfoDb","rtracklayer","Gviz","TxDb.Celegans.UCSC.ce11.refGene","maigesPack"))
 devtools::install_github("vqv/ggbiplot")
 ```
 
