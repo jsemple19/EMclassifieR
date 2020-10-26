@@ -223,6 +223,46 @@ getAllClassMeansMatrix<-function(allClassMeans, k_range=4:8, xRange=c(-250,250),
 
 
 
-
-
+#' Combine read counts in each class from silStats files
+#'
+#' Function takes all region_sample listed in matTable and extracts the read
+#' counts in each class from the single line silStats files that are generated
+#' when clustering according to known classes.
+#' @param matTable Table with list of all samples and regions which have been
+#' classified according to known classes.
+#' @param numClasses An integer indicating the total number of classes being used
+#' @param outPath A string with the path to the directory where the output should go
+#' @return data.frame of the number of reads in each class, with extra columns for
+#' total number of reads, region and sample names
+#' @export
+combineSilStats<-function(matTable, numClasses, outPath){
+  silTable<-NULL
+  for(i in 1:nrow(matTable)){
+    regionName=matTable$region[i]
+    sampleName=matTable$sample[i]
+    outFileBase=paste(sampleName, regionName, sep="_")
+    silLine<-tryCatch({
+      read.csv(file=paste0(outPath, "/silStats_", outFileBase,"_K",
+                              numClasses, ".csv"),header=T,stringsAsFactors=F)
+    },
+    error=function(e){return("no silStatsFile")}
+    )
+    if(length(silLine)>1){
+      readCounts<-silLine[grep("_reads",colnames(silLine))]
+      readCounts$totalReads=sum(readCounts)
+    } else {
+      readCounts<-as.data.frame(rep(NA,numClasses))
+      colnames(readCounts)<-paste0("class",1:numClasses,"_reads")
+      readCounts$totalReads=NA
+    }
+    readCounts$region=regionName
+    readCounts$sample=sampleName
+    if(is.null(silTable)){
+      silTable<-readCounts
+    } else {
+      silTable<-rbind(silTable,readCounts)
+    }
+  }
+  return(silTable)
+}
 
