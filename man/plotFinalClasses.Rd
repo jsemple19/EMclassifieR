@@ -13,7 +13,8 @@ plotFinalClasses(
   xRange,
   myXlab,
   featureLabel,
-  baseFontSize
+  baseFontSize,
+  figFormat = "png"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ plotFinalClasses(
 \item{featureLabel}{A label for a feature you want to plot, such as the position of the TSS (default="TSS")}
 
 \item{baseFontSize}{The base font for the plotting theme (default=12 works well for 4x plots per A4 page)}
+
+\item{figFormat}{format of output figures. Should be one of "png" or "pdf"}
 }
 \value{
 None

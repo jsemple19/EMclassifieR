@@ -14,6 +14,7 @@ runClassLikelihoodRpts(
   myXlab = "CpG/GpC position",
   featureLabel = "TSS",
   baseFontSize = 12,
+  figFormat = "png",
   distMetric = list(name = "euclidean")
 )
 }
@@ -35,6 +36,8 @@ runClassLikelihoodRpts(
 \item{featureLabel}{A label for a feature you want to plot, such as the position of the TSS (default="TSS")}
 
 \item{baseFontSize}{The base font for the plotting theme (default=12 works well for 4x plots per A4 page)}
+
+\item{figFormat}{format of output figures. Should be one of "png" or "pdf"}
 
 \item{distMetric}{A list with the name of the distance metric and any
 parameters it might require}

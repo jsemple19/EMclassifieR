@@ -1,0 +1,406 @@
+---
+title: "em_demo"
+author: "Jennifer Semple"
+date: "11/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(library(EMclassifieR))
+suppressMessages(library(ggplot2))
+
+
+```
+
+# EM clustering demo
+## Setting up variables for clustering
+### Methylation matrix for clustering
+We have a matrix of 20 reads with methylation positions +-250bp around TSS. Each
+row (r1-r20) is a single molecule (joined paired end reads) corresponding to the
+promoter in question in a particular cell. Each column indicates a position in 
+the promoter relative to the TSS, and wherever a CG or GC motif appears in the 
+promoter it is coloured as accessible/methylated (red) or protected/not-methylated 
+(blue).
+
+```{r}
+tablePath="csv/MatrixLog_relCoord_ampTSS.csv"
+matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
+                               mustWork=TRUE), stringsAsFactors=F)
+
+dataMatrix<-readRDS(system.file("extdata", matTable$filename[1], package = "EMclassifieR", mustWork=TRUE))
+dim(dataMatrix)
+dataMatrix<-removeNArows(dataMatrix)
+dim(dataMatrix)
+#rownames(dataMatrix)<-paste0("r",1:dim(dataMatrix)[1])
+set.seed(20201126)
+colourChoice=list(low="blue", mid="white",high="red", bg="white", lines="black")
+classCols=c("#D95F02","#1B9E77")
+
+
+dm<-dataMatrix[sample(1:dim(dataMatrix)[1],20,replace=F),]
+rownames(dm)<-paste0("r",1:dim(dm)[1])
+
+#dm<-dm[sample(1:20,20),]
+
+d<-tidyr::gather(as.data.frame(dm),key=position,value=methylation)
+d$molecules<-seq_along(rownames(dm))
+d$position<-as.numeric(d$position)
+
+p<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
+    ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
+    ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                  high=colourChoice$high,
+                                  midpoint=0.5,
+                                  na.value=colourChoice$bg,
+                                 breaks=c(0,1), labels=c("protected","accessible"),
+                                 limits=c(0,1), name="dSMF\n\n") +
+    ggplot2::theme_minimal() + xlim(c(-210,210)) + 
+    ggplot2::theme(panel.grid.major = element_blank(), 
+                         panel.grid.minor = element_blank(), 
+                         panel.background = element_blank(), 
+                         axis.line = element_blank(),
+                   legend.position="none") + 
+    ggplot2::annotate("text",x=-210,y=1:20,label=row.names(dm))
+p
+
+```
+
+### Binarising the matrix
+
+To start, we must binarise the matrix. So any NAs (gaps in the plot), are
+randomly assigned to 0 or 1. Also any position that has a "fraction methylation" 
+probability (from overlapping reads and GCG sites), is binarised to 0 or q
+with a probability proportional to the fraction methylation.
+
+```{r}
+# convert NAs in matrix to numeric value of 0.5
+dm<-recodeMatrixAsNumeric(dm) 
+# convert methylation fractions to binary values with probabilities==fractions
+stopifnot(isMatrixValid(dm, valueRange=c(0,1), NAsValid=FALSE))
+fractionIdx<-dm > 0 & dm < 1
+binaryData<-dm
+if (sum(fractionIdx)>0){
+  binaryData[fractionIdx]<-stats::rbinom(n=sum(fractionIdx), size=1,
+                                         prob=dataMatrix[fractionIdx])
+}
+
+d<-tidyr::gather(as.data.frame(binaryData),key=position,value=methylation)
+d$molecules<-seq_along(rownames(binaryData))
+d$position<-as.numeric(d$position)
+
+p<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
+    ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
+    ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                  high=colourChoice$high,
+                                  midpoint=0.5,
+                                  na.value=colourChoice$bg,
+                                 breaks=c(0,1), labels=c("protected","accessible"),
+                                 limits=c(0,1), name="dSMF\n\n") +
+    ggplot2::theme_minimal() + xlim(c(-210,210)) + 
+    ggplot2::theme(panel.grid.major = element_blank(), 
+                         panel.grid.minor = element_blank(), 
+                         panel.background = element_blank(), 
+                         axis.line = element_blank(),
+                   legend.position="none") + 
+    ggplot2::annotate("text",x=-210,y=1:20,label=row.names(binaryData))
+p
+```
+
+### Random assignment of reads to clusters
+
+You need to start by choosing how many classes you want. For simplicity we will
+use two classes.
+At first we do not know which read belongs to which class, so we randomly assign 
+probabilities for each read to belonging to one class or the other. There are
+the **posterior probabilites**. We use randomly sample from the beta distribution 
+(which ranges between 0 and 1) in R to do this.
+```{r}
+numClasses=2
+numSamples=dim(binaryData)[1]            # Number of samples/reads
+posteriorProb=matrix(nrow=numSamples, ncol=numClasses)  # probability each sample (read) belongs to a particular class
+
+for(i in 1:numClasses) {
+    # Samples are randomly assigned probabilities (weights) for each class.
+  posteriorProb[,i] = stats::rbeta(numSamples,numSamples**-0.5,1)
+}
+
+df1<-data.frame(readNumber=as.numeric(gsub("r","",rownames(dm))),
+                Class=as.factor(apply(posteriorProb,1,which.max)))
+
+p+ggplot2::annotate("text",x=160,y=1:21,label=c(round(posteriorProb[,1],2),"c1"),
+                    colour=classCols[1])  +
+  ggplot2::annotate("text",x=190,y=1:21,label=c(round(posteriorProb[,2],2),"c2"),
+                    colour=classCols[2])  +
+  ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                      y=readNumber-0.5,
+                                                      xend=210,
+                                                      yend=readNumber+0.5,
+                                                      colour=Class), size=5) +
+  ggtitle("Random initialisation of classes")
+```
+
+
+### Initialising classes
+
+Now we can start the first step of the EM algorithm - we can estimate the 
+mean fraction methylation in each position for each calss. 
+To do this, we perform matrix multiplication of the probability of the reads belonging to a particular class (posteriorProb) by the methylation score of each read at each position (the data) and sum up the contribution of all the reads. 
+This gives us the class mean profile. In statistic jargon, this mean profile is the "Expected" value (hence the "expectation" in the EM name). 
+In the first round it is based only on random assignment of reads to classes, so 
+it is not very meaningful.
+
+```{r}
+classes = (t(posteriorProb) %*% binaryData)/colSums(posteriorProb)
+
+plot(as.numeric(colnames(classes)),classes[1,],type="line",col=classCols[1], ylim=c(0,1), xlim=c(-200,200),ylab="Fraction methylation", xlab="position", main="Randomly initialised classes")
+lines(as.numeric(colnames(classes)),classes[2,],col=classCols[2])
+legend("topright",col=c(classCols),legend=c("c1","c2"),lty=1)
+
+
+# order dataMatrix by class
+orderedData<-classifyAndSortReads(dataMatrix=binaryData,
+                                  posteriorProb=posteriorProb,
+                                  previousClassMeans=classes)
+dataOrderedByClass<-orderedData$data
+classMeans<-orderedData$classMeans
+
+# extract the class names and read names
+readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
+classOrder <- unique(readClasses)
+readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
+readsTable <- table(readClasses)
+
+df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
+df1<-data.frame(read=readNames, readNumber=1:length(readNames),
+                Class=factor(readClasses), stringsAsFactors=F)
+
+d<-tidyr::gather(as.data.frame(df),key=position,value=methylation)
+d$molecules<-seq_along(readNames)
+d$position<-as.numeric(d$position)
+
+p1<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
+  ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
+  ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                high=colourChoice$high,
+                                midpoint=0.5,
+                                na.value=colourChoice$bg,
+                                breaks=c(0,1), labels=c("protected","accessible"),
+                                limits=c(0,1), name="dSMF\n\n") +
+  ggplot2::theme_minimal() + xlim(c(-210,210)) + 
+  ggplot2::theme(panel.grid.major = element_blank(), 
+                 panel.grid.minor = element_blank(), 
+                 panel.background = element_blank(), 
+                 axis.line = element_blank(),
+                 legend.position="none") + 
+  ggplot2::annotate("text",x=-210,y=1:20,label=readNames)
+
+
+p1<-p1+ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                            y=readNumber-0.5,
+                                                            xend=210,
+                                                            yend=readNumber+0.5,
+                                                            colour=Class), 
+                             size=5) +
+  ggtitle("Randomly initialised classes")
+
+print(p1)
+
+
+
+
+
+
+```
+
+### Initialising the prior probability
+The prior probability of each class is simply set to 1/
+```{r}
+priorProb=rep(1/numClasses,numClasses)
+```
+
+
+## Performing first round of expectation maximisation
+Now we are ready to perform iterative steps of expectation maximisation. A single round of EM is performed with the function em_basic. Inside this function we use the binomial distribution (single trial) is used with the classes profile to estimate the log likelihhood of each read belonging to that class (expectation
+step). The log likelihood is used to recalculate new prior and posterior probabilities and new class profiles. The function outputs updated classes, priorProb and posterioProb. 
+
+```{r EM-round1}
+results<-em_basic(classes,priorProb,binaryData)
+
+plot(as.numeric(colnames(results$classes)), results$classes[1,], type="line", col=classCols[1], ylim=c(0,1), xlim=c(-200,200),ylab="Fraction methylation", xlab="position", main="EM iteration 1")
+lines(as.numeric(colnames(results$classes)), results$classes[2,], col=classCols[2])
+legend("topright", col=classCols, legend=c("c1","c2"), lty=1)
+
+df1<-data.frame(readNumber=as.numeric(gsub("r","",rownames(binaryData))),
+                Class=as.factor(apply(results$posteriorProb,1,which.max)))
+
+p+ggplot2::annotate("text",x=160,y=1:21,label=c(round(results$posteriorProb[,1],2),"c1"),colour=classCols[1])  +
+  ggplot2::annotate("text",x=190,y=1:21,label=c(round(results$posteriorProb[,2],2),"c2"),colour=classCols[2]) +
+  ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                      y=readNumber-0.5,
+                                                      xend=210,
+                                                      yend=readNumber+0.5,
+                                                      colour=Class), size=5) +
+  ggtitle("EM iteration 1")
+
+
+```
+
+
+And the clustered matrix will look as follows:
+
+```{r}
+    # order dataMatrix by class
+    orderedData<-classifyAndSortReads(dataMatrix=binaryData,
+                                      posteriorProb=results$posteriorProb,
+                                      previousClassMeans=classes)
+    dataOrderedByClass<-orderedData$data
+    classMeans<-orderedData$classMeans
+    
+    # extract the class names and read names
+    readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
+    classOrder <- unique(readClasses)
+    readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
+    readsTable <- table(readClasses)
+
+    df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
+    df1<-data.frame(read=readNames, readNumber=1:length(readNames),
+                  Class=factor(readClasses), stringsAsFactors=F)
+
+    d<-tidyr::gather(as.data.frame(df),key=position,value=methylation)
+    d$molecules<-seq_along(readNames)
+    d$position<-as.numeric(d$position)
+    
+    p1<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
+    ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
+    ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                  high=colourChoice$high,
+                                  midpoint=0.5,
+                                  na.value=colourChoice$bg,
+                                 breaks=c(0,1), labels=c("protected","accessible"),
+                                 limits=c(0,1), name="dSMF\n\n") +
+    ggplot2::theme_minimal() + xlim(c(-210,210)) + 
+    ggplot2::theme(panel.grid.major = element_blank(), 
+                         panel.grid.minor = element_blank(), 
+                         panel.background = element_blank(), 
+                         axis.line = element_blank(),
+                   legend.position="none") + 
+    ggplot2::annotate("text",x=-210,y=1:20,label=readNames)
+  
+    
+    p1<-p1+  ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                      y=readNumber-0.5,
+                                                      xend=210,
+                                                      yend=readNumber+0.5,
+                                                      colour=Class), size=5) +
+  ggtitle("EM iteration 1")
+    print(p1)
+```
+
+### Repeated iteration
+The algorithm is repeated until the posterior probabilities converge, i.e they change between one round and the next by less than a certain error threshold (convergenceError). If it does not converge, the algorithm will stop after a certain number of iterations (maxIterations).
+
+```{r}
+i=1 # first iteration
+convergenceError=1e-6
+maxIterations=100
+e = convergenceError * length(posteriorProb) # scale convergence error to size of p
+p_prev<-posteriorProb # randomly initialised posteriorProb
+posteriorProb<-results$posteriorProb # first round posteriorProb
+p_diff = p_difference(posteriorProb, p_prev)
+p_diff_prev = 0
+print(paste("i:", i, " , sum:", p_diff, " , step diff:", abs(p_diff-p_diff_prev)))
+
+# update the p_prev with the current value ready for the next round
+classes<-results$classes
+priorProb<-results$priorProb
+i=2
+```
+
+
+
+### Round 2 of EM to convergence
+Now we simply feed the classes, priorProb from the previous round into the next round
+
+```{r EM-round2 onwards}
+while (!p_converged(p_diff, p_diff_prev, e) & i < maxIterations) {
+
+    classes[classes>1]=1 # dbern error when probability > 1
+    previousClassMeans<-classes
+    p_prev = posteriorProb
+    p_diff_prev = p_diff
+    results<-em_basic(classes,priorProb,binaryData)
+
+    classes=results$classes
+    posteriorProb=results$posteriorProb
+    priorProb=results$priorProb
+    p_diff = p_difference(posteriorProb, p_prev)
+    print(paste("i:", i, " , sum:", p_diff, " , step diff:", abs(p_diff-p_diff_prev)))
+  
+    plot(as.numeric(colnames(classes)), classes[1,], type="line", col=classCols[1], ylim=c(0,1), xlim=c(-200,200),ylab="Fraction methylation", xlab="position", main=paste0("EM iteration ",i))
+    lines(as.numeric(colnames(classes)), classes[2,], col=classCols[2])
+    legend("topright", col=classCols, legend=c("c1","c2"), lty=1)
+    
+    df1<-data.frame(readNumber=as.numeric(gsub("r","",rownames(binaryData))),
+                    Class=as.factor(apply(posteriorProb,1,which.max)))
+    
+    p1<-p+ggplot2::annotate("text",x=160,y=1:21,label=c(round(posteriorProb[,1],2),"c1"),colour=classCols[1])  +
+      ggplot2::annotate("text",x=190,y=1:21,label=c(round(posteriorProb[,2],2),"c2"),colour=classCols[2]) +
+      ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                           y=readNumber-0.5,
+                                                           xend=210,
+                                                           yend=readNumber+0.5,
+                                                           colour=Class), size=5) +
+      ggtitle(paste0("EM iteration ",i))
+    print(p1)
+    
+    # order dataMatrix by class
+    orderedData<-classifyAndSortReads(dataMatrix=binaryData,
+                                      posteriorProb=posteriorProb,
+                                      previousClassMeans=previousClassMeans)
+    dataOrderedByClass<-orderedData$data
+    classMeans<-orderedData$classMeans
+    
+    # extract the class names and read names
+    readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
+    classOrder <- unique(readClasses)
+    readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
+    readsTable <- table(readClasses)
+    # the horizontal red lines on the plot
+    classBorders <- utils::head(cumsum(readsTable[classOrder]), -1)+0.5
+    df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
+    df1<-data.frame(read=readNames, readNumber=1:length(readNames),
+                    Class=factor(readClasses), stringsAsFactors=F)
+    
+    d<-tidyr::gather(as.data.frame(df),key=position,value=methylation)
+    d$molecules<-seq_along(readNames)
+    d$position<-as.numeric(d$position)
+    
+    p2<-ggplot2::ggplot(d,ggplot2::aes(x=position,y=molecules)) +
+      ggplot2::geom_tile(ggplot2::aes(width=4,fill=methylation),alpha=0.8) +
+      ggplot2::scale_fill_gradient2(low=colourChoice$low, mid=colourChoice$mid,
+                                    high=colourChoice$high,
+                                    midpoint=0.5,
+                                    na.value=colourChoice$bg,
+                                    breaks=c(0,1), labels=c("protected","accessible"),
+                                    limits=c(0,1), name="dSMF\n\n") +
+      ggplot2::theme_minimal() + xlim(c(-210,210)) + 
+      ggplot2::theme(panel.grid.major = element_blank(), 
+                     panel.grid.minor = element_blank(), 
+                     panel.background = element_blank(), 
+                     axis.line = element_blank(),
+                     legend.position="none") + 
+      ggplot2::annotate("text",x=-210,y=1:20,label=readNames)
+    
+    p2<-p2+ggplot2::geom_segment(data=df1, mapping=ggplot2::aes(x=210,
+                                                             y=readNumber-0.5,
+                                                             xend=210,
+                                                             yend=readNumber+0.5,
+                                                             colour=Class), size=5) +
+      ggtitle(paste0("EM iteration ",i))
+    print(p2)
+  i = i+1
+}    
+```
+
+
