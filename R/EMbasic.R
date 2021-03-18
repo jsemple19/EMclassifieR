@@ -26,7 +26,7 @@ em_basic <- function(classes,priorProb,dataMatrix) {
   l=matrix(nrow=numSamples, ncol=numClasses)  # log likelihood (theta|data)
   posteriorProb=matrix(nrow=numSamples, ncol=numClasses)  # probability by which each class occurs
 
-  # E step
+  # calculate the likelihood of seeing  this data given the classes
   for(i in 1:numSamples) {
     for (j in 1:numClasses) {
       # Bernoulli (size = 1): simply multiplying by class probability
@@ -36,12 +36,14 @@ em_basic <- function(classes,priorProb,dataMatrix) {
     }
   }
 
-  # M step
+  # M step (maxiumum a posteriori estimation?)
   for(i in 1:numSamples) {
     posteriorProb[i,] = priorProb*exp(l[i,]-max(l[i,]))
     posteriorProb[i,] = posteriorProb[i,]/sum(posteriorProb[i,])
   }
   priorProb = colMeans(posteriorProb)
+
+  # the E step
   # The expected bincounts for each class are computed at once by means of a matrix multiplication.
   classes = (t(posteriorProb) %*% binaryData)/colSums(posteriorProb)
 
@@ -907,11 +909,12 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @param figFormat format of output figures. Should be one of "png" or "pdf"
 #' @return None
 #' @export
 plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
-                           outFileBase,
-                           outPath, xRange, myXlab, featureLabel, baseFontSize){
+                           outFileBase, outPath, xRange, myXlab, featureLabel,
+                           baseFontSize,figFormat="png"){
   # plot single molecules with final classes
   p<-plotClassesSingleMolecule(dataOrderedByClass, xRange=xRange,
                          title = outFileBase, myXlab=myXlab,
@@ -919,8 +922,8 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
   outPath<-gsub("\\/$","",outPath)
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/finalClassReads_", outFileBase,"_K",
-                                numClasses, ".png"),
-                plot=p, device="png", width=19, height=29, units="cm")
+                                numClasses, ".",figFormat),
+                plot=p, device=figFormat, width=19, height=29, units="cm")
 
 
   # plot all class means (faceted)

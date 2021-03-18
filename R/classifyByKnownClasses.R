@@ -54,6 +54,7 @@ classLikelihoodPerRead<-function(dataMatrix,classes){
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
+#' @param figFormat format of output figures. Should be one of "png" or "pdf"
 #' @param distMetric A list with the name of the distance metric and any
 #' parameters it might require
 #' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
@@ -61,7 +62,8 @@ classLikelihoodPerRead<-function(dataMatrix,classes){
 runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
                                  xRange=c(-250,250), outFileBase="",
                                  myXlab="CpG/GpC position", featureLabel="TSS",
-                                 baseFontSize=12, distMetric=list(name="euclidean")){
+                                 baseFontSize=12, figFormat="png",
+                                 distMetric=list(name="euclidean")){
   dataMatrix_original<-dataMatrix
   if(ncol(dataMatrix)!=ncol(classes)){
     chooseCols<-match(colnames(dataMatrix),colnames(classes))
@@ -120,7 +122,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   print("plotting final classes")
   plotFinalClasses(dataOrderedByClass, numClasses, allClassMeans,
                    outFileBase, outPath, xRange, myXlab, featureLabel,
-                   baseFontSize)
+                   baseFontSize,figFormat)
 
   silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
                                outPath, EMrep=NULL, silStats=NULL,
