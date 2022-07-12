@@ -324,7 +324,11 @@ plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
                                                   lines="black"),
                                 colourScaleMidpoint=0.5){
   position <- methylation <- molecules <- readNumber <- Class <-NULL
-  readClasses <- paste0("class",sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2))
+  #extract class number (as text)
+  readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2)
+  #0pad and add 'class'
+  readClasses<-sprintf(paste0("%0",max(nchar(readClasses)),"s"),readClasses)
+  readClasses<-paste0("class",readClasses)
   classOrder <- unique(readClasses)
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
   readsTable <- table(readClasses)
@@ -780,7 +784,8 @@ getClassVote<-function(classVote){
   if (length(repCols)>1) { # is there more than one repeat?
     classVote$topClass<-apply(classVote[,repCols],1,getMode)
     classVote$topClassFreq<-sapply(1:nrow(classVote),function(rowNum){
-      topClassFreq<-sum(match(classVote[rowNum,repCols],classVote$topClass[rowNum]),
+      topClassFreq<-sum(match(classVote[rowNum,repCols],
+                              classVote$topClass[rowNum]),
                       na.rm=T)/length(repCols)
       return(topClassFreq)})
   } else {
@@ -1212,7 +1217,6 @@ plotClusteringMetrics<-function(dataMatrix, k_range=2:8, maxB=100,
                                 outPath=".", outFileBase="", EMrep=NULL,
                                 nThreads=1, setSeed=FALSE,
                                 distMetric=list(name="euclidean", rescale=F)){
-  # initialise variables
   meanSilhouetteWidth <- elbowWSS <- gap <- position <- NULL
   classMean <- classNumber <- NULL
   outPath<-gsub("\\/$","",outPath)

@@ -72,16 +72,12 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   }
   # if there are no row names
   if(is.null(rownames(classes))){
-    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"d"),1:nrow(classes))
-  }
-  # if row names are simple numeric and not 0 padded
-  if(any(nchar(rownames(classes))<max(nchar(rownames(classes))))) {
-    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"d"),1:nrow(classes))
+    rownames(classes)<-1:nrow(classes)
   }
 
   rownames(classes)<-gsub("[^0-9*]","",rownames(classes))
 
-  numClasses<-max(as.numeric(rownames(classes)))
+  numClasses<-nrow(classes)
   classVote<-matrix(nrow=nrow(dataMatrix),ncol=numRepeats)
   colnames(classVote)<-paste0("rep",1:numRepeats)
   silStats<-NULL
@@ -110,16 +106,19 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   classVote$topClassFreq<-NA
   classVote<-getClassVote(classVote)
 
-  classVote$topClass<-factor(classVote$topClass)
+  classVote$topClassPad<-sprintf(paste0("%0",max(nchar(classVote$topClass)),"s"),classVote$topClass)
+  classVote$topClassPad<-factor(classVote$topClassPad)
+  classVote<-classVote[order(classVote$topClassPad),]
+
   plotClassStability(classVote,outFileBase,outPath,numClasses)
 
   # save data with most frequent class call.
   #print("saving data with most frequent class call")
   idx<-match(row.names(dataMatrix_original),classVote$read)
   row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),
-                                        "__class", classVote$topClass[idx])
-  dataOrderedByClass<-dataMatrix_original[order(classVote$topClass[idx]),]
-
+                                        "__class", classVote$topClassPad[idx])
+  #dataOrderedByClass<-dataMatrix_original[order(rownames(classes)<-1:nrow(classes)[idx]),]
+  dataOrderedByClass<-dataMatrix_original[order(classVote$topClassPad[idx]),]
 
   saveRDS(dataOrderedByClass, file=paste0(outPath, "/", outFileBase, "_K",
                                           numClasses, ".rds"))
