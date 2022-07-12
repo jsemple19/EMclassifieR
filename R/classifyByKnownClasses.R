@@ -70,9 +70,13 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
     dataMatrix<-dataMatrix[,!is.na(chooseCols)]
     classes<-classes[,stats::na.omit(chooseCols)]
   }
-
+  # if there are no row names
   if(is.null(rownames(classes))){
-    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"s"),1:nrow(classes))
+    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"d"),1:nrow(classes))
+  }
+  # if row names are simple numeric and not 0 padded
+  if(any(nchar(rownames(classes))<max(nchar(rownames(classes))))) {
+    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"d"),1:nrow(classes))
   }
 
   rownames(classes)<-gsub("[^0-9*]","",rownames(classes))

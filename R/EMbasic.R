@@ -334,7 +334,7 @@ plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
   df1<-data.frame(read=readNames, readNumber=rev(1:length(readNames)),
                   Class=readClasses, stringsAsFactors=F)
   df1$Class<-factor(df1$Class, levels=paste0("class",
-                          sprintf(paste0("%0",nchar(numClasses),"s"),1:numClasses)))
+                          sprintf(paste0("%0",nchar(numClasses),"d"),1:numClasses)))
   #######################################################################################
   reads<-row.names(df)
   d<-tidyr::gather(df,key=position,value=methylation)
@@ -465,7 +465,7 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
   numClasses<-nrow(classes)
   classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
   classMeans$class<-as.factor(rep(paste0("class",
-                                  sprintf(paste0("%0",nchar(numClasses),"s"),1:numClasses)),
+                                  sprintf(paste0("%0",nchar(numClasses),"d"),1:numClasses)),
                                   ncol(classes)))
   classMeans$position<-as.numeric(classMeans$position)
 

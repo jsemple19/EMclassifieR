@@ -373,6 +373,7 @@ classes<-classes[order(rowMeans(classes)),]
 saveRDS(classes,paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds"))
 rowMeans(classes)
 classes<-padEndToRange(classes,xRange=c(-250,250))
+classes<-readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds"))
 
 p<-plotClassMeans(classes,xRange=c(-250,250), facet=TRUE,
                          title="Class means",
