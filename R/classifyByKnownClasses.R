@@ -72,7 +72,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   }
 
   if(is.null(rownames(classes))){
-    rownames(classes)<-1:nrow(classes)
+    rownames(classes)<-sprintf(paste0("%0",nchar(nrow(classes)),"s"),1:nrow(classes))
   }
 
   rownames(classes)<-gsub("[^0-9*]","",rownames(classes))
@@ -85,7 +85,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
 
   for (i in 1:numRepeats){
     lik<-classLikelihoodPerRead(dataMatrix,classes)
-    classVote[,i]<-apply(lik,1,which.max)
+    classVote[,i]<-colnames(lik)[apply(lik,1,which.max)]
     classMeans<-data.frame(data.frame(dataMatrix) %>%
                     dplyr::group_split(classVote[,i], .keep=F) %>%
                     purrr::map_dfr(.f=colMeans,na.rm=T))

@@ -302,6 +302,7 @@ classifyAndSortReads<-function(dataMatrix, posteriorProb, previousClassMeans=NUL
 #'
 #' Create a single molecule plot of the reads sorted by class.
 #' @param dataOrderedByClass A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.
+#' @param numClasses Number of classes
 #' @param xRange A vector of the first and last coordinates of the region to plot (default is c(-250,250))
 #' @param title A title for the plot (default is "Reads by classes")
 #' @param myXlab  A label for the x axis (default is "CpG/GpC position")
@@ -313,7 +314,7 @@ classifyAndSortReads<-function(dataMatrix, posteriorProb, previousClassMeans=NUL
 #' @param colourScaleMidpoint Numerical value for middle of colour scale. Useful for Nanopore data where a particular threshold other than 0.5 is used to distinguish methylated from non-methylated sites. (default=0.5).
 #' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
-plotClassesSingleMolecule<-function(dataOrderedByClass,
+plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
                                 xRange=c(-250,250), title="Reads by classes",
                                 myXlab="CpG/GpC position",
                                 featureLabel="TSS", baseFontSize=12,
@@ -328,15 +329,16 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
   readsTable <- table(readClasses)
   # the horizontal red lines on the plot
-  classBorders <- utils::head(cumsum(readsTable[classOrder]), -1)+0.5
+  classBorders <- utils::head(cumsum(readsTable[rev(classOrder)]), -1)+0.5
   df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
-  df1<-data.frame(read=readNames, readNumber=1:length(readNames),
-                  Class=factor(readClasses), stringsAsFactors=F)
-
+  df1<-data.frame(read=readNames, readNumber=rev(1:length(readNames)),
+                  Class=readClasses, stringsAsFactors=F)
+  df1$Class<-factor(df1$Class, levels=paste0("class",
+                          sprintf(paste0("%0",nchar(numClasses),"s"),1:numClasses)))
   #######################################################################################
   reads<-row.names(df)
   d<-tidyr::gather(df,key=position,value=methylation)
-  d$molecules<-seq_along(reads)
+  d$molecules<-rev(seq_along(reads))
   #d$methylation<-as.character(d$methylation)
   if(grepl("_",d$position[1])){
     starts<-as.numeric(sapply(strsplit(d$position,"_"),"[[",1))
@@ -386,6 +388,7 @@ plotClassesSingleMolecule<-function(dataOrderedByClass,
                                                              yend=readNumber+0.5,
                                                              colour=Class),
                              size=5) +
+      ggplot2::scale_colour_discrete(drop=FALSE)+
       ggplot2::geom_vline(xintercept=xRange[2],colour=colourChoice$lines)
   return(p)
 }
@@ -461,7 +464,9 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
   position <- methFreq <- NULL
   numClasses<-nrow(classes)
   classMeans<-tidyr::gather(as.data.frame(classes),key="position",value="methFreq")
-  classMeans$class<-as.factor(rep(paste0("class",1:numClasses),ncol(classes)))
+  classMeans$class<-as.factor(rep(paste0("class",
+                                  sprintf(paste0("%0",nchar(numClasses),"s"),1:numClasses)),
+                                  ncol(classes)))
   classMeans$position<-as.numeric(classMeans$position)
 
 
@@ -473,7 +478,7 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
     ggplot2::xlab(myXlab) +
     ggplot2::ylab("dSMF (1 - Methylation frequency)") +
     ggplot2::xlim(xRange) +
-    ggplot2::theme_light(base_size=baseFontSize) +
+    ggplot2::theme_classic(base_size=baseFontSize) +
     ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                    panel.grid.minor = ggplot2::element_blank(),
                    plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
@@ -485,8 +490,10 @@ plotClassMeans<-function(classes,xRange=c(-250,250), facet=TRUE,
                                color="grey80") +
     ggplot2::annotate(geom="text", x=1,y=0.01,
                       label=featureLabel,color="grey20")
+  # add line for 0.5 value
+  p<-p+ ggplot2::geom_hline(yintercept=0.5,linetype=2,colour="grey60",size=0.2)
   if (facet==TRUE) {
-    p<-p+ggplot2::facet_wrap(~class,nrow=nrow(classes))
+    p<-p+ggplot2::facet_wrap(~class,nrow=nrow(classes),strip.position="left")
   }
   return(p)
 }
@@ -771,13 +778,13 @@ getReadClass<-function(dataOrderedByClass,readNames){
 getClassVote<-function(classVote){
   repCols<-colnames(classVote)[grep("rep",colnames(classVote))]
   if (length(repCols)>1) { # is there more than one repeat?
-    classVote$topClass<-as.numeric(apply(classVote[,repCols],1,getMode))
+    classVote$topClass<-apply(classVote[,repCols],1,getMode)
     classVote$topClassFreq<-sapply(1:nrow(classVote),function(rowNum){
       topClassFreq<-sum(match(classVote[rowNum,repCols],classVote$topClass[rowNum]),
                       na.rm=T)/length(repCols)
       return(topClassFreq)})
   } else {
-    classVote$topClass<--as.numeric(classVote[,repCols])
+    classVote$topClass<-classVote[,repCols]
     classVote$topClassFreq<-1
   }
   return(classVote)
@@ -805,7 +812,7 @@ plotEachRepeat<-function(dataOrderedByClass, outFileBase , outPath, numClasses,
   #makeDirs(path=outPath,dirNameList=paste0(c("classPlots",
   #                                         "classMeanPlots"),"/",outFileBase))
   # do single molecule plots of classes
-  p<-plotClassesSingleMolecule(dataOrderedByClass, xRange,
+  p<-plotClassesSingleMolecule(dataOrderedByClass, numClasses, xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=baseFontSize)
   outPath<-gsub("\\/$","",outPath)
@@ -916,7 +923,7 @@ plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
                            outFileBase, outPath, xRange, myXlab, featureLabel,
                            baseFontSize,figFormat="png"){
   # plot single molecules with final classes
-  p<-plotClassesSingleMolecule(dataOrderedByClass, xRange=xRange,
+  p<-plotClassesSingleMolecule(dataOrderedByClass, numClasses, xRange=xRange,
                          title = outFileBase, myXlab=myXlab,
                          featureLabel=featureLabel, baseFontSize=12)
   outPath<-gsub("\\/$","",outPath)

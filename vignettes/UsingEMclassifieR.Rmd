@@ -366,9 +366,21 @@ allClassMeans<-readRDS(system.file("extdata",
 
 classes<-getClassMeansMatrix(allClassMeans,numClasses=6)
 
-classes<-as.matrix(readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc.rds")))
 
+
+classes<-as.matrix(readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc.rds")))
+classes<-classes[order(rowMeans(classes)),]
+saveRDS(classes,paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds"))
+rowMeans(classes)
 classes<-padEndToRange(classes,xRange=c(-250,250))
+
+p<-plotClassMeans(classes,xRange=c(-250,250), facet=TRUE,
+                         title="Class means",
+                         myXlab="CpG/GpC position",featureLabel="TSS",
+                         baseFontSize=12)
+
+ggplot2::ggsave("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.pdf",p,
+                height=11,width=4,device="pdf")
 
 dataMatrix<-readRDS(system.file("extdata",
                                 "EMres/dS02-182_multiGene_K6.rds",
@@ -389,6 +401,7 @@ dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix, classes,
                                 xRange=c(-250,250), outFileBase="test",
                                 distMetric=distMetric)
 
+dataMatrix<-dataOrderedByClass[-grep("__class0[1,2,3,4]",row.names(dataOrderedByClass)),]
 
 tablePath="csv/MatrixLog_relCoord_ampTSS.csv"
 matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
