@@ -88,7 +88,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
     classVote[,i]<-colnames(lik)[apply(lik,1,which.max)]
     classMeans<-data.frame(data.frame(dataMatrix) %>%
                     dplyr::group_split(classVote[,i], .keep=F) %>%
-                    purrr::map_dfr(.f=colMeans,na.rm=T))
+                    purrr::map_dfr(.f=colMeans,na.rm=T),stringsAsFactors = F)
     colnames(classMeans)<-colnames(dataMatrix)
     tmpMeans<-tidyr::gather(classMeans,key="position",value="methFreq")
     tmpMeans$class<-rep(rownames(classMeans),ncol(classMeans))
@@ -100,15 +100,16 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
     }
   }
 
-  classVote<-data.frame(classVote)
+  classVote<-data.frame(classVote,stringsAsFactors = F)
   classVote$read<-rownames(dataMatrix)
   classVote$topClass<-NA
   classVote$topClassFreq<-NA
   classVote<-getClassVote(classVote)
 
-  classVote$topClassPad<-sprintf(paste0("%0",max(nchar(classVote$topClass)),"s"),classVote$topClass)
-  classVote$topClassPad<-factor(classVote$topClassPad)
-  classVote<-classVote[order(classVote$topClassPad),]
+  #classVote$topClassPad<-sprintf(paste0("%0",max(nchar(classVote$topClass)),"s"),trimws(classVote$topClass))
+  #classVote$topClassPad<-factor(classVote$topClassPad)
+  #classVote<-classVote[order(classVote$topClass),]
+  classVote<-classVote[order(as.numeric(classVote$topClass)),]
 
   plotClassStability(classVote,outFileBase,outPath,numClasses)
 
@@ -116,9 +117,13 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   #print("saving data with most frequent class call")
   idx<-match(row.names(dataMatrix_original),classVote$read)
   row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),
-                                        "__class", classVote$topClassPad[idx])
+                                        "__class",
+                                  formatC(as.numeric(classVote$topClass[idx]),
+                                    width=max(nchar(classVote$topClass)),
+                                    flag=0))
   #dataOrderedByClass<-dataMatrix_original[order(rownames(classes)<-1:nrow(classes)[idx]),]
-  dataOrderedByClass<-dataMatrix_original[order(classVote$topClassPad[idx]),]
+  dataOrderedByClass<-dataMatrix_original[order(
+    as.numeric(classVote$topClass[idx])),]
 
   saveRDS(dataOrderedByClass, file=paste0(outPath, "/", outFileBase, "_K",
                                           numClasses, ".rds"))
