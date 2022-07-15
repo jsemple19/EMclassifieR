@@ -327,8 +327,8 @@ plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
   #extract class number (as text)
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2)
   #0pad and add 'class'
-  readClasses<-sprintf(paste0("%0",max(nchar(readClasses)),"s"),readClasses)
-  readClasses<-paste0("class",readClasses)
+  readClasses<-paste0("class", formatC(as.numeric(readClasses),
+                               width=nchar(numClasses), flag=0))
   classOrder <- unique(readClasses)
   readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
   readsTable <- table(readClasses)

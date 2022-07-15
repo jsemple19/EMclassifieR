@@ -119,7 +119,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   row.names(dataMatrix_original)<-paste0(rownames(dataMatrix_original),
                                         "__class",
                                   formatC(as.numeric(classVote$topClass[idx]),
-                                    width=max(nchar(classVote$topClass)),
+                                    width=nchar(numClasses),
                                     flag=0))
   #dataOrderedByClass<-dataMatrix_original[order(rownames(classes)<-1:nrow(classes)[idx]),]
   dataOrderedByClass<-dataMatrix_original[order(
