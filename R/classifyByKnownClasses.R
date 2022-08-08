@@ -57,13 +57,15 @@ classLikelihoodPerRead<-function(dataMatrix,classes){
 #' @param figFormat format of output figures. Should be one of "png" or "pdf"
 #' @param distMetric A list with the name of the distance metric and any
 #' parameters it might require
+#' @param classesToPlot NULL or a numerical vector indicating which classes to plot (default NULL will plot all classes)
 #' @return  allClassMeans data.frame with columns: position, methFreq, class, replicate
 #' @export
 runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
                                  xRange=c(-250,250), outFileBase="",
                                  myXlab="CpG/GpC position", featureLabel="TSS",
                                  baseFontSize=12, figFormat="png",
-                                 distMetric=list(name="euclidean")){
+                                 distMetric=list(name="euclidean"),
+                                 classesToPlot=NULL){
   dataMatrix_original<-dataMatrix
   if(ncol(dataMatrix)!=ncol(classes)){
     chooseCols<-match(colnames(dataMatrix),colnames(classes))
@@ -130,7 +132,7 @@ runClassLikelihoodRpts<-function(dataMatrix,classes,numRepeats=20, outPath=".",
   print("plotting final classes")
   plotFinalClasses(dataOrderedByClass, numClasses, allClassMeans,
                    outFileBase, outPath, xRange, myXlab, featureLabel,
-                   baseFontSize,figFormat)
+                   baseFontSize,figFormat,classesToPlot)
 
   silStats<-getSilhouetteStats(dataOrderedByClass, numClasses, outFileBase,
                                outPath, EMrep=NULL, silStats=NULL,

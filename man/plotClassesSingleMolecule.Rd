@@ -6,6 +6,7 @@
 \usage{
 plotClassesSingleMolecule(
   dataOrderedByClass,
+  numClasses,
   xRange = c(-250, 250),
   title = "Reads by classes",
   myXlab = "CpG/GpC position",
@@ -14,11 +15,14 @@ plotClassesSingleMolecule(
   segmentSize = 5,
   colourChoice = list(low = "blue", mid = "white", high = "red", bg = "white", lines =
     "black"),
-  colourScaleMidpoint = 0.5
+  colourScaleMidpoint = 0.5,
+  classesToPlot = NULL
 )
 }
 \arguments{
 \item{dataOrderedByClass}{A matrix of methylation or bincount values (reads x position) that have been ordered by class. The assigned class, e.g. "__class1" etc has been appended to read names.}
+
+\item{numClasses}{Number of classes}
 
 \item{xRange}{A vector of the first and last coordinates of the region to plot (default is c(-250,250))}
 
@@ -36,6 +40,8 @@ plotClassesSingleMolecule(
 values for "low", "mid", "high" and "bg" (background) and "lines".}
 
 \item{colourScaleMidpoint}{Numerical value for middle of colour scale. Useful for Nanopore data where a particular threshold other than 0.5 is used to distinguish methylated from non-methylated sites. (default=0.5).}
+
+\item{classesToPlot}{A numerical vector indicating which classes to plot (default NULL will plot all classes)}
 }
 \value{
 Returns a ggplot2 object of a single molecule plot sorted by classes

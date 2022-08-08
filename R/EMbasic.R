@@ -312,6 +312,7 @@ classifyAndSortReads<-function(dataMatrix, posteriorProb, previousClassMeans=NUL
 #' @param colourChoice A list of colours for colour pallette. Must include
 #' values for "low", "mid", "high" and "bg" (background) and "lines".
 #' @param colourScaleMidpoint Numerical value for middle of colour scale. Useful for Nanopore data where a particular threshold other than 0.5 is used to distinguish methylated from non-methylated sites. (default=0.5).
+#' @param classesToPlot A numerical vector indicating which classes to plot (default NULL will plot all classes)
 #' @return Returns a ggplot2 object of a single molecule plot sorted by classes
 #' @export
 plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
@@ -322,23 +323,28 @@ plotClassesSingleMolecule<-function(dataOrderedByClass, numClasses,
                                 colourChoice=list(low="blue", mid="white",
                                                   high="red", bg="white",
                                                   lines="black"),
-                                colourScaleMidpoint=0.5){
+                                colourScaleMidpoint=0.5,
+                                classesToPlot=NULL){
   position <- methylation <- molecules <- readNumber <- Class <-NULL
+  if(is.null(classesToPlot)){
+    classesToPlot=1:numClasses
+  }
   #extract class number (as text)
   readClasses <- sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",2)
+  idx<-as.numeric(readClasses) %in% classesToPlot
   #0pad and add 'class'
-  readClasses<-paste0("class", formatC(as.numeric(readClasses),
+  readClasses<-paste0("class", formatC(as.numeric(readClasses[idx]),
                                width=nchar(numClasses), flag=0))
   classOrder <- unique(readClasses)
-  readNames<-sapply(strsplit(rownames(dataOrderedByClass),split="__class"),"[[",1)
+  readNames<-sapply(strsplit(rownames(dataOrderedByClass[idx,]),split="__class"),"[[",1)
   readsTable <- table(readClasses)
   # the horizontal red lines on the plot
   classBorders <- utils::head(cumsum(readsTable[rev(classOrder)]), -1)+0.5
-  df<-as.data.frame(dataOrderedByClass,stringsAsFactors=F)
+  df<-as.data.frame(dataOrderedByClass[idx,],stringsAsFactors=F)
   df1<-data.frame(read=readNames, readNumber=rev(1:length(readNames)),
                   Class=readClasses, stringsAsFactors=F)
   df1$Class<-factor(df1$Class, levels=paste0("class",
-                          sprintf(paste0("%0",nchar(numClasses),"d"),1:numClasses)))
+                          sprintf(paste0("%0",nchar(numClasses),"d"),classesToPlot)))
   #######################################################################################
   reads<-row.names(df)
   d<-tidyr::gather(df,key=position,value=methylation)
@@ -922,15 +928,17 @@ getSilhouetteStats<-function(dataOrderedByClass, numClasses, outFileBase, outPat
 #' @param featureLabel A label for a feature you want to plot, such as the position of the TSS (default="TSS")
 #' @param baseFontSize The base font for the plotting theme (default=12 works well for 4x plots per A4 page)
 #' @param figFormat format of output figures. Should be one of "png" or "pdf"
+#' @param classesToPlot A numerical vector indicating which classes to plot (default NULL will plot all classes)
 #' @return None
 #' @export
 plotFinalClasses<-function(dataOrderedByClass, numClasses, allClassMeans,
                            outFileBase, outPath, xRange, myXlab, featureLabel,
-                           baseFontSize,figFormat="png"){
+                           baseFontSize,figFormat="png",classesToPlot=NULL){
   # plot single molecules with final classes
   p<-plotClassesSingleMolecule(dataOrderedByClass, numClasses, xRange=xRange,
                          title = outFileBase, myXlab=myXlab,
-                         featureLabel=featureLabel, baseFontSize=12)
+                         featureLabel=featureLabel, baseFontSize=12,
+                         classesToPlot=classesToPlot)
   outPath<-gsub("\\/$","",outPath)
   ggplot2::ggsave(filename=paste0(outPath,
                                 "/finalClassReads_", outFileBase,"_K",

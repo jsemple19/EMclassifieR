@@ -400,7 +400,7 @@ distMetric=list(name="euclidean",rescale=T) #list(name="euclidean")
 dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix, classes, 
                                 numRepeats=20, outPath=".",
                                 xRange=c(-250,250), outFileBase="test",
-                                distMetric=distMetric)
+                                distMetric=distMetric, classesToPlot=NULL)
 
 dataMatrix<-dataOrderedByClass[-grep("__class0[1,2,3,4]",row.names(dataOrderedByClass)),]
 

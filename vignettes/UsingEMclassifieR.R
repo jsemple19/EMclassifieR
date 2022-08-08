@@ -193,6 +193,9 @@ dim(dataMatrix)
 #  multiGeneMat<-NULL
 #  genesIncluded<-0
 #  minReads=50
+#  binSize=20
+#  maxNAfraction=0.2
+#  
 #  for(i in 1:nrow(matTable[matTable$sample=="dS02-182"])){
 #    regionName=matTable$region[i]
 #    sampleName=matTable$sample[i]
@@ -201,13 +204,13 @@ dim(dataMatrix)
 #    dataMatrix<-readRDS(system.file("extdata", matTable$filename[i],
 #                                    package = "EMclassifieR", mustWork=TRUE))
 #    #Make sure matrix rows do not have too many NAs
-#    dataMatrix<-removeNArows(dataMatrix, maxNAfraction=0.2, removeAll0=T)
+#    dataMatrix<-removeNArows(dataMatrix, maxNAfraction=maxNAfraction, removeAll0=T)
 #    subMatrix<-selectReadsFromMatrix(dataMatrix,minReads=minReads,
 #                                   addToReadName=outFileBase,
 #                                   preferBest=T)
 #    if(!is.null(subMatrix)){
 #      fullMatrix<-getFullMatrix(subMatrix)
-#      winMatrix<-prepareWindows(fullMatrix)
+#      winMatrix<-prepareWindows(fullMatrix, binSize=binSize)
 #      genesIncluded<-genesIncluded+1
 #      if(is.null(multiGeneMat)){
 #        multiGeneMat<-winMatrix
@@ -228,12 +231,16 @@ dim(dataMatrix)
 #  numRepeats=10 # number of repeats of clustering each matrix (to account for fraction of methylation)
 #  xRange=c(-250,250)
 #  maxB=50 # Number of randomised matrices to generate
-#  outPath="./EMres_multigene_cosine_withNAs"
+#  outPath="./EMres_multigene_test_mi"
 #  maxTasks=4
 #  taskId=1
 #  nThreads=4
 #  setSeed=FALSE
-#  distMetric=list(name="cosineDist",rescale=T)
+#  #distMetric=list(name="cosineDist",valNA=0,rescale=F)
+#  #distMetric=list(name="canberraDist",rescale=T)
+#  #distMetric=list(name="correlationDist",valNA=0.5,rescale=T)
+#  #distMetric=list(name="euclidean",valNA=0.5,rescale=T)
+#  distMetric=list(name="mutualInformation",valNA=0.5,rescale=F)
 #  
 #  if(!dir.exists(outPath)){
 #    dir.create(outPath)
@@ -251,6 +258,11 @@ dim(dataMatrix)
 #  #dataMatrix<-removeNArows(dataMatrix,maxNAfraction=0)
 #  dim(dataMatrix)
 #  
+#  pdf(file=paste0("hist_w",binSize,"_NA",maxNAfraction,"_genes",genesIncluded,".pdf"),width=11, height=8, paper="a4r")
+#  hist(rowSums(is.na(multiGeneMat)),main=paste0("winSize: ",binSize,", maxNA: ",maxNAfraction,
+#                                                ", genesIncluded:",genesIncluded),
+#       xlab="number of NA windows per molecule",xlim=c(0,500),col="blue")
+#  dev.off()
 #  allClassMeans<-tryCatch(
 #    {
 #      print("running EM for a range of class numbers")
@@ -311,20 +323,55 @@ dim(dataMatrix)
 #  # to use -1 to 1
 #  #https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain
 #  
-#  
-#  dataMatrix<-readRDS("/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/dS02-182_multiGene_K6.rds")
-#  outPath="/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/"
-#  outFileBase="dS02-182_multiGene"
-#  numClasses=6
 
 ## ----classifyWithKnownClasses,eval=F------------------------------------------
 #  allClassMeans<-readRDS(system.file("extdata",
-#                                     "EMres/allClassMeans_dS02-182_multiGene.rds",
-#                                     package = "EMclassifieR", mustWork=T))
-#  repMeans<-allClassMeans[[6]]
-#  dd<-repMeans %>% dplyr::group_by(position,class) %>% dplyr::summarize(classMeans=mean(methFreq))
-#  dd<-dd %>% tidyr::pivot_wider(names_from=position,values_from=classMeans)
-#  dd<-dd[,order(as.numeric(colnames(dd)))]
+#            "EMres/allClassMeans_dS02-182_multiGene.rds",
+#              package = "EMclassifieR", mustWork=T))
 #  
-#  plot(as.vector(dd[1,])~1:481)
+#  classes<-getClassMeansMatrix(allClassMeans,numClasses=6)
+#  
+#  
+#  
+#  classes<-as.matrix(readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc.rds")))
+#  classes<-classes[order(rowMeans(classes)),]
+#  saveRDS(classes,paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds"))
+#  rowMeans(classes)
+#  classes<-padEndToRange(classes,xRange=c(-250,250))
+#  classes<-readRDS(paste0("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds"))
+#  
+#  p<-plotClassMeans(classes,xRange=c(-250,250), facet=TRUE,
+#                           title="Class means",
+#                           myXlab="CpG/GpC position",featureLabel="TSS",
+#                           baseFontSize=12)
+#  
+#  ggplot2::ggsave("../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.pdf",p,
+#                  height=11,width=4,device="pdf")
+#  
+#  dataMatrix<-readRDS(system.file("extdata",
+#                                  "EMres/dS02-182_multiGene_K6.rds",
+#                                  package="EMclassifieR", mustWork=T))
+#  dataMatrix<-readRDS(system.file("extdata",
+#                              "rds/relCoord_ampTSS/dS02-182_WBGene00009620.rds",
+#                                  package="EMclassifieR", mustWork=T))
+#  
+#  orderedMat<-dataMatrix
+#  dataMatrix<-dataMatrix[sample(1:dim(dataMatrix)[1],replace=F),]
+#  
+#  rownames(dataMatrix)<-gsub("__class.*$","",rownames(dataMatrix))
+#  
+#  distMetric=list(name="euclidean",rescale=T) #list(name="euclidean")
+#  
+#  dataOrderedByClass<-runClassLikelihoodRpts(dataMatrix, classes,
+#                                  numRepeats=20, outPath=".",
+#                                  xRange=c(-250,250), outFileBase="test",
+#                                  distMetric=distMetric, classesToPlot=NULL)
+#  
+#  dataMatrix<-dataOrderedByClass[-grep("__class0[1,2,3,4]",row.names(dataOrderedByClass)),]
+#  
+#  tablePath="csv/MatrixLog_relCoord_ampTSS.csv"
+#  matTable<-read.csv(system.file("extdata", tablePath, package = "EMclassifieR",
+#                                 mustWork=TRUE), stringsAsFactors=F)
+#  
+#  
 

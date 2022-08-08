@@ -15,7 +15,8 @@ runClassLikelihoodRpts(
   featureLabel = "TSS",
   baseFontSize = 12,
   figFormat = "png",
-  distMetric = list(name = "euclidean")
+  distMetric = list(name = "euclidean"),
+  classesToPlot = NULL
 )
 }
 \arguments{
@@ -41,6 +42,8 @@ runClassLikelihoodRpts(
 
 \item{distMetric}{A list with the name of the distance metric and any
 parameters it might require}
+
+\item{classesToPlot}{NULL or a numerical vector indicating which classes to plot (default NULL will plot all classes)}
 }
 \value{
 allClassMeans data.frame with columns: position, methFreq, class, replicate

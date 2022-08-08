@@ -12,43 +12,57 @@
 
 <meta name="author" content="Jennifer Semple" />
 
-<meta name="date" content="2020-09-01" />
+<meta name="date" content="2022-08-08" />
 
 <title>EMclassifieR for methylation data</title>
 
-<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
-// v0.0.1
-// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
-
-document.addEventListener('DOMContentLoaded', function() {
-  const codeList = document.getElementsByClassName("sourceCode");
-  for (var i = 0; i < codeList.length; i++) {
-    var linkList = codeList[i].getElementsByTagName('a');
-    for (var j = 0; j < linkList.length; j++) {
-      if (linkList[j].innerHTML === "") {
-        linkList[j].setAttribute('aria-hidden', 'true');
-      }
-    }
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
   }
 });
 </script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
-<style type="text/css">code{white-space: pre;}</style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
 <style type="text/css" data-origin="pandoc">
-code.sourceCode > span { display: inline-block; line-height: 1.25; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-code.sourceCode > span:empty { height: 1.2em; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-code.sourceCode { white-space: pre-wrap; }
-code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -68,7 +82,7 @@ pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-le
 div.sourceCode
   {   }
 @media screen {
-code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -122,6 +136,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -319,17 +334,24 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">EMclassifieR for methylation data</h1>
 <h4 class="author">Jennifer Semple</h4>
-<h4 class="date">2020-09-01</h4>
+<h4 class="date">2022-08-08</h4>
 
 
 
 <div id="the-data" class="section level1">
 <h1>The data</h1>
-<p>DSMF data comes as matrices of reads x positions where each row refers to a single (usually paired-end) read and each column refers to a CpG or GpC position where methylation has been scored. The positions should be in relative coordinates (e.g. -250 to +250 around the TSS), so that matrices from different genes can be compared. Some example data is included with the package. First we read in a table with a list of the matrix filenames (including path). The important columns in this table are “filename” and “reads”.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>tablePath=<span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>matTable&lt;-<span class="kw">read.csv</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</span>
-<span id="cb1-3"><a href="#cb1-3"></a>                               <span class="dt">mustWork=</span><span class="ot">TRUE</span>), <span class="dt">stringsAsFactors=</span>F)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">head</span>(matTable)</span></code></pre></div>
+<p>DSMF data comes as matrices of reads x positions where each row
+refers to a single (usually paired-end) read and each column refers to a
+CpG or GpC position where methylation has been scored. The positions
+should be in relative coordinates (e.g. -250 to +250 around the TSS), so
+that matrices from different genes can be compared. Some example data is
+included with the package. First we read in a table with a list of the
+matrix filenames (including path). The important columns in this table
+are “filename” and “reads”.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>tablePath<span class="ot">=</span><span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>matTable<span class="ot">&lt;-</span><span class="fu">read.csv</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mustWork=</span><span class="cn">TRUE</span>), <span class="at">stringsAsFactors=</span>F)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(matTable)</span></code></pre></div>
 <pre><code>##                                          filename   sample         region reads
 ## 1 rds/relCoord_ampTSS/dS02-182_WBGene00015947.rds dS02-182 WBGene00015947  1690
 ## 2 rds/relCoord_ampTSS/dS02-182_WBGene00015955.rds dS02-182 WBGene00015955 10677
@@ -342,327 +364,374 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## 3     26
 ## 4     25
 ## 5     21</code></pre>
-<p>The matrices are in RDS format. For learning it is probably best to process them to remove any reads containing NAs.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>i=<span class="dv">1</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">dim</span>(dataMatrix)</span></code></pre></div>
+<p>The matrices are in RDS format. For learning it is probably best to
+process them to remove any reads containing NAs.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>i<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="sc">$</span>filename[i], <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span><span class="cn">TRUE</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(dataMatrix)</span></code></pre></div>
 <pre><code>## [1] 1690   25</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>dataMatrix&lt;-<span class="kw">removeNArows</span>(dataMatrix)</span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">dim</span>(dataMatrix)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span><span class="fu">removeNArows</span>(dataMatrix)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(dataMatrix)</span></code></pre></div>
 <pre><code>## [1] 1281   25</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># dataMatrix&lt;-readRDS(&quot;~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds&quot;)</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="co"># dataMatrix&lt;-removeNArows(dataMatrix)</span></span>
-<span id="cb7-3"><a href="#cb7-3"></a><span class="co"># </span></span>
-<span id="cb7-4"><a href="#cb7-4"></a><span class="co"># colourChoice=list(low=&quot;blue&quot;, mid=&quot;white&quot;, high=&quot;red&quot;, bg=&quot;white&quot;, lines=&quot;grey80&quot;)</span></span>
-<span id="cb7-5"><a href="#cb7-5"></a><span class="co"># colourChoice=list(low=&quot;yellow&quot;, mid=&quot;grey20&quot;, high=&quot;red&quot;, bg=&quot;black&quot;, lines=&quot;grey80&quot;)</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a><span class="co"># </span></span>
-<span id="cb7-7"><a href="#cb7-7"></a><span class="co"># </span></span>
-<span id="cb7-8"><a href="#cb7-8"></a><span class="co"># p&lt;-plotClassesSingleMolecule(dataMatrix,</span></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#                                 xRange=c(-250,250), title=&quot;Reads by classes&quot;,</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#                                 myXlab=&quot;CpG/GpC position&quot;,</span></span>
-<span id="cb7-11"><a href="#cb7-11"></a><span class="co">#                                 featureLabel=&quot;TSS&quot;, baseFontSize=12,</span></span>
-<span id="cb7-12"><a href="#cb7-12"></a><span class="co">#                                 segmentSize=5,</span></span>
-<span id="cb7-13"><a href="#cb7-13"></a><span class="co">#                                 colourChoice=colourChoice)</span></span>
-<span id="cb7-14"><a href="#cb7-14"></a><span class="co"># print(p)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># dataMatrix&lt;-readRDS(&quot;~/Documents/MeisterLab/myPackages/EMclassifieR/vignettes/EMres_cosine/dS02-182_WBGene00015947_K2.rds&quot;)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># dataMatrix&lt;-removeNArows(dataMatrix)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># colourChoice=list(low=&quot;blue&quot;, mid=&quot;white&quot;, high=&quot;red&quot;, bg=&quot;white&quot;, lines=&quot;grey80&quot;)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># colourChoice=list(low=&quot;yellow&quot;, mid=&quot;grey20&quot;, high=&quot;red&quot;, bg=&quot;black&quot;, lines=&quot;grey80&quot;)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># p&lt;-plotClassesSingleMolecule(dataMatrix,</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                                 xRange=c(-250,250), title=&quot;Reads by classes&quot;,</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                                 myXlab=&quot;CpG/GpC position&quot;,</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#                                 featureLabel=&quot;TSS&quot;, baseFontSize=12,</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#                                 segmentSize=5,</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#                                 colourChoice=colourChoice)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># print(p)</span></span></code></pre></div>
 <div id="learning-classes-for-single-genes" class="section level2">
 <h2>Learning classes for single genes</h2>
-<p>To look at one gene at a time one can use the minimal matrix which includes only positions with a CpG or GpC motif in them.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>k_range =<span class="st"> </span><span class="dv">2</span><span class="op">:</span><span class="dv">8</span>      <span class="co"># Number of classes to be found</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a>maxIterations =<span class="st"> </span><span class="dv">100</span> <span class="co"># number of iterations of EM clustering to perform if it does not converge</span></span>
-<span id="cb8-3"><a href="#cb8-3"></a>convergenceError =<span class="st"> </span><span class="fl">10e-6</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a>numRepeats=<span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>xRange=<span class="kw">c</span>(<span class="op">-</span><span class="dv">250</span>,<span class="dv">250</span>)</span>
-<span id="cb8-6"><a href="#cb8-6"></a>maxB=<span class="dv">50</span> <span class="co"># Number of randomised matrices to generate</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a>outPath=<span class="st">&quot;./EMres&quot;</span></span>
-<span id="cb8-8"><a href="#cb8-8"></a>maxTasks=<span class="dv">4</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a>taskId=<span class="dv">1</span></span>
-<span id="cb8-10"><a href="#cb8-10"></a>nThreads=<span class="dv">4</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>setSeed=<span class="ot">FALSE</span></span>
-<span id="cb8-12"><a href="#cb8-12"></a>distMetric=<span class="kw">list</span>(<span class="dt">name=</span><span class="st">&quot;cosineDist&quot;</span>,<span class="dt">rescale=</span>T)</span>
-<span id="cb8-13"><a href="#cb8-13"></a></span>
-<span id="cb8-14"><a href="#cb8-14"></a><span class="cf">if</span>(<span class="op">!</span><span class="kw">dir.exists</span>(outPath)){</span>
-<span id="cb8-15"><a href="#cb8-15"></a>  <span class="kw">dir.create</span>(outPath)</span>
-<span id="cb8-16"><a href="#cb8-16"></a>}</span>
-<span id="cb8-17"><a href="#cb8-17"></a></span>
-<span id="cb8-18"><a href="#cb8-18"></a><span class="co">#split table indicies into nTasks number of groups</span></span>
-<span id="cb8-19"><a href="#cb8-19"></a>taskSubList&lt;-<span class="kw">split</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable),<span class="kw">sort</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable)<span class="op">%%</span>maxTasks))</span>
-<span id="cb8-20"><a href="#cb8-20"></a></span>
-<span id="cb8-21"><a href="#cb8-21"></a><span class="kw">set.seed</span>(<span class="dv">200413</span>)</span>
-<span id="cb8-22"><a href="#cb8-22"></a><span class="cf">for</span> (i <span class="cf">in</span> taskSubList[[taskId]]){</span>
-<span id="cb8-23"><a href="#cb8-23"></a><span class="co">#for (i in 1:nrow(matTable)) {</span></span>
-<span id="cb8-24"><a href="#cb8-24"></a>  regionName=matTable<span class="op">$</span>region[i]</span>
-<span id="cb8-25"><a href="#cb8-25"></a>  sampleName=matTable<span class="op">$</span>sample[i]</span>
-<span id="cb8-26"><a href="#cb8-26"></a>  outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</span>
-<span id="cb8-27"><a href="#cb8-27"></a>  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</span>
-<span id="cb8-28"><a href="#cb8-28"></a>  dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], </span>
-<span id="cb8-29"><a href="#cb8-29"></a>                              <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</span>
-<span id="cb8-30"><a href="#cb8-30"></a>  <span class="kw">dim</span>(dataMatrix)</span>
-<span id="cb8-31"><a href="#cb8-31"></a>  dataMatrix&lt;-<span class="kw">removeNArows</span>(dataMatrix,<span class="dt">maxNAfraction=</span><span class="fl">0.2</span>)</span>
-<span id="cb8-32"><a href="#cb8-32"></a>  <span class="co">#dataMatrix&lt;-recodeMatrixAsNumeric(dataMatrix)</span></span>
-<span id="cb8-33"><a href="#cb8-33"></a>  <span class="kw">dim</span>(dataMatrix)</span>
-<span id="cb8-34"><a href="#cb8-34"></a>  </span>
-<span id="cb8-35"><a href="#cb8-35"></a>  allClassMeans&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb8-36"><a href="#cb8-36"></a>    {</span>
-<span id="cb8-37"><a href="#cb8-37"></a>      <span class="kw">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</span>
-<span id="cb8-38"><a href="#cb8-38"></a>      <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</span>
-<span id="cb8-39"><a href="#cb8-39"></a>                     <span class="dt">EMrepeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange,</span>
-<span id="cb8-40"><a href="#cb8-40"></a>                     <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</span>
-<span id="cb8-41"><a href="#cb8-41"></a>                     <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">distMetric=</span>distMetric)</span>
-<span id="cb8-42"><a href="#cb8-42"></a></span>
-<span id="cb8-43"><a href="#cb8-43"></a>    },</span>
-<span id="cb8-44"><a href="#cb8-44"></a>      <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb8-45"><a href="#cb8-45"></a>  )</span>
-<span id="cb8-46"><a href="#cb8-46"></a></span>
-<span id="cb8-47"><a href="#cb8-47"></a>  <span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</span>
-<span id="cb8-48"><a href="#cb8-48"></a>        <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</span>
-<span id="cb8-49"><a href="#cb8-49"></a>  } <span class="cf">else</span> {</span>
-<span id="cb8-50"><a href="#cb8-50"></a>        <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></span>
-<span id="cb8-51"><a href="#cb8-51"></a>  }</span>
-<span id="cb8-52"><a href="#cb8-52"></a></span>
-<span id="cb8-53"><a href="#cb8-53"></a>  clustMetrics&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb8-54"><a href="#cb8-54"></a>    {</span>
-<span id="cb8-55"><a href="#cb8-55"></a>        <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</span>
-<span id="cb8-56"><a href="#cb8-56"></a>        <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</span>
-<span id="cb8-57"><a href="#cb8-57"></a>            maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>, <span class="dt">nThreads=</span>nThreads,</span>
-<span id="cb8-58"><a href="#cb8-58"></a>            <span class="dt">setSeed=</span>setSeed, <span class="dt">distMetric=</span>distMetric)</span>
-<span id="cb8-59"><a href="#cb8-59"></a>    },</span>
-<span id="cb8-60"><a href="#cb8-60"></a>    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb8-61"><a href="#cb8-61"></a>  )</span>
-<span id="cb8-62"><a href="#cb8-62"></a>  <span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb8-63"><a href="#cb8-63"></a>    <span class="kw">print</span>(clustMetrics)</span>
-<span id="cb8-64"><a href="#cb8-64"></a>  }</span>
-<span id="cb8-65"><a href="#cb8-65"></a></span>
-<span id="cb8-66"><a href="#cb8-66"></a>  pcaPlots&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb8-67"><a href="#cb8-67"></a>    {</span>
-<span id="cb8-68"><a href="#cb8-68"></a>      <span class="kw">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</span>
-<span id="cb8-69"><a href="#cb8-69"></a>      <span class="kw">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
-<span id="cb8-70"><a href="#cb8-70"></a>    },</span>
-<span id="cb8-71"><a href="#cb8-71"></a>    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb8-72"><a href="#cb8-72"></a>   )</span>
-<span id="cb8-73"><a href="#cb8-73"></a>  <span class="cf">if</span>(<span class="kw">length</span>(pcaPlots)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb8-74"><a href="#cb8-74"></a>    <span class="kw">print</span>(pcaPlots)</span>
-<span id="cb8-75"><a href="#cb8-75"></a>  }</span>
-<span id="cb8-76"><a href="#cb8-76"></a></span>
-<span id="cb8-77"><a href="#cb8-77"></a>  umapPlots&lt;-<span class="kw">tryCatch</span>( </span>
-<span id="cb8-78"><a href="#cb8-78"></a>    {</span>
-<span id="cb8-79"><a href="#cb8-79"></a>      <span class="kw">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</span>
-<span id="cb8-80"><a href="#cb8-80"></a>      <span class="kw">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
-<span id="cb8-81"><a href="#cb8-81"></a>    },</span>
-<span id="cb8-82"><a href="#cb8-82"></a>    <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb8-83"><a href="#cb8-83"></a>   )</span>
-<span id="cb8-84"><a href="#cb8-84"></a>  <span class="cf">if</span>(<span class="kw">length</span>(umapPlots)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb8-85"><a href="#cb8-85"></a>    <span class="kw">print</span>(umapPlots)</span>
-<span id="cb8-86"><a href="#cb8-86"></a>  }</span>
-<span id="cb8-87"><a href="#cb8-87"></a>  </span>
-<span id="cb8-88"><a href="#cb8-88"></a>}</span></code></pre></div>
+<p>To look at one gene at a time one can use the minimal matrix which
+includes only positions with a CpG or GpC motif in them.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>k_range <span class="ot">=</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">8</span>      <span class="co"># Number of classes to be found</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>maxIterations <span class="ot">=</span> <span class="dv">100</span> <span class="co"># number of iterations of EM clustering to perform if it does not converge</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>convergenceError <span class="ot">=</span> <span class="fl">10e-6</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>numRepeats<span class="ot">=</span><span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>xRange<span class="ot">=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">250</span>,<span class="dv">250</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>maxB<span class="ot">=</span><span class="dv">50</span> <span class="co"># Number of randomised matrices to generate</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>outPath<span class="ot">=</span><span class="st">&quot;./EMres&quot;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>maxTasks<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>taskId<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>nThreads<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>setSeed<span class="ot">=</span><span class="cn">FALSE</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>distMetric<span class="ot">=</span><span class="fu">list</span>(<span class="at">name=</span><span class="st">&quot;cosineDist&quot;</span>,<span class="at">rescale=</span>T)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">dir.exists</span>(outPath)){</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(outPath)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">#split table indicies into nTasks number of groups</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>taskSubList<span class="ot">&lt;-</span><span class="fu">split</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(matTable),<span class="fu">sort</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(matTable)<span class="sc">%%</span>maxTasks))</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">200413</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> taskSubList[[taskId]]){</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co">#for (i in 1:nrow(matTable)) {</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  regionName<span class="ot">=</span>matTable<span class="sc">$</span>region[i]</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  sampleName<span class="ot">=</span>matTable<span class="sc">$</span>sample[i]</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  outFileBase<span class="ot">=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="sc">$</span>filename[i], </span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>                              <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span><span class="cn">TRUE</span>))</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dim</span>(dataMatrix)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  dataMatrix<span class="ot">&lt;-</span><span class="fu">removeNArows</span>(dataMatrix,<span class="at">maxNAfraction=</span><span class="fl">0.2</span>)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="co">#dataMatrix&lt;-recodeMatrixAsNumeric(dataMatrix)</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dim</span>(dataMatrix)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  allClassMeans<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>                     <span class="at">EMrepeats=</span>numRepeats, <span class="at">outPath=</span>outPath, <span class="at">xRange=</span>xRange,</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>                     <span class="at">outFileBase=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>),</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>                     <span class="at">doIndividualPlots=</span><span class="cn">FALSE</span>, <span class="at">distMetric=</span>distMetric)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>      <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">is.list</span>(allClassMeans)){</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>        <span class="fu">saveRDS</span>(allClassMeans,<span class="fu">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>        <span class="fu">print</span>(allClassMeans) <span class="co"># error message</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>  clustMetrics<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>        <span class="fu">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>        <span class="fu">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>            maxIterations, outPath, outFileBase, <span class="at">EMrep=</span><span class="cn">NULL</span>, <span class="at">nThreads=</span>nThreads,</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>            <span class="at">setSeed=</span>setSeed, <span class="at">distMetric=</span>distMetric)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">length</span>(clustMetrics)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(clustMetrics)</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>  pcaPlots<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>      <span class="fu">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>    <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>   )</span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">length</span>(pcaPlots)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(pcaPlots)</span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>  umapPlots<span class="ot">&lt;-</span><span class="fu">tryCatch</span>( </span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>      <span class="fu">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>    <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>   )</span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">length</span>(umapPlots)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(umapPlots)</span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="plotting-classes-with-track-data" class="section level2">
 <h2>Plotting classes with track data</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</span>
-<span id="cb9-2"><a href="#cb9-2"></a>regionName=matTable<span class="op">$</span>region[i]</span>
-<span id="cb9-3"><a href="#cb9-3"></a>sampleName=matTable<span class="op">$</span>sample[i]</span>
-<span id="cb9-4"><a href="#cb9-4"></a>outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</span>
-<span id="cb9-5"><a href="#cb9-5"></a></span>
-<span id="cb9-6"><a href="#cb9-6"></a>allClassMeansList&lt;-<span class="kw">readRDS</span>(<span class="st">&quot;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/allClassMeans_dS02-182_WBGene00015947.rds&quot;</span>)</span>
-<span id="cb9-7"><a href="#cb9-7"></a>numClasses=<span class="dv">5</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a>allClassMeans&lt;-allClassMeansList[[numClasses]]</span>
-<span id="cb9-9"><a href="#cb9-9"></a>allClassMeans</span>
-<span id="cb9-10"><a href="#cb9-10"></a></span>
-<span id="cb9-11"><a href="#cb9-11"></a>ampTSS&lt;-<span class="kw">readRDS</span>(<span class="st">&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;</span>)</span>
-<span id="cb9-12"><a href="#cb9-12"></a></span>
-<span id="cb9-13"><a href="#cb9-13"></a></span>
-<span id="cb9-14"><a href="#cb9-14"></a>winSize=<span class="dv">500</span></span>
-<span id="cb9-15"><a href="#cb9-15"></a>tssWin&lt;-ampTSS</span>
-<span id="cb9-16"><a href="#cb9-16"></a>GenomicRanges<span class="op">::</span><span class="kw">mcols</span>(tssWin)<span class="op">$</span>TSS&lt;-GenomicRanges<span class="op">::</span><span class="kw">start</span>(tssWin)</span>
-<span id="cb9-17"><a href="#cb9-17"></a>tssWin&lt;-GenomicRanges<span class="op">::</span><span class="kw">resize</span>(tssWin,<span class="dt">width=</span>winSize,<span class="dt">fix=</span><span class="st">&quot;center&quot;</span>)</span>
-<span id="cb9-18"><a href="#cb9-18"></a></span>
-<span id="cb9-19"><a href="#cb9-19"></a></span>
-<span id="cb9-20"><a href="#cb9-20"></a><span class="kw">names</span>(GenomicRanges<span class="op">::</span><span class="kw">mcols</span>(tssWin))[<span class="dv">1</span>]&lt;-<span class="st">&quot;ID&quot;</span></span>
-<span id="cb9-21"><a href="#cb9-21"></a>regionGR&lt;-tssWin[i]</span>
-<span id="cb9-22"><a href="#cb9-22"></a>featureGR&lt;-ampTSS[i]</span>
-<span id="cb9-23"><a href="#cb9-23"></a>regionName=matTable<span class="op">$</span>region[i]</span>
-<span id="cb9-24"><a href="#cb9-24"></a>sampleName=matTable<span class="op">$</span>sample[i]</span>
-<span id="cb9-25"><a href="#cb9-25"></a>outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="co">#seqlevels(ampTSS)&lt;-seqlevels(Celegans)</span></span>
-<span id="cb9-27"><a href="#cb9-27"></a><span class="co">#seqinfo(ampTSS)&lt;-seqinfo(Celegans)</span></span>
-<span id="cb9-28"><a href="#cb9-28"></a><span class="co">#saveRDS(ampTSS,&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;)</span></span>
-<span id="cb9-29"><a href="#cb9-29"></a></span>
-<span id="cb9-30"><a href="#cb9-30"></a><span class="co"># genomeVer=&quot;WS275&quot;</span></span>
-<span id="cb9-31"><a href="#cb9-31"></a><span class="co"># genomeDir=paste0(&quot;~/Documents/MeisterLab/GenomeVer/&quot;,genomeVer)</span></span>
-<span id="cb9-32"><a href="#cb9-32"></a><span class="co"># txdb&lt;-AnnotationDbi::loadDb(paste0(genomeDir, </span></span>
-<span id="cb9-33"><a href="#cb9-33"></a><span class="co">#                                    &quot;/annotations/c_elegans.PRJNA13758.&quot;,</span></span>
-<span id="cb9-34"><a href="#cb9-34"></a><span class="co">#                                    genomeVer,  &quot;.annotations.sqlite&quot;))</span></span>
-<span id="cb9-35"><a href="#cb9-35"></a><span class="co"># seqlevelsStyle(txdb)&lt;-&quot;ucsc&quot;</span></span>
-<span id="cb9-36"><a href="#cb9-36"></a><span class="co"># GenomeInfoDb::genome(txdb)&lt;-GenomeInfoDb::genome(regionGR)</span></span>
-<span id="cb9-37"><a href="#cb9-37"></a><span class="co">#library(&quot;TxDb.Celegans.UCSC.ce11.refGene&quot;)</span></span>
-<span id="cb9-38"><a href="#cb9-38"></a>txdb &lt;-<span class="st"> </span>TxDb.Celegans.UCSC.ce11.refGene<span class="op">::</span>TxDb.Celegans.UCSC.ce11.refGene</span>
-<span id="cb9-39"><a href="#cb9-39"></a>bigwigListFile&lt;-<span class="st">&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList.txt&quot;</span></span>
-<span id="cb9-40"><a href="#cb9-40"></a><span class="co">#bigwigListFile&lt;-&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList_kranz.txt&quot;</span></span>
-<span id="cb9-41"><a href="#cb9-41"></a>strandedBwFile&lt;-<span class="st">&quot;~/Documents/MeisterLab/sequencingData/public/strandedBwFile.txt&quot;</span></span>
-<span id="cb9-42"><a href="#cb9-42"></a>gr&lt;-<span class="kw">allClassMeansToGR</span>(allClassMeans, regionGR)</span>
-<span id="cb9-43"><a href="#cb9-43"></a></span>
-<span id="cb9-44"><a href="#cb9-44"></a>dTrack&lt;-Gviz<span class="op">::</span><span class="kw">DataTrack</span>(gr,<span class="dt">name=</span><span class="st">&quot;dSMF Classes&quot;</span>)</span>
-<span id="cb9-45"><a href="#cb9-45"></a>Gviz<span class="op">::</span><span class="kw">plotTracks</span>(dTrack, <span class="dt">groups=</span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="kw">paste0</span>(<span class="st">&quot;class&quot;</span>,<span class="dv">1</span><span class="op">:</span>numClasses)), <span class="dt">times=</span><span class="dv">10</span>),</span>
-<span id="cb9-46"><a href="#cb9-46"></a>                 <span class="dt">type=</span><span class="kw">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;p&quot;</span>,<span class="st">&quot;confint&quot;</span>))</span>
-<span id="cb9-47"><a href="#cb9-47"></a></span>
-<span id="cb9-48"><a href="#cb9-48"></a><span class="kw">print</span>(txdb)</span>
-<span id="cb9-49"><a href="#cb9-49"></a>outPath=<span class="st">&quot;./EMres&quot;</span></span>
-<span id="cb9-50"><a href="#cb9-50"></a>grDevices<span class="op">::</span><span class="kw">pdf</span>(<span class="kw">paste0</span>(outPath,<span class="st">&quot;/tracks_&quot;</span>,</span>
-<span id="cb9-51"><a href="#cb9-51"></a>                          outFileBase,<span class="st">&quot;_K&quot;</span>,</span>
-<span id="cb9-52"><a href="#cb9-52"></a>                          numClasses, <span class="st">&quot;.pdf&quot;</span>),</span>
-<span id="cb9-53"><a href="#cb9-53"></a>                   <span class="dt">paper=</span><span class="st">&quot;a4&quot;</span>, <span class="dt">height=</span><span class="dv">11</span>, <span class="dt">width=</span><span class="dv">8</span>)</span>
-<span id="cb9-54"><a href="#cb9-54"></a></span>
-<span id="cb9-55"><a href="#cb9-55"></a><span class="kw">plotClassMeansWithTracks</span>(allClassMeans, regionGR, <span class="st">&quot;middle&quot;</span>, txdb, featureGR, </span>
-<span id="cb9-56"><a href="#cb9-56"></a>                         bigwigListFile, strandedBwFile)</span>
-<span id="cb9-57"><a href="#cb9-57"></a><span class="kw">dev.off</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="sc">$</span>filename[i], <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span><span class="cn">TRUE</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>regionName<span class="ot">=</span>matTable<span class="sc">$</span>region[i]</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sampleName<span class="ot">=</span>matTable<span class="sc">$</span>sample[i]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>outFileBase<span class="ot">=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>allClassMeansList<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="st">&quot;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/allClassMeans_dS02-182_WBGene00015947.rds&quot;</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>numClasses<span class="ot">=</span><span class="dv">5</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>allClassMeans<span class="ot">&lt;-</span>allClassMeansList[[numClasses]]</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>allClassMeans</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>ampTSS<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="st">&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>winSize<span class="ot">=</span><span class="dv">500</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>tssWin<span class="ot">&lt;-</span>ampTSS</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>GenomicRanges<span class="sc">::</span><span class="fu">mcols</span>(tssWin)<span class="sc">$</span>TSS<span class="ot">&lt;-</span>GenomicRanges<span class="sc">::</span><span class="fu">start</span>(tssWin)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>tssWin<span class="ot">&lt;-</span>GenomicRanges<span class="sc">::</span><span class="fu">resize</span>(tssWin,<span class="at">width=</span>winSize,<span class="at">fix=</span><span class="st">&quot;center&quot;</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(GenomicRanges<span class="sc">::</span><span class="fu">mcols</span>(tssWin))[<span class="dv">1</span>]<span class="ot">&lt;-</span><span class="st">&quot;ID&quot;</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>regionGR<span class="ot">&lt;-</span>tssWin[i]</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>featureGR<span class="ot">&lt;-</span>ampTSS[i]</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>regionName<span class="ot">=</span>matTable<span class="sc">$</span>region[i]</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>sampleName<span class="ot">=</span>matTable<span class="sc">$</span>sample[i]</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>outFileBase<span class="ot">=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">#seqlevels(ampTSS)&lt;-seqlevels(Celegans)</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co">#seqinfo(ampTSS)&lt;-seqinfo(Celegans)</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">#saveRDS(ampTSS,&#39;/Users/semple/Documents/MeisterLab/myPackages/EMclassifieR/inst/extdata/rds/ampliconMaxTSSgr.RDS&#39;)</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co"># genomeVer=&quot;WS275&quot;</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co"># genomeDir=paste0(&quot;~/Documents/MeisterLab/GenomeVer/&quot;,genomeVer)</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co"># txdb&lt;-AnnotationDbi::loadDb(paste0(genomeDir, </span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">#                                    &quot;/annotations/c_elegans.PRJNA13758.&quot;,</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">#                                    genomeVer,  &quot;.annotations.sqlite&quot;))</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co"># seqlevelsStyle(txdb)&lt;-&quot;ucsc&quot;</span></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="co"># GenomeInfoDb::genome(txdb)&lt;-GenomeInfoDb::genome(regionGR)</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co">#library(&quot;TxDb.Celegans.UCSC.ce11.refGene&quot;)</span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>txdb <span class="ot">&lt;-</span> TxDb.Celegans.UCSC.ce11.refGene<span class="sc">::</span>TxDb.Celegans.UCSC.ce11.refGene</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>bigwigListFile<span class="ot">&lt;-</span><span class="st">&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList.txt&quot;</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="co">#bigwigListFile&lt;-&quot;~/Documents/MeisterLab/sequencingData/public/bigwigFileList_kranz.txt&quot;</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>strandedBwFile<span class="ot">&lt;-</span><span class="st">&quot;~/Documents/MeisterLab/sequencingData/public/strandedBwFile.txt&quot;</span></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>gr<span class="ot">&lt;-</span><span class="fu">allClassMeansToGR</span>(allClassMeans, regionGR)</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>dTrack<span class="ot">&lt;-</span>Gviz<span class="sc">::</span><span class="fu">DataTrack</span>(gr,<span class="at">name=</span><span class="st">&quot;dSMF Classes&quot;</span>)</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>Gviz<span class="sc">::</span><span class="fu">plotTracks</span>(dTrack, <span class="at">groups=</span><span class="fu">rep</span>(<span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;class&quot;</span>,<span class="dv">1</span><span class="sc">:</span>numClasses)), <span class="at">times=</span><span class="dv">10</span>),</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>                 <span class="at">type=</span><span class="fu">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;p&quot;</span>,<span class="st">&quot;confint&quot;</span>))</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(txdb)</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>outPath<span class="ot">=</span><span class="st">&quot;./EMres&quot;</span></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>grDevices<span class="sc">::</span><span class="fu">pdf</span>(<span class="fu">paste0</span>(outPath,<span class="st">&quot;/tracks_&quot;</span>,</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>                          outFileBase,<span class="st">&quot;_K&quot;</span>,</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>                          numClasses, <span class="st">&quot;.pdf&quot;</span>),</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>                   <span class="at">paper=</span><span class="st">&quot;a4&quot;</span>, <span class="at">height=</span><span class="dv">11</span>, <span class="at">width=</span><span class="dv">8</span>)</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="fu">plotClassMeansWithTracks</span>(allClassMeans, regionGR, <span class="st">&quot;middle&quot;</span>, txdb, featureGR, </span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>                         bigwigListFile, strandedBwFile)</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
 </div>
 <div id="multigene-classification" class="section level2">
 <h2>Multigene classification</h2>
-<p>First you must create a data set combining and equal amount of reads from different matrices</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>tablePath=<span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>matTable&lt;-<span class="kw">read.csv</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</span>
-<span id="cb10-3"><a href="#cb10-3"></a>                               <span class="dt">mustWork=</span><span class="ot">TRUE</span>), <span class="dt">stringsAsFactors=</span>F)</span>
-<span id="cb10-4"><a href="#cb10-4"></a>matTable&lt;-matTable[<span class="op">!</span><span class="kw">is.na</span>(matTable<span class="op">$</span>filename),]</span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="kw">head</span>(matTable)</span>
-<span id="cb10-7"><a href="#cb10-7"></a>multiGeneMat&lt;-<span class="ot">NULL</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a>genesIncluded&lt;-<span class="dv">0</span></span>
-<span id="cb10-9"><a href="#cb10-9"></a>minReads=<span class="dv">50</span></span>
-<span id="cb10-10"><a href="#cb10-10"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(matTable[matTable<span class="op">$</span>sample<span class="op">==</span><span class="st">&quot;dS02-182&quot;</span>])){</span>
-<span id="cb10-11"><a href="#cb10-11"></a>  regionName=matTable<span class="op">$</span>region[i]</span>
-<span id="cb10-12"><a href="#cb10-12"></a>  sampleName=matTable<span class="op">$</span>sample[i]</span>
-<span id="cb10-13"><a href="#cb10-13"></a>  outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</span>
-<span id="cb10-14"><a href="#cb10-14"></a>  <span class="kw">print</span>(<span class="kw">paste0</span>(<span class="st">&quot;reading matrix number &quot;</span>,i))</span>
-<span id="cb10-15"><a href="#cb10-15"></a>  dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="op">$</span>filename[i], </span>
-<span id="cb10-16"><a href="#cb10-16"></a>                                  <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span><span class="ot">TRUE</span>))</span>
-<span id="cb10-17"><a href="#cb10-17"></a>  <span class="co">#Make sure matrix rows do not have too many NAs</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a>  dataMatrix&lt;-<span class="kw">removeNArows</span>(dataMatrix, <span class="dt">maxNAfraction=</span><span class="fl">0.2</span>, <span class="dt">removeAll0=</span>T)</span>
-<span id="cb10-19"><a href="#cb10-19"></a>  subMatrix&lt;-<span class="kw">selectReadsFromMatrix</span>(dataMatrix,<span class="dt">minReads=</span>minReads,</span>
-<span id="cb10-20"><a href="#cb10-20"></a>                                 <span class="dt">addToReadName=</span>outFileBase,</span>
-<span id="cb10-21"><a href="#cb10-21"></a>                                 <span class="dt">preferBest=</span>T)</span>
-<span id="cb10-22"><a href="#cb10-22"></a>  <span class="cf">if</span>(<span class="op">!</span><span class="kw">is.null</span>(subMatrix)){</span>
-<span id="cb10-23"><a href="#cb10-23"></a>    fullMatrix&lt;-<span class="kw">getFullMatrix</span>(subMatrix)</span>
-<span id="cb10-24"><a href="#cb10-24"></a>    winMatrix&lt;-<span class="kw">prepareWindows</span>(fullMatrix)</span>
-<span id="cb10-25"><a href="#cb10-25"></a>    genesIncluded&lt;-genesIncluded<span class="op">+</span><span class="dv">1</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a>    <span class="cf">if</span>(<span class="kw">is.null</span>(multiGeneMat)){</span>
-<span id="cb10-27"><a href="#cb10-27"></a>      multiGeneMat&lt;-winMatrix</span>
-<span id="cb10-28"><a href="#cb10-28"></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-29"><a href="#cb10-29"></a>      multiGeneMat&lt;-<span class="kw">rbind</span>(multiGeneMat,winMatrix)</span>
-<span id="cb10-30"><a href="#cb10-30"></a>    }</span>
-<span id="cb10-31"><a href="#cb10-31"></a>  }</span>
-<span id="cb10-32"><a href="#cb10-32"></a>}</span>
-<span id="cb10-33"><a href="#cb10-33"></a><span class="kw">print</span>(<span class="kw">paste</span>(genesIncluded,<span class="st">&quot;genes included in the multi gene matrix&quot;</span>))</span>
-<span id="cb10-34"><a href="#cb10-34"></a></span>
-<span id="cb10-35"><a href="#cb10-35"></a><span class="co">#multiGeneMat&lt;-rescale_minus1To1(multiGeneMat)</span></span>
-<span id="cb10-36"><a href="#cb10-36"></a><span class="co">#multiGeneMat&lt;-rescale_0To1(multiGeneMat)</span></span>
-<span id="cb10-37"><a href="#cb10-37"></a><span class="co">#multiGeneMat&lt;-recodeMatrixAsNumeric(multiGeneMat)</span></span>
-<span id="cb10-38"><a href="#cb10-38"></a></span>
-<span id="cb10-39"><a href="#cb10-39"></a>k_range =<span class="st"> </span><span class="dv">2</span><span class="op">:</span><span class="dv">8</span>      <span class="co"># Number of classes to be found</span></span>
-<span id="cb10-40"><a href="#cb10-40"></a>maxIterations =<span class="st"> </span><span class="dv">100</span> <span class="co"># number of iterations of EM clustering to perform if it does not converge</span></span>
-<span id="cb10-41"><a href="#cb10-41"></a>convergenceError =<span class="st"> </span><span class="fl">10e-6</span></span>
-<span id="cb10-42"><a href="#cb10-42"></a>numRepeats=<span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></span>
-<span id="cb10-43"><a href="#cb10-43"></a>xRange=<span class="kw">c</span>(<span class="op">-</span><span class="dv">250</span>,<span class="dv">250</span>)</span>
-<span id="cb10-44"><a href="#cb10-44"></a>maxB=<span class="dv">50</span> <span class="co"># Number of randomised matrices to generate</span></span>
-<span id="cb10-45"><a href="#cb10-45"></a>outPath=<span class="st">&quot;./EMres_multigene_cosine_withNAs&quot;</span></span>
-<span id="cb10-46"><a href="#cb10-46"></a>maxTasks=<span class="dv">4</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a>taskId=<span class="dv">1</span></span>
-<span id="cb10-48"><a href="#cb10-48"></a>nThreads=<span class="dv">4</span></span>
-<span id="cb10-49"><a href="#cb10-49"></a>setSeed=<span class="ot">FALSE</span></span>
-<span id="cb10-50"><a href="#cb10-50"></a>distMetric=<span class="kw">list</span>(<span class="dt">name=</span><span class="st">&quot;cosineDist&quot;</span>,<span class="dt">rescale=</span>T)</span>
-<span id="cb10-51"><a href="#cb10-51"></a></span>
-<span id="cb10-52"><a href="#cb10-52"></a><span class="cf">if</span>(<span class="op">!</span><span class="kw">dir.exists</span>(outPath)){</span>
-<span id="cb10-53"><a href="#cb10-53"></a>  <span class="kw">dir.create</span>(outPath)</span>
-<span id="cb10-54"><a href="#cb10-54"></a>}</span>
-<span id="cb10-55"><a href="#cb10-55"></a></span>
-<span id="cb10-56"><a href="#cb10-56"></a></span>
-<span id="cb10-57"><a href="#cb10-57"></a><span class="kw">set.seed</span>(<span class="dv">200413</span>)</span>
-<span id="cb10-58"><a href="#cb10-58"></a></span>
-<span id="cb10-59"><a href="#cb10-59"></a>regionName=<span class="st">&quot;multiGene&quot;</span></span>
-<span id="cb10-60"><a href="#cb10-60"></a>sampleName=<span class="st">&quot;dS02-182&quot;</span></span>
-<span id="cb10-61"><a href="#cb10-61"></a>outFileBase=<span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>)</span>
-<span id="cb10-62"><a href="#cb10-62"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</span>
-<span id="cb10-63"><a href="#cb10-63"></a>dataMatrix&lt;-multiGeneMat</span>
-<span id="cb10-64"><a href="#cb10-64"></a><span class="kw">dim</span>(dataMatrix)</span>
-<span id="cb10-65"><a href="#cb10-65"></a><span class="co">#dataMatrix&lt;-removeNArows(dataMatrix,maxNAfraction=0)</span></span>
-<span id="cb10-66"><a href="#cb10-66"></a><span class="kw">dim</span>(dataMatrix)</span>
-<span id="cb10-67"><a href="#cb10-67"></a></span>
-<span id="cb10-68"><a href="#cb10-68"></a>allClassMeans&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb10-69"><a href="#cb10-69"></a>  {</span>
-<span id="cb10-70"><a href="#cb10-70"></a>    <span class="kw">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</span>
-<span id="cb10-71"><a href="#cb10-71"></a>    <span class="kw">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</span>
-<span id="cb10-72"><a href="#cb10-72"></a>                       <span class="dt">EMrepeats=</span>numRepeats, <span class="dt">outPath=</span>outPath, <span class="dt">xRange=</span>xRange,</span>
-<span id="cb10-73"><a href="#cb10-73"></a>                       <span class="dt">outFileBase=</span><span class="kw">paste</span>(sampleName, regionName, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),</span>
-<span id="cb10-74"><a href="#cb10-74"></a>                       <span class="dt">doIndividualPlots=</span><span class="ot">FALSE</span>, <span class="dt">distMetric=</span>distMetric)</span>
-<span id="cb10-75"><a href="#cb10-75"></a>    </span>
-<span id="cb10-76"><a href="#cb10-76"></a>  },</span>
-<span id="cb10-77"><a href="#cb10-77"></a>  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb10-78"><a href="#cb10-78"></a>)</span>
-<span id="cb10-79"><a href="#cb10-79"></a></span>
-<span id="cb10-80"><a href="#cb10-80"></a><span class="cf">if</span>(<span class="kw">is.list</span>(allClassMeans)){</span>
-<span id="cb10-81"><a href="#cb10-81"></a>  <span class="kw">saveRDS</span>(allClassMeans,<span class="kw">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</span>
-<span id="cb10-82"><a href="#cb10-82"></a>} <span class="cf">else</span> {</span>
-<span id="cb10-83"><a href="#cb10-83"></a>  <span class="kw">print</span>(allClassMeans) <span class="co"># error message</span></span>
-<span id="cb10-84"><a href="#cb10-84"></a>}</span>
-<span id="cb10-85"><a href="#cb10-85"></a></span>
-<span id="cb10-86"><a href="#cb10-86"></a>clustMetrics&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb10-87"><a href="#cb10-87"></a>  {</span>
-<span id="cb10-88"><a href="#cb10-88"></a>    <span class="kw">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</span>
-<span id="cb10-89"><a href="#cb10-89"></a>    <span class="kw">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</span>
-<span id="cb10-90"><a href="#cb10-90"></a>                          maxIterations, outPath, outFileBase, <span class="dt">EMrep=</span><span class="ot">NULL</span>,</span>
-<span id="cb10-91"><a href="#cb10-91"></a>                          <span class="dt">nThreads=</span>nThreads,</span>
-<span id="cb10-92"><a href="#cb10-92"></a>                          <span class="dt">setSeed=</span>setSeed, <span class="dt">distMetric=</span>distMetric)</span>
-<span id="cb10-93"><a href="#cb10-93"></a>  },</span>
-<span id="cb10-94"><a href="#cb10-94"></a>  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb10-95"><a href="#cb10-95"></a>)</span>
-<span id="cb10-96"><a href="#cb10-96"></a><span class="cf">if</span>(<span class="kw">length</span>(clustMetrics)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb10-97"><a href="#cb10-97"></a>  <span class="kw">print</span>(clustMetrics)</span>
-<span id="cb10-98"><a href="#cb10-98"></a>}</span>
-<span id="cb10-99"><a href="#cb10-99"></a></span>
-<span id="cb10-100"><a href="#cb10-100"></a>pcaPlots&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb10-101"><a href="#cb10-101"></a>  {</span>
-<span id="cb10-102"><a href="#cb10-102"></a>    <span class="kw">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</span>
-<span id="cb10-103"><a href="#cb10-103"></a>    <span class="kw">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
-<span id="cb10-104"><a href="#cb10-104"></a>  },</span>
-<span id="cb10-105"><a href="#cb10-105"></a>  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb10-106"><a href="#cb10-106"></a>)</span>
-<span id="cb10-107"><a href="#cb10-107"></a><span class="cf">if</span>(<span class="kw">length</span>(pcaPlots)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb10-108"><a href="#cb10-108"></a>  <span class="kw">print</span>(pcaPlots)</span>
-<span id="cb10-109"><a href="#cb10-109"></a>}</span>
-<span id="cb10-110"><a href="#cb10-110"></a></span>
-<span id="cb10-111"><a href="#cb10-111"></a>umapPlots&lt;-<span class="kw">tryCatch</span>(</span>
-<span id="cb10-112"><a href="#cb10-112"></a>  {</span>
-<span id="cb10-113"><a href="#cb10-113"></a>    <span class="kw">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</span>
-<span id="cb10-114"><a href="#cb10-114"></a>    <span class="kw">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
-<span id="cb10-115"><a href="#cb10-115"></a>  },</span>
-<span id="cb10-116"><a href="#cb10-116"></a>  <span class="dt">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
-<span id="cb10-117"><a href="#cb10-117"></a>)</span>
-<span id="cb10-118"><a href="#cb10-118"></a><span class="cf">if</span>(<span class="kw">length</span>(umapPlots)<span class="op">==</span><span class="dv">1</span>) {</span>
-<span id="cb10-119"><a href="#cb10-119"></a>  <span class="kw">print</span>(umapPlots)</span>
-<span id="cb10-120"><a href="#cb10-120"></a>}</span>
-<span id="cb10-121"><a href="#cb10-121"></a></span>
-<span id="cb10-122"><a href="#cb10-122"></a><span class="kw">print</span>(<span class="st">&quot;plotting classes per gene&quot;</span>)</span>
-<span id="cb10-123"><a href="#cb10-123"></a><span class="kw">plotGenesPerClass</span>(k_range, outPath, outFileBase)</span>
-<span id="cb10-124"><a href="#cb10-124"></a></span>
-<span id="cb10-125"><a href="#cb10-125"></a><span class="co"># to use -1 to 1</span></span>
-<span id="cb10-126"><a href="#cb10-126"></a><span class="co">#https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain</span></span>
-<span id="cb10-127"><a href="#cb10-127"></a></span>
-<span id="cb10-128"><a href="#cb10-128"></a></span>
-<span id="cb10-129"><a href="#cb10-129"></a>dataMatrix&lt;-<span class="kw">readRDS</span>(<span class="st">&quot;/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/dS02-182_multiGene_K6.rds&quot;</span>)</span>
-<span id="cb10-130"><a href="#cb10-130"></a>outPath=<span class="st">&quot;/Volumes/imaging.data/jsemple/Jenny/20181119_dSMFv002-4amp_N2-182/properpair/EMres_cosine_200reads_m1to1/&quot;</span></span>
-<span id="cb10-131"><a href="#cb10-131"></a>outFileBase=<span class="st">&quot;dS02-182_multiGene&quot;</span></span>
-<span id="cb10-132"><a href="#cb10-132"></a>numClasses=<span class="dv">6</span></span></code></pre></div>
+<p>First you must create a data set combining and equal amount of reads
+from different matrices</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>tablePath<span class="ot">=</span><span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>matTable<span class="ot">&lt;-</span><span class="fu">read.csv</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mustWork=</span><span class="cn">TRUE</span>), <span class="at">stringsAsFactors=</span>F)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>matTable<span class="ot">&lt;-</span>matTable[<span class="sc">!</span><span class="fu">is.na</span>(matTable<span class="sc">$</span>filename),]</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(matTable)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>multiGeneMat<span class="ot">&lt;-</span><span class="cn">NULL</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>genesIncluded<span class="ot">&lt;-</span><span class="dv">0</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>minReads<span class="ot">=</span><span class="dv">50</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>binSize<span class="ot">=</span><span class="dv">20</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>maxNAfraction<span class="ot">=</span><span class="fl">0.2</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(matTable[matTable<span class="sc">$</span>sample<span class="sc">==</span><span class="st">&quot;dS02-182&quot;</span>])){</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  regionName<span class="ot">=</span>matTable<span class="sc">$</span>region[i]</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  sampleName<span class="ot">=</span>matTable<span class="sc">$</span>sample[i]</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  outFileBase<span class="ot">=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;reading matrix number &quot;</span>,i))</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, matTable<span class="sc">$</span>filename[i], </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span><span class="cn">TRUE</span>))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Make sure matrix rows do not have too many NAs</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  dataMatrix<span class="ot">&lt;-</span><span class="fu">removeNArows</span>(dataMatrix, <span class="at">maxNAfraction=</span>maxNAfraction, <span class="at">removeAll0=</span>T)</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  subMatrix<span class="ot">&lt;-</span><span class="fu">selectReadsFromMatrix</span>(dataMatrix,<span class="at">minReads=</span>minReads,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">addToReadName=</span>outFileBase,</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">preferBest=</span>T)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.null</span>(subMatrix)){</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    fullMatrix<span class="ot">&lt;-</span><span class="fu">getFullMatrix</span>(subMatrix)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    winMatrix<span class="ot">&lt;-</span><span class="fu">prepareWindows</span>(fullMatrix, <span class="at">binSize=</span>binSize)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    genesIncluded<span class="ot">&lt;-</span>genesIncluded<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="fu">is.null</span>(multiGeneMat)){</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      multiGeneMat<span class="ot">&lt;-</span>winMatrix</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      multiGeneMat<span class="ot">&lt;-</span><span class="fu">rbind</span>(multiGeneMat,winMatrix)</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(genesIncluded,<span class="st">&quot;genes included in the multi gene matrix&quot;</span>))</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a><span class="co">#multiGeneMat&lt;-rescale_minus1To1(multiGeneMat)</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="co">#multiGeneMat&lt;-rescale_0To1(multiGeneMat)</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="co">#multiGeneMat&lt;-recodeMatrixAsNumeric(multiGeneMat)</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>k_range <span class="ot">=</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">8</span>      <span class="co"># Number of classes to be found</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>maxIterations <span class="ot">=</span> <span class="dv">100</span> <span class="co"># number of iterations of EM clustering to perform if it does not converge</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>convergenceError <span class="ot">=</span> <span class="fl">10e-6</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>numRepeats<span class="ot">=</span><span class="dv">10</span> <span class="co"># number of repeats of clustering each matrix (to account for fraction of methylation)</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>xRange<span class="ot">=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">250</span>,<span class="dv">250</span>)</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>maxB<span class="ot">=</span><span class="dv">50</span> <span class="co"># Number of randomised matrices to generate</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>outPath<span class="ot">=</span><span class="st">&quot;./EMres_multigene_test_mi&quot;</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>maxTasks<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>taskId<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>nThreads<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>setSeed<span class="ot">=</span><span class="cn">FALSE</span></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a><span class="co">#distMetric=list(name=&quot;cosineDist&quot;,valNA=0,rescale=F)</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a><span class="co">#distMetric=list(name=&quot;canberraDist&quot;,rescale=T)</span></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="co">#distMetric=list(name=&quot;correlationDist&quot;,valNA=0.5,rescale=T)</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a><span class="co">#distMetric=list(name=&quot;euclidean&quot;,valNA=0.5,rescale=T)</span></span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>distMetric<span class="ot">=</span><span class="fu">list</span>(<span class="at">name=</span><span class="st">&quot;mutualInformation&quot;</span>,<span class="at">valNA=</span><span class="fl">0.5</span>,<span class="at">rescale=</span>F)</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">dir.exists</span>(outPath)){</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(outPath)</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">200413</span>)</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>regionName<span class="ot">=</span><span class="st">&quot;multiGene&quot;</span></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>sampleName<span class="ot">=</span><span class="st">&quot;dS02-182&quot;</span></span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>outFileBase<span class="ot">=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>)</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;Clustering&quot;</span>, outFileBase))</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span>multiGeneMat</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(dataMatrix)</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a><span class="co">#dataMatrix&lt;-removeNArows(dataMatrix,maxNAfraction=0)</span></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(dataMatrix)</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a><span class="fu">pdf</span>(<span class="at">file=</span><span class="fu">paste0</span>(<span class="st">&quot;hist_w&quot;</span>,binSize,<span class="st">&quot;_NA&quot;</span>,maxNAfraction,<span class="st">&quot;_genes&quot;</span>,genesIncluded,<span class="st">&quot;.pdf&quot;</span>),<span class="at">width=</span><span class="dv">11</span>, <span class="at">height=</span><span class="dv">8</span>, <span class="at">paper=</span><span class="st">&quot;a4r&quot;</span>)</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">rowSums</span>(<span class="fu">is.na</span>(multiGeneMat)),<span class="at">main=</span><span class="fu">paste0</span>(<span class="st">&quot;winSize: &quot;</span>,binSize,<span class="st">&quot;, maxNA: &quot;</span>,maxNAfraction,</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>                                              <span class="st">&quot;, genesIncluded:&quot;</span>,genesIncluded),</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;number of NA windows per molecule&quot;</span>,<span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">500</span>),<span class="at">col=</span><span class="st">&quot;blue&quot;</span>)</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>allClassMeans<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">&quot;running EM for a range of class numbers&quot;</span>)</span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>    <span class="fu">runEMrangeClassNum</span>(dataMatrix, k_range, convergenceError, maxIterations,</span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>                       <span class="at">EMrepeats=</span>numRepeats, <span class="at">outPath=</span>outPath, <span class="at">xRange=</span>xRange,</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>                       <span class="at">outFileBase=</span><span class="fu">paste</span>(sampleName, regionName, <span class="at">sep=</span><span class="st">&quot;_&quot;</span>),</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>                       <span class="at">doIndividualPlots=</span><span class="cn">FALSE</span>, <span class="at">distMetric=</span>distMetric)</span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>  <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">is.list</span>(allClassMeans)){</span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(allClassMeans,<span class="fu">paste0</span>(outPath,<span class="st">&quot;/allClassMeans_&quot;</span>,outFileBase,<span class="st">&quot;.rds&quot;</span>))</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(allClassMeans) <span class="co"># error message</span></span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>clustMetrics<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">&quot;plotting clustering metrics for a range of class sizes&quot;</span>)</span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plotClusteringMetrics</span>(dataMatrix, k_range, maxB, convergenceError,</span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>                          maxIterations, outPath, outFileBase, <span class="at">EMrep=</span><span class="cn">NULL</span>,</span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nThreads=</span>nThreads,</span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>                          <span class="at">setSeed=</span>setSeed, <span class="at">distMetric=</span>distMetric)</span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>  <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(clustMetrics)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(clustMetrics)</span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>pcaPlots<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">&quot;plotting PCA of clusters&quot;</span>)</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plotPCAofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(pcaPlots)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(pcaPlots)</span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>umapPlots<span class="ot">&lt;-</span><span class="fu">tryCatch</span>(</span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">&quot;plotting UMAP of clusters&quot;</span>)</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plotUMAPofMatrixClasses</span>(k_range, outPath, outFileBase)</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>  <span class="at">error=</span><span class="cf">function</span>(e){<span class="st">&quot;Matrix not valid&quot;</span>}</span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(umapPlots)<span class="sc">==</span><span class="dv">1</span>) {</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(umapPlots)</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;plotting classes per gene&quot;</span>)</span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGenesPerClass</span>(k_range, outPath, outFileBase)</span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a><span class="co"># to use -1 to 1</span></span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="co">#https://stats.stackexchange.com/questions/256917/can-an-unstandarized-beta-distribution-have-a-negative-domain</span></span></code></pre></div>
 </div>
 <div id="sorting-reads-of-a-matrix-according-to-classmeans" class="section level2">
 <h2>sorting reads of a matrix according to classMeans</h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>allClassMeans&lt;-<span class="kw">readRDS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, </span>
-<span id="cb11-2"><a href="#cb11-2"></a>                                   <span class="st">&quot;EMres/allClassMeans_dS02-182_multiGene.rds&quot;</span>,</span>
-<span id="cb11-3"><a href="#cb11-3"></a>                                   <span class="dt">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="dt">mustWork=</span>T))</span>
-<span id="cb11-4"><a href="#cb11-4"></a>repMeans&lt;-allClassMeans[[<span class="dv">6</span>]] </span>
-<span id="cb11-5"><a href="#cb11-5"></a>dd&lt;-repMeans <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">group_by</span>(position,class) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">summarize</span>(<span class="dt">classMeans=</span><span class="kw">mean</span>(methFreq))</span>
-<span id="cb11-6"><a href="#cb11-6"></a>dd&lt;-dd <span class="op">%&gt;%</span><span class="st"> </span>tidyr<span class="op">::</span><span class="kw">pivot_wider</span>(<span class="dt">names_from=</span>position,<span class="dt">values_from=</span>classMeans) </span>
-<span id="cb11-7"><a href="#cb11-7"></a>dd&lt;-dd[,<span class="kw">order</span>(<span class="kw">as.numeric</span>(<span class="kw">colnames</span>(dd)))]</span>
-<span id="cb11-8"><a href="#cb11-8"></a></span>
-<span id="cb11-9"><a href="#cb11-9"></a><span class="kw">plot</span>(<span class="kw">as.vector</span>(dd[<span class="dv">1</span>,])<span class="op">~</span><span class="dv">1</span><span class="op">:</span><span class="dv">481</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>allClassMeans<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;EMres/allClassMeans_dS02-182_multiGene.rds&quot;</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span>T))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>classes<span class="ot">&lt;-</span><span class="fu">getClassMeansMatrix</span>(allClassMeans,<span class="at">numClasses=</span><span class="dv">6</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>classes<span class="ot">&lt;-</span><span class="fu">as.matrix</span>(<span class="fu">readRDS</span>(<span class="fu">paste0</span>(<span class="st">&quot;../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc.rds&quot;</span>)))</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>classes<span class="ot">&lt;-</span>classes[<span class="fu">order</span>(<span class="fu">rowMeans</span>(classes)),]</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(classes,<span class="fu">paste0</span>(<span class="st">&quot;../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds&quot;</span>))</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="fu">rowMeans</span>(classes)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>classes<span class="ot">&lt;-</span><span class="fu">padEndToRange</span>(classes,<span class="at">xRange=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">250</span>,<span class="dv">250</span>))</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>classes<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">paste0</span>(<span class="st">&quot;../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.rds&quot;</span>))</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>p<span class="ot">&lt;-</span><span class="fu">plotClassMeans</span>(classes,<span class="at">xRange=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">250</span>,<span class="dv">250</span>), <span class="at">facet=</span><span class="cn">TRUE</span>,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                         <span class="at">title=</span><span class="st">&quot;Class means&quot;</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>                         <span class="at">myXlab=</span><span class="st">&quot;CpG/GpC position&quot;</span>,<span class="at">featureLabel=</span><span class="st">&quot;TSS&quot;</span>,</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>                         <span class="at">baseFontSize=</span><span class="dv">12</span>)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggsave</span>(<span class="st">&quot;../../../sequencingData/TCI_clusters/euc8-10_w30/classMeans_w30_euc_sort.pdf&quot;</span>,p,</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>                <span class="at">height=</span><span class="dv">11</span>,<span class="at">width=</span><span class="dv">4</span>,<span class="at">device=</span><span class="st">&quot;pdf&quot;</span>)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>                                <span class="st">&quot;EMres/dS02-182_multiGene_K6.rds&quot;</span>,</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>                                <span class="at">package=</span><span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span>T))</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>                            <span class="st">&quot;rds/relCoord_ampTSS/dS02-182_WBGene00009620.rds&quot;</span>,</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>                                <span class="at">package=</span><span class="st">&quot;EMclassifieR&quot;</span>, <span class="at">mustWork=</span>T))</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>orderedMat<span class="ot">&lt;-</span>dataMatrix</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span>dataMatrix[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(dataMatrix)[<span class="dv">1</span>],<span class="at">replace=</span>F),]</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(dataMatrix)<span class="ot">&lt;-</span><span class="fu">gsub</span>(<span class="st">&quot;__class.*$&quot;</span>,<span class="st">&quot;&quot;</span>,<span class="fu">rownames</span>(dataMatrix))</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>distMetric<span class="ot">=</span><span class="fu">list</span>(<span class="at">name=</span><span class="st">&quot;euclidean&quot;</span>,<span class="at">rescale=</span>T) <span class="co">#list(name=&quot;euclidean&quot;)</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>dataOrderedByClass<span class="ot">&lt;-</span><span class="fu">runClassLikelihoodRpts</span>(dataMatrix, classes, </span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>                                <span class="at">numRepeats=</span><span class="dv">20</span>, <span class="at">outPath=</span><span class="st">&quot;.&quot;</span>,</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>                                <span class="at">xRange=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">250</span>,<span class="dv">250</span>), <span class="at">outFileBase=</span><span class="st">&quot;test&quot;</span>,</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>                                <span class="at">distMetric=</span>distMetric, <span class="at">classesToPlot=</span><span class="cn">NULL</span>)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>dataMatrix<span class="ot">&lt;-</span>dataOrderedByClass[<span class="sc">-</span><span class="fu">grep</span>(<span class="st">&quot;__class0[1,2,3,4]&quot;</span>,<span class="fu">row.names</span>(dataOrderedByClass)),]</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>tablePath<span class="ot">=</span><span class="st">&quot;csv/MatrixLog_relCoord_ampTSS.csv&quot;</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>matTable<span class="ot">&lt;-</span><span class="fu">read.csv</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, tablePath, <span class="at">package =</span> <span class="st">&quot;EMclassifieR&quot;</span>,</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mustWork=</span><span class="cn">TRUE</span>), <span class="at">stringsAsFactors=</span>F)</span></code></pre></div>
 </div>
 </div>
 

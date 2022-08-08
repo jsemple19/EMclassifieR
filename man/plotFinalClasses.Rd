@@ -14,7 +14,8 @@ plotFinalClasses(
   myXlab,
   featureLabel,
   baseFontSize,
-  figFormat = "png"
+  figFormat = "png",
+  classesToPlot = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ plotFinalClasses(
 \item{baseFontSize}{The base font for the plotting theme (default=12 works well for 4x plots per A4 page)}
 
 \item{figFormat}{format of output figures. Should be one of "png" or "pdf"}
+
+\item{classesToPlot}{A numerical vector indicating which classes to plot (default NULL will plot all classes)}
 }
 \value{
 None
